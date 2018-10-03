@@ -1,0 +1,30 @@
+{
+  "coverageReporters": [
+    "cobertura",
+    "lcovonly"
+  ],
+  "collectCoverageFrom": [
+    "src/**/*.{ts}",
+    "!**/dev/**",
+    "!**/certificates/**",
+    "!**/dist/**",
+    "!**/*.d.ts"
+  ],
+  "coverageThreshold": {
+    "global": {
+      "branches": 30,
+      "functions": 30,
+      "lines": 30,
+      "statements": 30
+    }
+  },
+  "transform": {
+    ".(ts)": "ts-jest"
+  },
+  "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|js)$",
+  "moduleFileExtensions": [
+    "ts",
+    "js",
+    "json"
+  ]
+}
