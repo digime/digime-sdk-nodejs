@@ -145,7 +145,7 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
 
     const options: DigiMeSDKConfiguration = {
         host: "api.digi.me",
-        version: "v1.2",
+        version: "v1.0",
         ...sdkOptions,
     };
 
