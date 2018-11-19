@@ -2,6 +2,7 @@
  * Copyright (c) 2009-2018 digi.me Limited. All rights reserved.
  */
 
+import { PartialAttemptOptions, retry } from "@lifeomic/attempt";
 import isFunction from "lodash.isfunction";
 import isInteger from "lodash.isinteger";
 import isPlainObject from "lodash.isplainobject";
@@ -13,6 +14,7 @@ import { net } from "./net";
 interface DigiMeSDKConfiguration {
     host: string;
     version: string;
+    retryOptions: PartialAttemptOptions<any>;
 }
 
 interface Session {
@@ -20,7 +22,15 @@ interface Session {
     sessionKey: string;
 }
 
-type FileCallback = (fileData: any) => void;
+interface FileMeta {
+    fileData: any;
+    fileName: string;
+}
+
+type FileSuccessResult = { data: any } & FileMeta;
+type FileErrorResult = { error: Error } & FileMeta;
+type FileSuccessHandler = (response: FileSuccessResult) => void;
+type FileErrorHandler = (response: FileErrorResult) => void;
 
 // TODO: replace with build step
 const SDK_VERSION = "0.1.0";
@@ -78,9 +88,13 @@ const _getFileList = async (sessionKey: string, options: DigiMeSDKConfiguration)
     return response.body.fileList;
 };
 
-const _getFile = async (sessionKey: string, fileName: string, options: DigiMeSDKConfiguration): Promise<string> => {
+const _getFile = async (
+    sessionKey: string,
+    fileName: string,
+    options: DigiMeSDKConfiguration,
+): Promise<string> => {
     const url = `https://${options.host}/${options.version}/permission-access/query/${sessionKey}/${fileName}`;
-    const response = await net.get(url, {json: true});
+    const response = await retry(async () => net.get(url, {json: true}), options.retryOptions);
 
     return response.body.fileContent;
 };
@@ -88,16 +102,13 @@ const _getFile = async (sessionKey: string, fileName: string, options: DigiMeSDK
 const _getDataForSession = async (
     sessionKey: string,
     privateKey: NodeRSA.Key,
-    fileCallback: FileCallback,
+    onFileData: FileSuccessHandler,
+    onFileError: FileErrorHandler,
     options: DigiMeSDKConfiguration,
 ): Promise<any> => {
 
     if (!isString(sessionKey)) {
         throw new Error("Parameter sessionKey should be string");
-    }
-
-    if (!isFunction(fileCallback)) {
-        throw new Error("Parameter fileCallback should be a function");
     }
 
     // Set up key
@@ -107,18 +118,31 @@ const _getDataForSession = async (
     );
 
     const fileList = await _getFileList(sessionKey, options);
-
     const filePromises = fileList.map((fileName) => {
+
         return _getFile(sessionKey, fileName, options).then((fileData: string) => {
 
-            const readableData = JSON.parse(decryptData(key, fileData).toString("utf8"));
-
-            if (fileCallback) {
-                fileCallback(readableData);
+            const decryptedData: any = JSON.parse(decryptData(key, fileData).toString("utf8"));
+            if (isFunction(onFileData)) {
+                onFileData({
+                    fileData: decryptedData,
+                    fileName,
+                    fileList,
+                });
             }
 
             return;
+        }).catch((error) => {
+            // Failed all attempts
+            if (isFunction(onFileError)) {
+                onFileError({
+                    error,
+                    fileName,
+                    fileList,
+                });
+            }
 
+            return;
         });
     });
 
@@ -146,6 +170,11 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
     const options: DigiMeSDKConfiguration = {
         host: "api.digi.me",
         version: "v1.0",
+        retryOptions: {
+            delay: 750,
+            factor: 2,
+            maxAttempts: 5,
+        },
         ...sdkOptions,
     };
 
@@ -155,8 +184,13 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
 
     return {
         establishSession: (appId: string, contractId: string) => _establishSession(appId, contractId, options),
-        getDataForSession: (sessionKey: string, privateKey: NodeRSA.Key, fileCallback: FileCallback) => (
-            _getDataForSession(sessionKey, privateKey, fileCallback, options)
+        getDataForSession: (
+            sessionKey: string,
+            privateKey: NodeRSA.Key,
+            onFileData: FileSuccessHandler,
+            onFileError: FileErrorHandler,
+        ) => (
+            _getDataForSession(sessionKey, privateKey, onFileData, onFileError, options)
         ),
         getWebURL: (session: Session, callbackURL: string) => _getWebURL(session, callbackURL, options),
         getAppURL:  (appId: string, session: Session, callbackURL: string) => _getAppURL(appId, session, callbackURL),
@@ -165,6 +199,11 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
 
 export {
     createSDK,
+    FileMeta,
+    FileSuccessResult,
+    FileErrorResult,
+    FileSuccessHandler,
+    FileErrorHandler,
     Session,
     DigiMeSDKConfiguration,
 };
