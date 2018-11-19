@@ -40,9 +40,9 @@ To start fetching data into your application, you will need to authorise a sessi
 The authorisation flow is separated into two phases:
 
 Initialise a session with Digi.me API which returns a session object.
-    ```javascript
+```javascript
     establishSession = async (appId: string, contractId: string, options: DigiMeSDKConfiguration): Promise<Session>;
-    ```
+```
 
 ### Getting User Consent
 In digi.me we provide two different ways to prompt user for consent
@@ -59,12 +59,37 @@ In digi.me we provide two different ways to prompt user for consent
 Regardless of which mode above you've trigger, the callbackURL will be triggered once the user has authorised the consent. The callbackURL will be triggered with a new param `result` where the value will either be `DATA_READY` or `CANCELLED` if the user decided to deny the request.
 
 ### Fetching Data
-Upon successful authorisation you can now request user's files. To fetch all available data for your contract you can call getDataForSession to start your data fetch. You'll need to provide us with a private key with which we will try and decrypt user data. In addition you can pass a fileCallback which will be triggered whenever a user data file is processed and returned to the user.
+Upon successful authorisation you can now request user's files. To fetch all available data for your contract you can call `getDataForSession` to start your data fetch. You'll need to provide us with a private key with which we will try and decrypt user data. In addition you can pass a onFileData and onFileError which will be triggered whenever a user data file is processed or if the fetch errored out.
 ```javascript
 getDataForSession = async (
     sessionKey: string,
     privateKey: NodeRSA.Key,
-    fileCallback: FileCallback,
+    onFileData: FileSuccessHandler,
+    onFileError: FileErrorHandler,
     options: DigiMeSDKConfiguration
 ): Promise<any>;
+```
+
+The `onFileData` callback function is triggered whenever we have received data from the server. The content is passed back in files, so this function will be triggered whenever we have received data from one file. The callback will be triggered with an object in the parameter. The object has the following properties: 
+    1. fileData - JSON string of data objects
+    2. fileName - the filename which the objects reside in
+    3. fileList - the list of all files that are to be returned
+```javascript
+callback = ({
+    fileData: any, 
+    fileName: string, 
+    fileList: string[],
+}): void;
+```
+
+The `onFileError` callback function is triggered whenever we have failed to receive any data for the data file. By default, we try to fetch the data five times with exponential backoff before invoking the error callback. The error callback will be triggered with an object in the parameter. The object has the following properties: 
+    1. error - error object
+    2. fileName - the filename which the objects reside in
+    3. fileList - the list of all files that are to be returned
+```javascript
+callback = ({
+    error: Error, 
+    fileName: string, 
+    fileList: string[],
+}): void;
 ```
