@@ -3,6 +3,7 @@
  */
 
 import { PartialAttemptOptions, retry } from "@lifeomic/attempt";
+import { decompress } from "iltorb";
 import isFunction from "lodash.isfunction";
 import isInteger from "lodash.isinteger";
 import isPlainObject from "lodash.isplainobject";
@@ -14,7 +15,7 @@ import { net } from "./net";
 interface DigiMeSDKConfiguration {
     host: string;
     version: string;
-    retryOptions: PartialAttemptOptions<any>;
+    retryOptions?: PartialAttemptOptions<any>;
 }
 
 interface Session {
@@ -25,6 +26,21 @@ interface Session {
 interface FileMeta {
     fileData: any;
     fileName: string;
+}
+
+interface CAScope {
+    timeRanges?: ITimeRange[];
+}
+
+interface ITimeRange {
+    from?: number;
+    last?: string;
+    to?: number;
+}
+
+interface IGetFileResponse {
+    fileContent: string;
+    compression?: string;
 }
 
 type FileSuccessResult = { data: any } & FileMeta;
@@ -39,6 +55,7 @@ const _establishSession = async (
     appId: string,
     contractId: string,
     options: DigiMeSDKConfiguration,
+    scope?: CAScope,
 ): Promise<Session> => {
     if (!isString(appId)) {
         throw new Error("Parameter appId should be string");
@@ -50,7 +67,14 @@ const _establishSession = async (
 
     const response = await net.post(url, {
         json: true,
-        body: { appId, contractId },
+        body: {
+            appId,
+            contractId,
+            scope,
+            accept: {
+                compression: "brotli",
+            },
+        },
     });
 
     return response.body;
@@ -92,11 +116,15 @@ const _getFile = async (
     sessionKey: string,
     fileName: string,
     options: DigiMeSDKConfiguration,
-): Promise<string> => {
+): Promise<IGetFileResponse> => {
     const url = `https://${options.host}/${options.version}/permission-access/query/${sessionKey}/${fileName}`;
     const response = await retry(async () => net.get(url, {json: true}), options.retryOptions);
+    const {fileContent, compression} = response.body;
 
-    return response.body.fileContent;
+    return {
+        compression,
+        fileContent,
+    };
 };
 
 const _getDataForSession = async (
@@ -120,17 +148,23 @@ const _getDataForSession = async (
     const fileList = await _getFileList(sessionKey, options);
     const filePromises = fileList.map((fileName) => {
 
-        return _getFile(sessionKey, fileName, options).then((fileData: string) => {
+        return _getFile(sessionKey, fileName, options).then(async (fileData: IGetFileResponse) => {
+            const {compression, fileContent} = fileData;
+            let data: Buffer = decryptData(key, fileContent);
 
-            const decryptedData: any = JSON.parse(decryptData(key, fileData).toString("utf8"));
+            if (compression === "brotli") {
+                data = await decompress(data);
+            }
+
+            data = JSON.parse(data.toString("utf8"));
+
             if (isFunction(onFileData)) {
                 onFileData({
-                    fileData: decryptedData,
+                    fileData: data,
                     fileName,
                     fileList,
                 });
             }
-
             return;
         }).catch((error) => {
             // Failed all attempts
@@ -141,13 +175,11 @@ const _getDataForSession = async (
                     fileList,
                 });
             }
-
             return;
         });
     });
 
     await Promise.all(filePromises);
-
     return;
 };
 
@@ -183,7 +215,13 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
     }
 
     return {
-        establishSession: (appId: string, contractId: string) => _establishSession(appId, contractId, options),
+        establishSession: (
+            appId: string,
+            contractId: string,
+            scope?: CAScope,
+        ) => (
+            _establishSession(appId, contractId, options, scope)
+        ),
         getDataForSession: (
             sessionKey: string,
             privateKey: NodeRSA.Key,
@@ -199,6 +237,7 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
 
 export {
     createSDK,
+    CAScope,
     FileMeta,
     FileSuccessResult,
     FileErrorResult,
