@@ -1,0 +1,10 @@
+# Ignore everything by default
+*
+
+# Include these folders in the package
+!dist/**
+!certificates/**
+!src/**
+
+# Exclude tests from the package
+*.spec.*
