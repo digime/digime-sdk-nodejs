@@ -32,7 +32,7 @@ To register a Consent Access contract check out [Digi.me Dev Support](https://de
 When initialising the SDK, you have the ability to override the default behaviour and specify some options. 
 The create SDK function has the following signature:
 ```typescript
-    const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>);
+const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>);
 ```
 
 ##### DigiMeSDKConfiguration 
@@ -42,7 +42,6 @@ interface DigiMeSDKConfiguration {
     host: string;
     version: string;
     retryOptions: PartialAttemptOptions<any>;
-    scope: CAScope;
 }
 ```
 `host` 
@@ -55,12 +54,27 @@ The version of the public api to point to. Default: "v1.0"
 `retryOptions` Type: PartialAttemptOptions<any>
 Options to specify retry logic for failed API calls
 
+##### [PartialAttemptOptions] (https://github.com/lifeomic/attempt/blob/master/src/index.ts#L14-L27)
+
+### Establishing a session
+To start fetching data into your application, you will need to authorise a session.
+The authorisation flow is separated into two phases:
+
+Initialise a session with Digi.me API which returns a session object.
+```typescript
+establishSession = async (appId: string, contractId: string, scope: CAScope): Promise<Session>;
+```
+`appId` Type : string
+Your application ID. You can request this from digi.me.
+
+`contractId` Type : string
+The ID of the contract which you want to make with the user. You can request this from digi.me.
+
 `scope` Type : CAScope
 Options to only return a subset of data the contract asks for. Default: {}
 
-##### [PartialAttemptOptions] (https://github.com/lifeomic/attempt/blob/master/src/index.ts#L14-L27)
-
 ##### CAScope
+
 ```typescript
 interface CAScope {
     timeRanges? : ITimeRange[];
@@ -71,6 +85,7 @@ Type: ITimeRange[]
 Having timeRanges set will allow you to retrieve only a subset of data that the contract has asked for. This might come in handy if you already have data from the existing user and you might only want to retrieve any new data that might have been added to the user's library in the last x months. The format of ITimeRange is as follows:
 
 ##### ITimeRange
+
 ```typescript
 interface ITimeRange {
     from?: number;
@@ -97,17 +112,6 @@ For units we currently accept:
 'y' - year
 
 For example to return data for the last six months : "6m"
-
-
-
-### Establishing a session
-To start fetching data into your application, you will need to authorise a session.
-The authorisation flow is separated into two phases:
-
-Initialise a session with Digi.me API which returns a session object.
-```typescript
-    establishSession = async (appId: string, contractId: string, options: DigiMeSDKConfiguration): Promise<Session>;
-```
 
 ### Getting User Consent
 In digi.me we provide two different ways to prompt user for consent
