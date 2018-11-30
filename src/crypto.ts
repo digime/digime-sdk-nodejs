@@ -4,6 +4,7 @@
 
 import crypto from "crypto";
 import NodeRSA from "node-rsa";
+import { FileDecryptionError } from "./errors";
 
 const BYTES = {
     DSK: [0, 256],
@@ -22,7 +23,7 @@ export const decryptData = (key: NodeRSA, fileData: string): Buffer => {
 
     // Verify file data is of correct length
     if (!isValidSize(fileData)) {
-        throw new Error("File size not valid");
+        throw new FileDecryptionError("File size not valid");
     }
 
     const file: Buffer = Buffer.from(fileData, "base64");
@@ -43,7 +44,7 @@ export const decryptData = (key: NodeRSA, fileData: string): Buffer => {
     const dataHash: Buffer = crypto.createHash("sha512").update(data).digest();
 
     if (!dataHash.equals(hash)) {
-        throw new Error("HASH ERROR");
+        throw new FileDecryptionError("Hash is not valid");
     }
 
     return data;

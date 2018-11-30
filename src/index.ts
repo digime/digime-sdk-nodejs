@@ -5,6 +5,7 @@
 import { createSDK } from "./sdk";
 
 export * from "./sdk";
+export * from "./errors";
 
 export const {
     establishSession,
