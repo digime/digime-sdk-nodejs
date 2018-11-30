@@ -3,13 +3,16 @@
  */
 
 import { PartialAttemptOptions, retry } from "@lifeomic/attempt";
+import { HTTPError } from "got";
 import { decompress } from "iltorb";
+import get from "lodash.get";
 import isFunction from "lodash.isfunction";
 import isInteger from "lodash.isinteger";
 import isPlainObject from "lodash.isplainobject";
 import isString from "lodash.isstring";
 import NodeRSA from "node-rsa";
 import { decryptData } from "./crypto";
+import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import { net } from "./net";
 import sdkVersion from "./sdk-version";
 
@@ -56,34 +59,65 @@ const _establishSession = async (
     scope?: CAScope,
 ): Promise<Session> => {
     if (!isString(appId)) {
-        throw new Error("Parameter appId should be string");
+        throw new ParameterValidationError("Parameter appId should be string");
     }
     if (!isString(contractId)) {
-        throw new Error("Parameter contractId should be string");
+        throw new ParameterValidationError("Parameter contractId should be string");
     }
     const url = `https://${options.host}/${options.version}/permission-access/session`;
 
-    const response = await net.post(url, {
-        json: true,
-        body: {
-            appId,
-            contractId,
-            scope,
-            accept: {
-                compression: "brotli",
-            },
+    const sdkAgent = {
+        name: "js",
+        version: sdkVersion,
+        meta: {
+            node: process.version,
         },
-    });
+    };
+    try {
 
-    return response.body;
+        const response = await net.post(url, {
+            json: true,
+            body: {
+                appId,
+                contractId,
+                scope,
+                sdkAgent,
+                accept: {
+                    compression: "brotli",
+                },
+            },
+        });
+
+        return response.body;
+
+    } catch (error) {
+
+        if (!(error instanceof HTTPError)) {
+            throw error;
+        }
+
+        const errorCode = get(error, "body.error.code");
+
+        if (errorCode === "SDKInvalid") {
+            throw new SDKInvalidError(get(error, "body.error.message"));
+        }
+
+        if (errorCode === "SDKVersionInvalid") {
+            throw new SDKVersionInvalidError(get(error, "body.error.message"));
+        }
+
+        throw error;
+    }
 };
 
 const _getWebURL = (session: Session, callbackURL: string, options: DigiMeSDKConfiguration) => {
     if (!_isSessionValid(session)) {
-        throw new Error("Session should be an object that contains expiry as number and sessionKey property as string");
+        throw new ParameterValidationError(
+            "Session should be an object that contains expiry as number and sessionKey property as string",
+        );
     }
     if (!isString(callbackURL)) {
-        throw new Error("Parameter callbackURL should be string");
+        throw new ParameterValidationError("Parameter callbackURL should be string");
     }
     // tslint:disable-next-line:max-line-length
     return `https://${options.host}/apps/quark/direct-onboarding?sessionKey=${session.sessionKey}&callbackUrl=${encodeURIComponent(callbackURL)}`;
@@ -91,13 +125,15 @@ const _getWebURL = (session: Session, callbackURL: string, options: DigiMeSDKCon
 
 const _getAppURL = (appId: string, session: Session, callbackURL: string) => {
     if (!_isSessionValid(session)) {
-        throw new Error("Session should be an object that contains expiry as number and sessionKey property as string");
+        throw new ParameterValidationError(
+            "Session should be an object that contains expiry as number and sessionKey property as string",
+        );
     }
     if (!isString(callbackURL)) {
-        throw new Error("Parameter callbackURL should be string");
+        throw new ParameterValidationError("Parameter callbackURL should be string");
     }
     if (!isString(appId)) {
-        throw new Error("Parameter appId should be string");
+        throw new ParameterValidationError("Parameter appId should be string");
     }
     // tslint:disable-next-line:max-line-length
     return `digime://consent-access?sessionKey=${session.sessionKey}&callbackURL=${encodeURIComponent(callbackURL)}&appId=${appId}&sdkVersion=${sdkVersion}`;
@@ -134,7 +170,7 @@ const _getDataForSession = async (
 ): Promise<any> => {
 
     if (!isString(sessionKey)) {
-        throw new Error("Parameter sessionKey should be string");
+        throw new ParameterValidationError("Parameter sessionKey should be string");
     }
 
     // Set up key
@@ -194,7 +230,7 @@ const _isPlainObject = (o: unknown): o is { [key: string]: unknown } => isPlainO
 const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
 
     if (sdkOptions !== undefined && !_isPlainObject(sdkOptions)) {
-        throw new Error("SDK options should be object that contains host and version properties");
+        throw new ParameterValidationError("SDK options should be object that contains host and version properties");
     }
 
     const options: DigiMeSDKConfiguration = {
@@ -209,7 +245,9 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
     };
 
     if (!_areOptionsValid(options)) {
-        throw new Error("SDK options should be object that contains host and version properties as string");
+        throw new ParameterValidationError(
+            "SDK options should be object that contains host and version properties as string",
+        );
     }
 
     return {

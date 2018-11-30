@@ -8,6 +8,7 @@ import memoize from "lodash.memoize";
 import path from "path";
 import pkgDir from "pkg-dir";
 import { PeerCertificate } from "tls";
+import { DigiMeSDKError, ServerIdentityError } from "./errors";
 
 type ExtendedGotJSONOptions = got.GotOptions<string | null> & {
     checkServerIdentity?: (host: string, cert: PeerCertificate) => void;
@@ -52,7 +53,7 @@ const packageDir = (): string => {
     const packageDirectory = pkgDir.sync(__dirname);
 
     if (!packageDirectory) {
-        throw new Error("Unable to determine digime-js-sdk package root");
+        throw new DigiMeSDKError("Unable to determine digime-js-sdk package root");
     }
 
     return packageDirectory;
@@ -71,13 +72,13 @@ export const net: typeof got = (got as ExtendableGot).extend({
         }
 
         if (pinnedHost.length <= 0) {
-            throw new Error("Certificate pinning failed!");
+            throw new ServerIdentityError("Certificate pinning failed!");
         }
 
         const hasValidPin = pinnedHost.find((pin) => pin.equals(cert.raw));
 
         if (!hasValidPin) {
-            throw new Error("Certificate pinning failed!");
+            throw new ServerIdentityError("Certificate pinning failed!");
         }
     },
 });
