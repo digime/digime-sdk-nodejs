@@ -3,6 +3,7 @@
  */
 
 import { createSDK, Session } from "./sdk";
+import sdkVersion from "./sdk-version";
 
 const { getAppURL, getWebURL } = createSDK();
 
@@ -14,7 +15,7 @@ const session: Session = {
 describe("Test getAppURL function", () => {
     it("Produces correct app url", () => {
         // tslint:disable-next-line:max-line-length
-        const expected = "digime://consent-access?sessionKey=test-session-key&callbackURL=callback-url&appId=test-app-id&sdkVersion=0.1.0";
+        const expected = `digime://consent-access?sessionKey=test-session-key&callbackURL=callback-url&appId=test-app-id&sdkVersion=${sdkVersion}`;
         const actual = getAppURL("test-app-id", session, "callback-url");
         expect(actual).toEqual(expected);
     });
