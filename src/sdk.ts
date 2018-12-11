@@ -11,6 +11,7 @@ import isString from "lodash.isstring";
 import NodeRSA from "node-rsa";
 import { decryptData } from "./crypto";
 import { net } from "./net";
+import sdkVersion from "./sdk-version";
 
 interface DigiMeSDKConfiguration {
     host: string;
@@ -47,9 +48,6 @@ type FileSuccessResult = { data: any } & FileMeta;
 type FileErrorResult = { error: Error } & FileMeta;
 type FileSuccessHandler = (response: FileSuccessResult) => void;
 type FileErrorHandler = (response: FileErrorResult) => void;
-
-// TODO: replace with build step
-const SDK_VERSION = "0.1.0";
 
 const _establishSession = async (
     appId: string,
@@ -102,7 +100,7 @@ const _getAppURL = (appId: string, session: Session, callbackURL: string) => {
         throw new Error("Parameter appId should be string");
     }
     // tslint:disable-next-line:max-line-length
-    return `digime://consent-access?sessionKey=${session.sessionKey}&callbackURL=${encodeURIComponent(callbackURL)}&appId=${appId}&sdkVersion=${SDK_VERSION}`;
+    return `digime://consent-access?sessionKey=${session.sessionKey}&callbackURL=${encodeURIComponent(callbackURL)}&appId=${appId}&sdkVersion=${sdkVersion}`;
 };
 
 const _getFileList = async (sessionKey: string, options: DigiMeSDKConfiguration): Promise<string[]> => {

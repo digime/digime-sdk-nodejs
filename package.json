@@ -13,7 +13,9 @@
     "lint": "./node_modules/.bin/tslint \"@(src)/**/*.ts?(x)\"",
     "lint-fix": "npm run lint -- --fix",
     "test": "./node_modules/.bin/jest --coverage --config=jest-config.json",
-    "code-statistics": "./node_modules/.bin/sloc src"
+    "code-statistics": "./node_modules/.bin/sloc src",
+    "version": "ts-node ./tools/update-sdk-version.ts",
+    "preversion": "npm run test"
   },
   "repository": {
     "type": "git",
@@ -40,6 +42,7 @@
     "rimraf": "~2.6.2",
     "sloc": "~0.2.0",
     "ts-jest": "~23.10.4",
+    "ts-node": "~7.0.1",
     "tslint": "~5.11.0",
     "typescript": "~3.1.1"
   },
