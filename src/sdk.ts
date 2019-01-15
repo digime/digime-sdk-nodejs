@@ -11,6 +11,7 @@ import isInteger from "lodash.isinteger";
 import isPlainObject from "lodash.isplainobject";
 import isString from "lodash.isstring";
 import NodeRSA from "node-rsa";
+import * as zlib from "zlib";
 import { decryptData } from "./crypto";
 import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import { net } from "./net";
@@ -83,7 +84,7 @@ const _establishSession = async (
                 scope,
                 sdkAgent,
                 accept: {
-                    compression: "brotli",
+                    compression: "gzip",
                 },
             },
         });
@@ -188,6 +189,8 @@ const _getDataForSession = async (
 
             if (compression === "brotli") {
                 data = await decompress(data);
+            } else if (compression === "gzip") {
+                data = zlib.gunzipSync(data);
             }
 
             data = JSON.parse(data.toString("utf8"));
