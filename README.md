@@ -141,15 +141,46 @@ getDataForSession = async (
 
 The `onFileData` callback function is triggered whenever we have received data from the server. The content is passed back in files, so this function will be triggered whenever we have received data from one file. The callback will be triggered with an object in the parameter. The object has the following properties: 
     1. fileData - JSON string of data objects
-    2. fileName - the filename which the objects reside in
-    3. fileList - the list of all files that are to be returned
+    2. fileDescriptor - Object describing data that is returned
+    3. fileName - the filename which the objects reside in
+    4. fileList - the list of all files that are to be returned
 ```typescript
 callback = ({
     fileData: any, 
+    fileDescriptor: IFileDescriptor,
     fileName: string, 
     fileList: string[],
 }): void;
 ```
+
+#### IFileDescriptor
+```typescript
+interface IFileDescriptor {
+    objectCount: number;
+    objectType: string;
+    serviceGroup: string;
+    serviceName: string;
+}
+```
+
+`objectCount` 
+Type: number
+How many data objects are returned in this file.
+
+`objectType`
+Type: string
+What data these objects represent. E.g. Media 
+For a full list, please check out our developer docs [here](http://developers.digi.me/reference-objects).
+
+`serviceGroup`
+Type: string
+What service group the data belongs to. E.g. Social.
+For a full list, please check out our developer docs [here](http://developers.digi.me/reference-objects).
+
+`serviceName`
+Type: string
+What service the data came from. E.g. Facebook.
+For a full list, please check out our developer docs [here](http://developers.digi.me/reference-objects).
 
 The `onFileError` callback function is triggered whenever we have failed to receive any data for the data file. By default, we try to fetch the data five times with exponential backoff before invoking the error callback. The error callback will be triggered with an object in the parameter. The object has the following properties: 
     1. error - error object
