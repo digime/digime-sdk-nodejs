@@ -31,6 +31,7 @@ interface Session {
 interface FileMeta {
     fileData: any;
     fileName: string;
+    fileDescriptor: IFileDescriptor;
 }
 
 interface CAScope {
@@ -45,7 +46,15 @@ interface ITimeRange {
 
 interface IGetFileResponse {
     fileContent: string;
+    fileDescriptor: IFileDescriptor;
     compression?: string;
+}
+
+interface IFileDescriptor {
+    objectCount: number;
+    objectType: string;
+    serviceGroup: string;
+    serviceName: string;
 }
 
 type FileSuccessResult = { data: any } & FileMeta;
@@ -154,11 +163,12 @@ const _getFile = async (
 ): Promise<IGetFileResponse> => {
     const url = `https://${options.host}/${options.version}/permission-access/query/${sessionKey}/${fileName}`;
     const response = await retry(async () => net.get(url, {json: true}), options.retryOptions);
-    const {fileContent, compression} = response.body;
+    const {fileContent, fileMetadata, compression} = response.body;
 
     return {
         compression,
         fileContent,
+        fileDescriptor: fileMetadata,
     };
 };
 
@@ -183,8 +193,8 @@ const _getDataForSession = async (
     const fileList = await _getFileList(sessionKey, options);
     const filePromises = fileList.map((fileName) => {
 
-        return _getFile(sessionKey, fileName, options).then(async (fileData: IGetFileResponse) => {
-            const {compression, fileContent} = fileData;
+        return _getFile(sessionKey, fileName, options).then(async (response: IGetFileResponse) => {
+            const {compression, fileContent, fileDescriptor} = response;
             let data: Buffer = decryptData(key, fileContent);
 
             if (compression === "brotli") {
@@ -198,6 +208,7 @@ const _getDataForSession = async (
             if (isFunction(onFileData)) {
                 onFileData({
                     fileData: data,
+                    fileDescriptor,
                     fileName,
                     fileList,
                 });
