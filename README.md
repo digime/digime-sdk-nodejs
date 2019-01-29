@@ -1,9 +1,9 @@
-# Digi.me SDK for javascript
+# Digi.me SDK for JavaScript/TypeScript
 ---
-The Digi.me SDK for Javascript/Typescript is a Node library that allows seamless authentication with Consent Access service, making content requests and core decryption services. For details on the API and general CA architecture - visit [Dev Support Docs](https://developers.digi.me/consent-access.html)
+The Digi.me SDK for JavaScript/TypeScript is a Node library that allows seamless authentication with Consent Access service, making content requests and core decryption services. For details on the API and general CA architecture - visit [Dev Support Docs](https://developers.digi.me/consent-access.html)
 
 ## Prerequisite 
-In order to run the complete Consent Access process, the Digi.me SDK for javascript required the Digi.me app being installed on either an iOS or Android device to enable user authorization of requests. For detailed explanation of the Consent Acess architecture - visit [Dev Support Docs](https://developers.digi.me/consent-access.html)
+In order to run the complete Consent Access process, the Digi.me SDK for JavaScript required the Digi.me app being installed on either an iOS or Android device to enable user authorization of requests. For detailed explanation of the Consent Acess architecture - visit [Dev Support Docs](https://developers.digi.me/consent-access.html)
 
 ## Requirements
 - Node 8 or above
@@ -11,10 +11,18 @@ In order to run the complete Consent Access process, the Digi.me SDK for javascr
 ## Table of Contents
 
   * [Installation](#installation)
+  * [Example Application](#example-application)
   * [SDK usage](#sdk-usage)
 
 ## Installation
-Details to come.
+
+Using npm:
+```shell
+$ npm i --save digime-js-sdk
+```
+
+## Example Application
+You can check out an example application which uses the Digi.me SDK [here](https://github.com/digime/digime-js-sdk-example)
 
 ## SDK Usage
 ### Obtaining your Contract ID/App ID/Private Key
@@ -54,7 +62,8 @@ The version of the public api to point to. Default: "v1.0"
 `retryOptions` Type: PartialAttemptOptions<any>
 Options to specify retry logic for failed API calls
 
-##### [PartialAttemptOptions] (https://github.com/lifeomic/attempt/blob/master/src/index.ts#L14-L27)
+##### PartialAttemptOptions 
+Check out the class [here](https://github.com/lifeomic/attempt/blob/master/src/index.ts#L14-L27)
 
 ### Establishing a session
 To start fetching data into your application, you will need to authorise a session.
@@ -104,12 +113,12 @@ This is the unix timestamp in seconds. If this is set, we will return data creat
 
 `last`
 Type: string
-You can set a dynamic time range based on the current date. The string is in the format of "<value><unit>"
+You can set a dynamic time range based on the current date. The string is in the format of "{value}{unit}"
 For units we currently accept:
 
-'d' - day
-'m' - month
-'y' - year
+'d' - day  
+'m' - month  
+'y' - year  
 
 For example to return data for the last six months : "6m"
 
