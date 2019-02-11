@@ -12,4 +12,7 @@ export const {
     getDataForSession,
     getWebURL,
     getAppURL,
+    getPostboxURL,
+    pushDataToPostbox,
+    getPushCompleteURL,
 } = createSDK();
