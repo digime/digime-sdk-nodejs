@@ -15,6 +15,11 @@ const BYTES = {
     DATA: [64],
 };
 
+const ALPHA_LOWER: string = `abcdefghijklmnopqrstuvwxyz`;
+const ALPHA_UPPER: string = ALPHA_LOWER.toUpperCase();
+const NUMERIC: string = `0123456789`;
+const ALPHA_NUMERIC: string = `${ALPHA_LOWER}${ALPHA_UPPER}${NUMERIC}`;
+
 const isValidSize = (data: string): boolean => {
     const bytes = Buffer.byteLength(data, "base64");
     return bytes >= 352 && bytes % 16 === 0;
@@ -54,6 +59,15 @@ const decryptData = (key: NodeRSA, fileData: string): Buffer => {
     return data;
 };
 
+const encryptData = (iv: Buffer, key: Buffer, input: Buffer): Buffer => {
+    const cipher: crypto.Cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
+    const concat: Buffer = Buffer.concat([cipher.update(input), cipher.final()]);
+    return concat;
+};
+
 export {
+    encryptData,
     decryptData,
+    ALPHA_NUMERIC,
+    ALPHA_LOWER,
 };

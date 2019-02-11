@@ -3,6 +3,7 @@
  */
 
 import { PartialAttemptOptions, retry } from "@lifeomic/attempt";
+import FormData from "form-data";
 import { HTTPError } from "got";
 import { decompress } from "iltorb";
 import get from "lodash.get";
@@ -10,9 +11,10 @@ import isFunction from "lodash.isfunction";
 import isInteger from "lodash.isinteger";
 import isPlainObject from "lodash.isplainobject";
 import isString from "lodash.isstring";
+import generate from "nanoid/generate";
 import NodeRSA from "node-rsa";
 import * as zlib from "zlib";
-import { decryptData } from "./crypto";
+import { ALPHA_LOWER, ALPHA_NUMERIC, decryptData, encryptData } from "./crypto";
 import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import { net } from "./net";
 import sdkVersion from "./sdk-version";
@@ -150,6 +152,27 @@ const _getAppURL = (appId: string, session: Session, callbackURL: string) => {
     return `digime://consent-access?sessionKey=${session.sessionKey}&callbackURL=${encodeURIComponent(callbackURL)}&appId=${appId}&sdkVersion=${sdkVersion}`;
 };
 
+const _getPostboxURL = (appId: string, session: Session, callbackURL: string) => {
+    if (!_isSessionValid(session)) {
+        throw new ParameterValidationError(
+            "Session should be an object that contains expiry as number and sessionKey property as string",
+        );
+    }
+    if (!isString(callbackURL)) {
+        throw new ParameterValidationError("Parameter callbackURL should be string");
+    }
+    if (!isString(appId)) {
+        throw new ParameterValidationError("Parameter appId should be string");
+    }
+    // tslint:disable-next-line:max-line-length
+    return `digime://postbox/create?sessionKey=${session.sessionKey}&callbackURL=${encodeURIComponent(callbackURL)}&appId=${appId}&sdkVersion=${sdkVersion}`;
+};
+
+const _getPushCompleteURL = (sessionId: string, postboxId: string, callbackURL: string) => {
+    // tslint:disable-next-line:max-line-length
+    return `digime://postbox/push-complete?sessionKey=${sessionId}&postboxId=${postboxId}&callbackURL=${encodeURIComponent(callbackURL)}&sdkVersion=${sdkVersion}`;
+};
+
 const _getFileList = async (sessionKey: string, options: DigiMeSDKConfiguration): Promise<string[]> => {
     const url = `https://${options.host}/${options.version}/permission-access/query/${sessionKey}`;
     const response = await net.get(url, {json: true});
@@ -228,6 +251,59 @@ const _getDataForSession = async (
     return;
 };
 
+const _pushDataToPostbox = async (
+    sessionKey: string,
+    postboxId: string,
+    publicKey: string,
+    dataString: string,
+    metadataString: string,
+    options: DigiMeSDKConfiguration,
+): Promise<any> => {
+    const key: string = generate(ALPHA_NUMERIC, 32);
+    const rsa: NodeRSA = new NodeRSA(Buffer.from(publicKey, "utf8"), "pkcs1-public");
+    const encryptedKey: Buffer = rsa.encrypt(Buffer.from(key));
+    const iv: Buffer = Buffer.from(generate(ALPHA_LOWER, 16));
+    const encryptedData: Buffer = encryptData(iv, Buffer.from(key, "utf8"), Buffer.from(dataString, "utf8"));
+    const encryptedMetadata: Buffer = encryptData(iv, Buffer.from(key, "utf8"), Buffer.from(metadataString, "utf8"));
+    const url: string = `https://${options.host}/${options.version}/permission-access/postbox/${postboxId}`;
+    const form: FormData = new FormData();
+    form.append("file", encryptedData, { filename : "document.pdf" });
+
+    const headers = {
+        accept: "application/json",
+        contentType: "multipart/form-data",
+        sessionKey,
+        metadata: encryptedMetadata.toString("base64"),
+        symmetricalKey: encryptedKey.toString("base64"),
+        iv: iv.toString("utf8"),
+    };
+
+    try {
+        const response = await net.post(url, {
+            headers,
+            body: form,
+        });
+
+        return response.body;
+    } catch (error) {
+        if (!(error instanceof HTTPError)) {
+            throw error;
+        }
+
+        const errorCode = get(error, "body.error.code");
+
+        if (errorCode === "SDKInvalid") {
+            throw new SDKInvalidError(get(error, "body.error.message"));
+        }
+
+        if (errorCode === "SDKVersionInvalid") {
+            throw new SDKVersionInvalidError(get(error, "body.error.message"));
+        }
+
+        throw error;
+    }
+};
+
 const _isSessionValid = (session: unknown): session is Session => (
     _isPlainObject(session) && isInteger(session.expiry) && isString(session.sessionKey)
 );
@@ -248,7 +324,7 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
 
     const options: DigiMeSDKConfiguration = {
         host: "api.digi.me",
-        version: "v1.0",
+        version: "v1",
         retryOptions: {
             delay: 750,
             factor: 2,
@@ -279,8 +355,42 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
         ) => (
             _getDataForSession(sessionKey, privateKey, onFileData, onFileError, options)
         ),
-        getWebURL: (session: Session, callbackURL: string) => _getWebURL(session, callbackURL, options),
-        getAppURL:  (appId: string, session: Session, callbackURL: string) => _getAppURL(appId, session, callbackURL),
+        pushDataToPostbox: (
+            sessionKey: string,
+            postboxId: string,
+            publicKey: string,
+            dataString: string,
+            metadataString: string,
+        ) => (
+            _pushDataToPostbox(sessionKey, postboxId, publicKey, dataString, metadataString, options)
+        ),
+        getAppURL:  (
+            appId: string,
+            session: Session,
+            callbackURL: string,
+        ) => (
+            _getAppURL(appId, session, callbackURL)
+        ),
+        getPostboxURL: (
+            appId: string,
+            session: Session,
+            callbackURL: string,
+        ) => (
+            _getPostboxURL(appId, session, callbackURL)
+        ),
+        getWebURL: (
+            session: Session,
+            callbackURL: string,
+        ) => (
+            _getWebURL(session, callbackURL, options)
+        ),
+        getPushCompleteURL: (
+            sessionId: string,
+            postboxId: string,
+            callbackURL: string,
+        ) => (
+            _getPushCompleteURL(sessionId, postboxId, callbackURL)
+        ),
     };
 };
 
