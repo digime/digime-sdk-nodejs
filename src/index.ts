@@ -13,4 +13,7 @@ export const {
     getWebURL,
     getAppURL,
     getReceiptURL,
+    getPostboxURL,
+    pushDataToPostbox,
+    getPushCompleteURL,
 } = createSDK();

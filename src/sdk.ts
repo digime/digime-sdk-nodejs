@@ -7,15 +7,14 @@ import { HTTPError } from "got";
 import { decompress } from "iltorb";
 import get from "lodash.get";
 import isFunction from "lodash.isfunction";
-import isInteger from "lodash.isinteger";
-import isPlainObject from "lodash.isplainobject";
-import isString from "lodash.isstring";
 import NodeRSA from "node-rsa";
 import * as zlib from "zlib";
 import { decryptData } from "./crypto";
 import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import { net } from "./net";
+import { getPostboxURL, getPushCompletionURL, pushDataToPostbox, PushedFileMeta } from "./postbox";
 import sdkVersion from "./sdk-version";
+import { areOptionsValid, isPlainObject, isSessionValid, isValidString } from "./utils";
 
 interface DigiMeSDKConfiguration {
     host: string;
@@ -29,33 +28,34 @@ interface Session {
     sessionExchangeToken: string;
 }
 
-interface FileMeta {
+interface FileMeta<T = FileDescriptor> {
     fileData: any;
     fileName: string;
-    fileDescriptor: IFileDescriptor;
+    fileDescriptor: T;
 }
 
 interface CAScope {
-    timeRanges?: ITimeRange[];
+    timeRanges?: TimeRange[];
 }
 
-interface ITimeRange {
+interface TimeRange {
     from?: number;
     last?: string;
     to?: number;
 }
 
-interface IGetFileResponse {
+interface GetFileResponse {
     fileContent: string;
-    fileDescriptor: IFileDescriptor;
+    fileDescriptor: FileDescriptor;
     compression?: string;
 }
 
-interface IFileDescriptor {
+interface FileDescriptor {
     objectCount: number;
     objectType: string;
     serviceGroup: string;
     serviceName: string;
+    mimetype?: string;
 }
 
 type FileSuccessResult = { data: any } & FileMeta;
@@ -69,10 +69,10 @@ const _establishSession = async (
     options: DigiMeSDKConfiguration,
     scope?: CAScope,
 ): Promise<Session> => {
-    if (!_isValidString(appId)) {
+    if (!isValidString(appId)) {
         throw new ParameterValidationError("Parameter appId should be a non empty string");
     }
-    if (!_isValidString(contractId)) {
+    if (!isValidString(contractId)) {
         throw new ParameterValidationError("Parameter contractId should be a non empty string");
     }
     const url = `https://${options.host}/${options.version}/permission-access/session`;
@@ -123,13 +123,13 @@ const _establishSession = async (
 };
 
 const _getWebURL = (session: Session, callbackURL: string, options: DigiMeSDKConfiguration) => {
-    if (!_isSessionValid(session)) {
+    if (!isSessionValid(session)) {
         throw new ParameterValidationError(
             // tslint:disable-next-line: max-line-length
             "Session should be an object that contains expiry as number, sessionKey and sessionExchangeToken property as string",
         );
     }
-    if (!_isValidString(callbackURL)) {
+    if (!isValidString(callbackURL)) {
         throw new ParameterValidationError("Parameter callbackURL should be a non empty string");
     }
     // tslint:disable-next-line:max-line-length
@@ -137,16 +137,16 @@ const _getWebURL = (session: Session, callbackURL: string, options: DigiMeSDKCon
 };
 
 const _getAppURL = (appId: string, session: Session, callbackURL: string) => {
-    if (!_isSessionValid(session)) {
+    if (!isSessionValid(session)) {
         throw new ParameterValidationError(
             // tslint:disable-next-line: max-line-length
             "Session should be an object that contains expiry as number, sessionKey and sessionExchangeToken property as string",
         );
     }
-    if (!_isValidString(callbackURL)) {
+    if (!isValidString(callbackURL)) {
         throw new ParameterValidationError("Parameter callbackURL should be string");
     }
-    if (!_isValidString(appId)) {
+    if (!isValidString(appId)) {
         throw new ParameterValidationError("Parameter appId should be a non empty string");
     }
     // tslint:disable-next-line:max-line-length
@@ -154,10 +154,10 @@ const _getAppURL = (appId: string, session: Session, callbackURL: string) => {
 };
 
 const _getReceiptURL = (contractId: string, appId: string) => {
-    if (!_isValidString(contractId)) {
+    if (!isValidString(contractId)) {
         throw new ParameterValidationError("Parameter contractId should be a non empty string");
     }
-    if (!_isValidString(appId)) {
+    if (!isValidString(appId)) {
         throw new ParameterValidationError("Parameter appId should be a non empty string");
     }
     return `digime://receipt?contractid=${contractId}&appid=${appId}`;
@@ -165,7 +165,7 @@ const _getReceiptURL = (contractId: string, appId: string) => {
 
 const _getFileList = async (sessionKey: string, options: DigiMeSDKConfiguration): Promise<string[]> => {
     const url = `https://${options.host}/${options.version}/permission-access/query/${sessionKey}`;
-    const response = await net.get(url, {json: true});
+    const response = await net.get(url, { json: true });
 
     return response.body.fileList;
 };
@@ -174,10 +174,10 @@ const _getFile = async (
     sessionKey: string,
     fileName: string,
     options: DigiMeSDKConfiguration,
-): Promise<IGetFileResponse> => {
+): Promise<GetFileResponse> => {
     const url = `https://${options.host}/${options.version}/permission-access/query/${sessionKey}/${fileName}`;
-    const response = await retry(async () => net.get(url, {json: true}), options.retryOptions);
-    const {fileContent, fileMetadata, compression} = response.body;
+    const response = await retry(async () => net.get(url, { json: true }), options.retryOptions);
+    const { fileContent, fileMetadata, compression } = response.body;
 
     return {
         compression,
@@ -194,7 +194,7 @@ const _getDataForSession = async (
     options: DigiMeSDKConfiguration,
 ): Promise<any> => {
 
-    if (!_isValidString(sessionKey)) {
+    if (!isValidString(sessionKey)) {
         throw new ParameterValidationError("Parameter sessionKey should be a non empty string");
     }
 
@@ -203,8 +203,9 @@ const _getDataForSession = async (
     const fileList = await _getFileList(sessionKey, options);
     const filePromises = fileList.map((fileName) => {
 
-        return _getFile(sessionKey, fileName, options).then(async (response: IGetFileResponse) => {
-            const {compression, fileContent, fileDescriptor} = response;
+        return _getFile(sessionKey, fileName, options).then(async (response: GetFileResponse) => {
+            const { compression, fileContent, fileDescriptor } = response;
+            const { mimetype } = fileDescriptor;
             let data: Buffer = decryptData(key, fileContent);
 
             if (compression === "brotli") {
@@ -213,11 +214,16 @@ const _getDataForSession = async (
                 data = zlib.gunzipSync(data);
             }
 
-            data = JSON.parse(data.toString("utf8"));
+            let fileData: any = data;
+            if (!mimetype) {
+                fileData = JSON.parse(data.toString("utf8"));
+            } else {
+                fileData = data.toString("base64");
+            }
 
             if (isFunction(onFileData)) {
                 onFileData({
-                    fileData: data,
+                    fileData,
                     fileDescriptor,
                     fileName,
                     fileList,
@@ -241,24 +247,9 @@ const _getDataForSession = async (
     return;
 };
 
-const _isSessionValid = (session: unknown): session is Session => (
-    _isPlainObject(session) &&
-    isInteger(session.expiry) &&
-    isString(session.sessionKey) &&
-    isString(session.sessionExchangeToken)
-);
-
-const _areOptionsValid = (options: unknown): options is DigiMeSDKConfiguration => (
-    _isPlainObject(options) && isString(options.host) && isString(options.version)
-);
-
-const _isPlainObject = (o: unknown): o is { [key: string]: unknown } => isPlainObject(o);
-
-const _isValidString = (o: unknown): o is string => isString(o) && o.length > 0;
-
 const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
 
-    if (sdkOptions !== undefined && !_isPlainObject(sdkOptions)) {
+    if (sdkOptions !== undefined && !isPlainObject(sdkOptions)) {
         throw new ParameterValidationError("SDK options should be object that contains host and version properties");
     }
 
@@ -273,7 +264,7 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
         ...sdkOptions,
     };
 
-    if (!_areOptionsValid(options)) {
+    if (!areOptionsValid(options)) {
         throw new ParameterValidationError(
             "SDK options should be object that contains host and version properties as string",
         );
@@ -295,14 +286,53 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
         ) => (
             _getDataForSession(sessionKey, privateKey, onFileData, onFileError, options)
         ),
-        getWebURL: (session: Session, callbackURL: string) => _getWebURL(session, callbackURL, options),
-        getAppURL:  (appId: string, session: Session, callbackURL: string) => _getAppURL(appId, session, callbackURL),
-        getReceiptURL: (contractId: string, appId: string) => _getReceiptURL(contractId, appId),
+        pushDataToPostbox: (
+            sessionKey: string,
+            postboxId: string,
+            publicKey: string,
+            pushedData: FileMeta<PushedFileMeta>,
+        ) => (
+            pushDataToPostbox(sessionKey, postboxId, publicKey, pushedData, options)
+        ),
+        getAppURL: (
+            appId: string,
+            session: Session,
+            callbackURL: string,
+        ) => (
+            _getAppURL(appId, session, callbackURL)
+        ),
+        getReceiptURL: (
+            contractId: string,
+            appId: string,
+        ) => (
+            _getReceiptURL(contractId, appId)
+        ),
+        getPostboxURL: (
+            appId: string,
+            session: Session,
+            callbackURL: string,
+        ) => (
+            getPostboxURL(appId, session, callbackURL)
+        ),
+        getWebURL: (
+            session: Session,
+            callbackURL: string,
+        ) => (
+            _getWebURL(session, callbackURL, options)
+        ),
+        getPushCompleteURL: (
+            sessionKey: string,
+            postboxId: string,
+            callbackURL: string,
+        ) => (
+            getPushCompletionURL(sessionKey, postboxId, callbackURL)
+        ),
     };
 };
 
 export {
     createSDK,
+    isSessionValid,
     CAScope,
     FileMeta,
     FileSuccessResult,

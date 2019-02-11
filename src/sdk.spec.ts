@@ -19,7 +19,6 @@ import * as SDK from "./";
 import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import sdkVersion from "./sdk-version";
 
-type SDKType = ReturnType<typeof SDK.createSDK>;
 const customSDK = SDK.createSDK({
     host: "api.digi.test",
     version: "v7",
@@ -59,7 +58,7 @@ describe("createSDK", () => {
 
 });
 
-describe.each<[string, SDKType, string, string]>([
+describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
     ["Default exported SDK", SDK, "api.digi.me", "v1.0"],
     ["Custom SDK", customSDK, "api.digi.test", "v7"],
 ])(
