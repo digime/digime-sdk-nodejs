@@ -29,6 +29,7 @@
   "homepage": "https://github.com/digime/digime-js-sdk#readme",
   "devDependencies": {
     "@types/got": "~9.6.2",
+    "@types/iltorb": "~2.3.0",
     "@types/jest": "~24.0.15",
     "@types/lodash.escaperegexp": "~4.1.6",
     "@types/lodash.get": "~4.4.6",
@@ -54,7 +55,7 @@
   },
   "dependencies": {
     "@lifeomic/attempt": "~3.0.0",
-    "@types/iltorb": "~2.3.0",
+    "form-data": "~2.5.0",
     "got": "~9.6.0",
     "iltorb": "~2.4.3",
     "lodash.get": "~4.4.2",

@@ -54,6 +54,16 @@ const decryptData = (key: NodeRSA, fileData: string): Buffer => {
     return data;
 };
 
+const encryptData = (iv: Buffer, key: Buffer, input: Buffer): Buffer => {
+    const cipher: crypto.Cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
+    const concat: Buffer = Buffer.concat([cipher.update(input), cipher.final()]);
+    return concat;
+};
+
+const getRandomHex = (size: number): string => crypto.randomBytes(Math.ceil(size / 2)).toString("hex").slice(0, size);
+
 export {
+    encryptData,
     decryptData,
+    getRandomHex,
 };
