@@ -1,6 +1,6 @@
 {
   "name": "@digime/digime-js-sdk",
-  "version": "0.4.0",
+  "version": "0.4.0-postbox.0",
   "description": "digime-js-sdk",
   "main": "dist/main/index.js",
   "typings": "dist/types/index.d.ts",
@@ -54,7 +54,9 @@
   },
   "dependencies": {
     "@lifeomic/attempt": "~3.0.0",
+    "@types/form-data": "~2.2.1",
     "@types/iltorb": "~2.3.0",
+    "form-data": "~2.3.3",
     "got": "~9.6.0",
     "iltorb": "~2.4.3",
     "lodash.get": "~4.4.2",
