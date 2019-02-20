@@ -2,7 +2,7 @@
 ---
 The Digi.me SDK for JavaScript/TypeScript is a Node library that allows seamless authentication with Consent Access service, making content requests and core decryption services. For details on the API and general CA architecture - visit [Dev Support Docs](https://developers.digi.me/consent-access.html)
 
-## Prerequisite 
+## Prerequisite
 In order to run the complete Consent Access process, the Digi.me SDK for JavaScript required the Digi.me app being installed on either an iOS or Android device to enable user authorization of requests. For detailed explanation of the Consent Acess architecture - visit [Dev Support Docs](https://developers.digi.me/consent-access.html)
 
 ## Requirements
@@ -18,7 +18,7 @@ In order to run the complete Consent Access process, the Digi.me SDK for JavaScr
 
 Using npm:
 ```shell
-$ npm i --save digime-js-sdk
+$ npm i @digime/digime-js-sdk
 ```
 
 ## Example Application
@@ -37,13 +37,13 @@ A private key is needed to decrypt data that is passed back. Digi.me can provide
 To register a Consent Access contract check out [Digi.me Dev Support](https://developers.digi.me). There you can request a Contract ID and App ID to which it is bound.
 
 ### Configuring the SDK
-When initialising the SDK, you have the ability to override the default behaviour and specify some options. 
+When initialising the SDK, you have the ability to override the default behaviour and specify some options.
 The create SDK function has the following signature:
 ```typescript
 const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>);
 ```
 
-##### DigiMeSDKConfiguration 
+##### DigiMeSDKConfiguration
 Options you can configure when initialising the SDK:
 ```typescript
 interface DigiMeSDKConfiguration {
@@ -52,8 +52,8 @@ interface DigiMeSDKConfiguration {
     retryOptions: PartialAttemptOptions<any>;
 }
 ```
-`host` 
-Type: string 
+`host`
+Type: string
 The environment of digi.me to point to. By default it will use the production environment of digi.me. Unless specifically instructed, it is best to use this environment as it will be the most stable. Default: "api.digi.me"
 
 `version` Type: string
@@ -62,7 +62,7 @@ The version of the public api to point to. Default: "v1.0"
 `retryOptions` Type: PartialAttemptOptions<any>
 Options to specify retry logic for failed API calls
 
-##### PartialAttemptOptions 
+##### PartialAttemptOptions
 Check out the class [here](https://github.com/lifeomic/attempt/blob/master/src/index.ts#L14-L27)
 
 ### Establishing a session
@@ -89,7 +89,7 @@ interface CAScope {
     timeRanges? : ITimeRange[];
 }
 ```
-`timeRanges` 
+`timeRanges`
 Type: ITimeRange[]
 Having timeRanges set will allow you to retrieve only a subset of data that the contract has asked for. This might come in handy if you already have data from the existing user and you might only want to retrieve any new data that might have been added to the user's library in the last x months. The format of ITimeRange is as follows:
 
@@ -103,11 +103,11 @@ interface ITimeRange {
 }
 ```
 
-`from` 
+`from`
 Type: number
 This is the unix timestamp in seconds. If this is set, we will return data created after this timestamp.
 
-`to` 
+`to`
 Type: number
 This is the unix timestamp in seconds. If this is set, we will return data created before this timestamp.
 
@@ -116,9 +116,9 @@ Type: string
 You can set a dynamic time range based on the current date. The string is in the format of "{value}{unit}"
 For units we currently accept:
 
-'d' - day  
-'m' - month  
-'y' - year  
+'d' - day
+'m' - month
+'y' - year
 
 For example to return data for the last six months : "6m"
 
@@ -148,16 +148,16 @@ getDataForSession = async (
 ): Promise<any>;
 ```
 
-The `onFileData` callback function is triggered whenever we have received data from the server. The content is passed back in files, so this function will be triggered whenever we have received data from one file. The callback will be triggered with an object in the parameter. The object has the following properties: 
+The `onFileData` callback function is triggered whenever we have received data from the server. The content is passed back in files, so this function will be triggered whenever we have received data from one file. The callback will be triggered with an object in the parameter. The object has the following properties:
     1. fileData - JSON string of data objects
     2. fileDescriptor - Object describing data that is returned
     3. fileName - the filename which the objects reside in
     4. fileList - the list of all files that are to be returned
 ```typescript
 callback = ({
-    fileData: any, 
+    fileData: any,
     fileDescriptor: IFileDescriptor,
-    fileName: string, 
+    fileName: string,
     fileList: string[],
 }): void;
 ```
@@ -172,13 +172,13 @@ interface IFileDescriptor {
 }
 ```
 
-`objectCount` 
+`objectCount`
 Type: number
 How many data objects are returned in this file.
 
 `objectType`
 Type: string
-What data these objects represent. E.g. Media 
+What data these objects represent. E.g. Media
 For a full list, please check out our developer docs [here](http://developers.digi.me/reference-objects).
 
 `serviceGroup`
@@ -191,14 +191,14 @@ Type: string
 What service the data came from. E.g. Facebook.
 For a full list, please check out our developer docs [here](http://developers.digi.me/reference-objects).
 
-The `onFileError` callback function is triggered whenever we have failed to receive any data for the data file. By default, we try to fetch the data five times with exponential backoff before invoking the error callback. The error callback will be triggered with an object in the parameter. The object has the following properties: 
+The `onFileError` callback function is triggered whenever we have failed to receive any data for the data file. By default, we try to fetch the data five times with exponential backoff before invoking the error callback. The error callback will be triggered with an object in the parameter. The object has the following properties:
     1. error - error object
     2. fileName - the filename which the objects reside in
     3. fileList - the list of all files that are to be returned
 ```typescript
 callback = ({
-    error: Error, 
-    fileName: string, 
+    error: Error,
+    fileName: string,
     fileList: string[],
 }): void;
 ```
