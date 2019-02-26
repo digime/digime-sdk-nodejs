@@ -3,6 +3,7 @@
  */
 
 import crypto from "crypto";
+import isString from "lodash.isstring";
 import NodeRSA from "node-rsa";
 import { FileDecryptionError } from "./errors";
 
@@ -21,6 +22,9 @@ const isValidSize = (data: string): boolean => {
 
 export const decryptData = (key: NodeRSA, fileData: string): Buffer => {
 
+    if (!isString(fileData)) {
+        throw new FileDecryptionError(`File data is not a string, received: "${fileData}"`);
+    }
     // Verify file data is of correct length
     if (!isValidSize(fileData)) {
         throw new FileDecryptionError("File size not valid");
