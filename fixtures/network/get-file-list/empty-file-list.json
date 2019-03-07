@@ -1,0 +1,21 @@
+[
+    {
+        "scope": "https://api.digi.me",
+        "path": "/v1.0/permission-access/query/test-session-key",
+        "method": "GET",
+        "status": 200,
+        "response": {
+            "fileList": []
+        }
+    },
+
+    {
+        "scope": "https://api.digi.test",
+        "path": "/v7/permission-access/query/test-session-key",
+        "method": "GET",
+        "status": 200,
+        "response": {
+            "fileList": []
+        }
+    }
+]

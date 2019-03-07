@@ -68,11 +68,11 @@ const _establishSession = async (
     options: DigiMeSDKConfiguration,
     scope?: CAScope,
 ): Promise<Session> => {
-    if (!isString(appId)) {
-        throw new ParameterValidationError("Parameter appId should be string");
+    if (!_isValidString(appId)) {
+        throw new ParameterValidationError("Parameter appId should be a non empty string");
     }
-    if (!isString(contractId)) {
-        throw new ParameterValidationError("Parameter contractId should be string");
+    if (!_isValidString(contractId)) {
+        throw new ParameterValidationError("Parameter contractId should be a non empty string");
     }
     const url = `https://${options.host}/${options.version}/permission-access/session`;
 
@@ -98,6 +98,7 @@ const _establishSession = async (
             },
         });
 
+        // TODO: Session validation
         return response.body;
 
     } catch (error) {
@@ -126,8 +127,8 @@ const _getWebURL = (session: Session, callbackURL: string, options: DigiMeSDKCon
             "Session should be an object that contains expiry as number and sessionKey property as string",
         );
     }
-    if (!isString(callbackURL)) {
-        throw new ParameterValidationError("Parameter callbackURL should be string");
+    if (!_isValidString(callbackURL)) {
+        throw new ParameterValidationError("Parameter callbackURL should be a non empty string");
     }
     // tslint:disable-next-line:max-line-length
     return `https://${options.host}/apps/quark/direct-onboarding?sessionKey=${session.sessionKey}&callbackUrl=${encodeURIComponent(callbackURL)}`;
@@ -139,11 +140,11 @@ const _getAppURL = (appId: string, session: Session, callbackURL: string) => {
             "Session should be an object that contains expiry as number and sessionKey property as string",
         );
     }
-    if (!isString(callbackURL)) {
+    if (!_isValidString(callbackURL)) {
         throw new ParameterValidationError("Parameter callbackURL should be string");
     }
-    if (!isString(appId)) {
-        throw new ParameterValidationError("Parameter appId should be string");
+    if (!_isValidString(appId)) {
+        throw new ParameterValidationError("Parameter appId should be a non empty string");
     }
     // tslint:disable-next-line:max-line-length
     return `digime://consent-access?sessionKey=${session.sessionKey}&callbackURL=${encodeURIComponent(callbackURL)}&appId=${appId}&sdkVersion=${sdkVersion}`;
@@ -180,16 +181,12 @@ const _getDataForSession = async (
     options: DigiMeSDKConfiguration,
 ): Promise<any> => {
 
-    if (!isString(sessionKey)) {
-        throw new ParameterValidationError("Parameter sessionKey should be string");
+    if (!_isValidString(sessionKey)) {
+        throw new ParameterValidationError("Parameter sessionKey should be a non empty string");
     }
 
     // Set up key
-    const key: NodeRSA = new NodeRSA(
-        privateKey,
-        "pkcs1-private-pem",
-    );
-
+    const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
     const fileList = await _getFileList(sessionKey, options);
     const filePromises = fileList.map((fileName) => {
 
@@ -240,6 +237,8 @@ const _areOptionsValid = (options: unknown): options is DigiMeSDKConfiguration =
 );
 
 const _isPlainObject = (o: unknown): o is { [key: string]: unknown } => isPlainObject(o);
+
+const _isValidString = (o: unknown): o is string => isString(o) && o.length > 0;
 
 const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
 

@@ -1,0 +1,145 @@
+[
+    {
+        "scope": "https://api.digi.me",
+        "path": "/v1.0/permission-access/query/test-session-key/file1.json",
+        "method": "GET",
+        "status": 200,
+        "response": {
+            "fileList": [
+                "file1.json",
+                "file2.json",
+                "file3.json"
+            ],
+            "fileContent": {
+                "test-content": "api.digi.me-file1.json"
+            },
+            "fileMetadata": {
+                "objectCount": 1,
+                "objectType": "media",
+                "serviceGroup": "social",
+                "serviceName": "instagram"
+            },
+            "compression": "brotli"
+        }
+    },
+
+    {
+        "scope": "https://api.digi.test",
+        "path": "/v7/permission-access/query/test-session-key/file1.json",
+        "method": "GET",
+        "status": 200,
+        "response": {
+            "fileList": [
+                "file1.json",
+                "file2.json",
+                "file3.json"
+            ],
+            "fileContent": {
+                "test-content": "api.digi.test-file1.json"
+            },
+            "fileMetadata": {
+                "objectCount": 1,
+                "objectType": "media",
+                "serviceGroup": "social",
+                "serviceName": "instagram"
+            },
+            "compression": "brotli"
+        }
+    },
+
+    {
+        "scope": "https://api.digi.me",
+        "path": "/v1.0/permission-access/query/test-session-key/file2.json",
+        "method": "GET",
+        "status": 200,
+        "response": {
+            "fileList": [
+                "file1.json",
+                "file2.json",
+                "file3.json"
+            ],
+            "fileContent": {
+                "test-content": "api.digi.me-file2.json"
+            },
+            "fileMetadata": {
+                "objectCount": 1,
+                "objectType": "media",
+                "serviceGroup": "social",
+                "serviceName": "instagram"
+            },
+            "compression": "brotli"
+        }
+    },
+
+    {
+        "scope": "https://api.digi.test",
+        "path": "/v7/permission-access/query/test-session-key/file2.json",
+        "method": "GET",
+        "status": 200,
+        "response": {
+            "fileList": [
+                "file1.json",
+                "file2.json",
+                "file3.json"
+            ],
+            "fileContent": {
+                "test-content": "api.digi.test-file2.json"
+            },
+            "fileMetadata": {
+                "objectCount": 1,
+                "objectType": "media",
+                "serviceGroup": "social",
+                "serviceName": "instagram"
+            },
+            "compression": "brotli"
+        }
+    },
+
+    {
+        "scope": "https://api.digi.me",
+        "path": "/v1.0/permission-access/query/test-session-key/file3.json",
+        "method": "GET",
+        "status": 200,
+        "response": {
+            "fileList": [
+                "file1.json",
+                "file2.json",
+                "file3.json"
+            ],
+            "fileContent": {
+                "test-content": "api.digi.me-file3.json"
+            },
+            "fileMetadata": {
+                "objectCount": 1,
+                "objectType": "media",
+                "serviceGroup": "social",
+                "serviceName": "instagram"
+            },
+            "compression": "brotli"
+        }
+    },
+
+    {
+        "scope": "https://api.digi.test",
+        "path": "/v7/permission-access/query/test-session-key/file3.json",
+        "method": "GET",
+        "status": 200,
+        "response": {
+            "fileList": [
+                "file1.json",
+                "file2.json",
+                "file3.json"
+            ],
+            "fileContent": {
+                "test-content": "api.digi.test-file3.json"
+            },
+            "fileMetadata": {
+                "objectCount": 1,
+                "objectType": "media",
+                "serviceGroup": "social",
+                "serviceName": "instagram"
+            },
+            "compression": "brotli"
+        }
+    }
+]

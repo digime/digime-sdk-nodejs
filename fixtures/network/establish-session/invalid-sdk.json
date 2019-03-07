@@ -1,0 +1,29 @@
+[
+    {
+        "scope": "https://api.digi.me",
+        "method": "POST",
+        "path": "/v1.0/permission-access/session",
+        "status": 400,
+        "response": {
+            "error": {
+                "code": "SDKInvalid",
+                "message": "The SDK is invalid: test",
+                "reference": "ZVg8K5uj0jZ2Lg51S3zGmEiwWchyqAp7"
+            }
+        }
+    },
+
+    {
+        "scope": "https://api.digi.test",
+        "method": "POST",
+        "path": "/v7/permission-access/session",
+        "status": 400,
+        "response": {
+            "error": {
+                "code": "SDKInvalid",
+                "message": "The SDK is invalid: test",
+                "reference": "ZVg8K5uj0jZ2Lg51S3zGmEiwWchyqAp7"
+            }
+        }
+    }
+]
