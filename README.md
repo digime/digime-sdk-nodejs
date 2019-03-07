@@ -1,4 +1,4 @@
-# Digi.me SDK for JavaScript/TypeScript
+# Digi.me SDK for JavaScript/TypeScript BETA
 ---
 The Digi.me SDK for JavaScript/TypeScript is a Node library that allows seamless authentication with Consent Access service, making content requests and core decryption services. For details on the API and general CA architecture - visit [Dev Support Docs](https://developers.digi.me/consent-access.html)
 
