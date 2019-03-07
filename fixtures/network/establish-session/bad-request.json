@@ -1,0 +1,29 @@
+[
+    {
+        "scope": "https://api.digi.me",
+        "method": "POST",
+        "path": "/v1.0/permission-access/session",
+        "status": 400,
+        "response": {
+            "error": {
+                "code": "ValidationErrors",
+                "message": "Parameter validation errors",
+                "reference": "3Wb9vDEsv4ODYKaoP6lQKCbZu9rnJ6UH"
+            }
+        }
+    },
+
+    {
+        "scope": "https://api.digi.test",
+        "method": "POST",
+        "path": "/v7/permission-access/session",
+        "status": 400,
+        "response": {
+            "error": {
+                "code": "ValidationErrors",
+                "message": "Parameter validation errors",
+                "reference": "3Wb9vDEsv4ODYKaoP6lQKCbZu9rnJ6UH"
+            }
+        }
+    }
+]

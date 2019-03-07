@@ -1,30 +1,25 @@
 {
-  "coverageReporters": [
-    "cobertura",
-    "lcovonly"
-  ],
-  "collectCoverageFrom": [
-    "src/**/*.{ts}",
-    "!**/dev/**",
-    "!**/certificates/**",
-    "!**/dist/**",
-    "!**/*.d.ts"
-  ],
-  "coverageThreshold": {
-    "global": {
-      "branches": 25,
-      "functions": 25,
-      "lines": 30,
-      "statements": 30
-    }
-  },
-  "transform": {
-    ".(ts)": "ts-jest"
-  },
-  "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|js)$",
-  "moduleFileExtensions": [
-    "ts",
-    "js",
-    "json"
-  ]
+    "preset": "ts-jest",
+    "coverageReporters": [
+        "cobertura",
+        "lcovonly",
+        "text-summary"
+    ],
+    "collectCoverageFrom": [
+        "src/**/*.ts",
+        "!**/dev/**",
+        "!**/certificates/**",
+        "!**/dist/**",
+        "!**/*.d.ts"
+    ],
+    "coverageThreshold": {
+        "global": {
+        "branches": 25,
+        "functions": 25,
+        "lines": 30,
+        "statements": 30
+        }
+    },
+    "testEnvironment": "node",
+    "testRunner": "jest-circus/runner"
 }

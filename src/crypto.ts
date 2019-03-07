@@ -20,7 +20,7 @@ const isValidSize = (data: string): boolean => {
     return bytes >= 352 && bytes % 16 === 0;
 };
 
-export const decryptData = (key: NodeRSA, fileData: string): Buffer => {
+const decryptData = (key: NodeRSA, fileData: string): Buffer => {
 
     if (!isString(fileData)) {
         throw new FileDecryptionError(`File data is not a string, received: "${fileData}"`);
@@ -52,4 +52,8 @@ export const decryptData = (key: NodeRSA, fileData: string): Buffer => {
     }
 
     return data;
+};
+
+export {
+    decryptData,
 };

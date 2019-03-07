@@ -1,0 +1,29 @@
+[
+    {
+        "scope": "https://api.digi.me",
+        "method": "POST",
+        "path": "/v1.0/permission-access/session",
+        "status": 403,
+        "response": {
+            "error": {
+                "code": "SDKVersionInvalid",
+                "message": "This SDK version is no longer supported.",
+                "reference": "ZVg8K5uj0jZ2Lg51S3zGmEiwWchyqAp7"
+            }
+        }
+    },
+
+    {
+        "scope": "https://api.digi.test",
+        "method": "POST",
+        "path": "/v7/permission-access/session",
+        "status": 403,
+        "response": {
+            "error": {
+                "code": "SDKVersionInvalid",
+                "message": "This SDK version is no longer supported.",
+                "reference": "ZVg8K5uj0jZ2Lg51S3zGmEiwWchyqAp7"
+            }
+        }
+    }
+]
