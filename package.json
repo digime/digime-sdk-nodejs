@@ -1,6 +1,6 @@
 {
   "name": "@digime/digime-js-sdk",
-  "version": "0.3.0-postbox.2",
+  "version": "0.3.0-postbox.3",
   "description": "digime-js-sdk",
   "main": "dist/main/index.js",
   "typings": "dist/types/index.d.ts",
@@ -57,7 +57,6 @@
     "@lifeomic/attempt": "~3.0.0",
     "@types/form-data": "~2.2.1",
     "@types/iltorb": "~2.3.0",
-    "@types/nanoid": "~1.2.0",
     "form-data": "~2.3.3",
     "got": "~9.6.0",
     "iltorb": "~2.4.2",
@@ -67,7 +66,6 @@
     "lodash.isplainobject": "~4.0.6",
     "lodash.isstring": "~4.0.1",
     "lodash.memoize": "~4.1.2",
-    "nanoid": "~2.0.1",
     "node-rsa": "~1.0.3",
     "pkg-dir": "~3.0.0"
   }

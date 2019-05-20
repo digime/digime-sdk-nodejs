@@ -11,10 +11,9 @@ import isFunction from "lodash.isfunction";
 import isInteger from "lodash.isinteger";
 import isPlainObject from "lodash.isplainobject";
 import isString from "lodash.isstring";
-import generate from "nanoid/generate";
 import NodeRSA from "node-rsa";
 import * as zlib from "zlib";
-import { ALPHA_LOWER, ALPHA_NUMERIC, decryptData, encryptData } from "./crypto";
+import { decryptData, encryptData, getRandomHex } from "./crypto";
 import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import { net } from "./net";
 import sdkVersion from "./sdk-version";
@@ -30,10 +29,10 @@ interface Session {
     sessionKey: string;
 }
 
-interface FileMeta {
+interface FileMeta<T = IFileDescriptor>  {
     fileData: any;
     fileName: string;
-    fileDescriptor: IFileDescriptor;
+    fileDescriptor: T;
 }
 
 interface CAScope {
@@ -255,27 +254,27 @@ const _pushDataToPostbox = async (
     sessionKey: string,
     postboxId: string,
     publicKey: string,
-    dataString: string,
-    metadataString: string,
+    data: FileMeta<string>,
     options: DigiMeSDKConfiguration,
 ): Promise<any> => {
-    const key: string = generate(ALPHA_NUMERIC, 32);
+    const key: string = getRandomHex(64);
     const rsa: NodeRSA = new NodeRSA(Buffer.from(publicKey, "utf8"), "pkcs1-public");
-    const encryptedKey: Buffer = rsa.encrypt(Buffer.from(key));
-    const iv: Buffer = Buffer.from(generate(ALPHA_LOWER, 16));
-    const encryptedData: Buffer = encryptData(iv, Buffer.from(key, "utf8"), Buffer.from(dataString, "base64"));
-    const encryptedMetadata: Buffer = encryptData(iv, Buffer.from(key, "utf8"), Buffer.from(metadataString, "utf8"));
+    const encryptedKey: Buffer = rsa.encrypt(Buffer.from(key, "hex"));
+    const ivString: string = getRandomHex(32);
+    const iv: Buffer = Buffer.from(ivString, "hex");
+    const encryptedData: Buffer = encryptData(iv, Buffer.from(key, "hex"), Buffer.from(data.fileData, "base64"));
+    const encryptedMeta: Buffer = encryptData(iv, Buffer.from(key, "hex"), Buffer.from(data.fileDescriptor, "utf8"));
     const url: string = `https://${options.host}/${options.version}/permission-access/postbox/${postboxId}`;
     const form: FormData = new FormData();
-    form.append("file", encryptedData, { filename : "document.pdf" });
+    form.append("file", encryptedData, data.fileName);
 
     const headers = {
         accept: "application/json",
         contentType: "multipart/form-data",
         sessionKey,
-        metadata: encryptedMetadata.toString("base64"),
+        metadata: encryptedMeta.toString("base64"),
         symmetricalKey: encryptedKey.toString("base64"),
-        iv: iv.toString("utf8"),
+        iv: ivString,
     };
 
     try {
@@ -286,6 +285,7 @@ const _pushDataToPostbox = async (
 
         return response.body;
     } catch (error) {
+
         if (!(error instanceof HTTPError)) {
             throw error;
         }
@@ -324,7 +324,7 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
 
     const options: DigiMeSDKConfiguration = {
         host: "api.digi.me",
-        version: "v1",
+        version: "v1.0",
         retryOptions: {
             delay: 750,
             factor: 2,
@@ -359,10 +359,9 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
             sessionKey: string,
             postboxId: string,
             publicKey: string,
-            dataString: string,
-            metadataString: string,
+            pushedData: FileMeta<string>,
         ) => (
-            _pushDataToPostbox(sessionKey, postboxId, publicKey, dataString, metadataString, options)
+            _pushDataToPostbox(sessionKey, postboxId, publicKey, pushedData, options)
         ),
         getAppURL:  (
             appId: string,

@@ -15,11 +15,6 @@ const BYTES = {
     DATA: [64],
 };
 
-const ALPHA_LOWER: string = `abcdefghijklmnopqrstuvwxyz`;
-const ALPHA_UPPER: string = ALPHA_LOWER.toUpperCase();
-const NUMERIC: string = `0123456789`;
-const ALPHA_NUMERIC: string = `${ALPHA_LOWER}${ALPHA_UPPER}${NUMERIC}`;
-
 const isValidSize = (data: string): boolean => {
     const bytes = Buffer.byteLength(data, "base64");
     return bytes >= 352 && bytes % 16 === 0;
@@ -65,9 +60,10 @@ const encryptData = (iv: Buffer, key: Buffer, input: Buffer): Buffer => {
     return concat;
 };
 
+const getRandomHex = (size: number): string => crypto.randomBytes(Math.ceil(size / 2)).toString("hex").slice(0, size);
+
 export {
     encryptData,
     decryptData,
-    ALPHA_NUMERIC,
-    ALPHA_LOWER,
+    getRandomHex,
 };
