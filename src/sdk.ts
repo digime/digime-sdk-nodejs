@@ -26,6 +26,7 @@ interface DigiMeSDKConfiguration {
 interface Session {
     expiry: number;
     sessionKey: string;
+    sessionExchangeToken: string;
 }
 
 interface FileMeta {
@@ -124,20 +125,22 @@ const _establishSession = async (
 const _getWebURL = (session: Session, callbackURL: string, options: DigiMeSDKConfiguration) => {
     if (!_isSessionValid(session)) {
         throw new ParameterValidationError(
-            "Session should be an object that contains expiry as number and sessionKey property as string",
+            // tslint:disable-next-line: max-line-length
+            "Session should be an object that contains expiry as number, sessionKey and sessionExchangeToken property as string",
         );
     }
     if (!_isValidString(callbackURL)) {
         throw new ParameterValidationError("Parameter callbackURL should be a non empty string");
     }
     // tslint:disable-next-line:max-line-length
-    return `https://${options.host}/apps/quark/direct-onboarding?sessionKey=${session.sessionKey}&callbackUrl=${encodeURIComponent(callbackURL)}`;
+    return `https://${options.host}/apps/quark/direct-onboarding?sessionExchangeToken=${session.sessionExchangeToken}&callbackUrl=${encodeURIComponent(callbackURL)}`;
 };
 
 const _getAppURL = (appId: string, session: Session, callbackURL: string) => {
     if (!_isSessionValid(session)) {
         throw new ParameterValidationError(
-            "Session should be an object that contains expiry as number and sessionKey property as string",
+            // tslint:disable-next-line: max-line-length
+            "Session should be an object that contains expiry as number, sessionKey and sessionExchangeToken property as string",
         );
     }
     if (!_isValidString(callbackURL)) {
@@ -229,7 +232,10 @@ const _getDataForSession = async (
 };
 
 const _isSessionValid = (session: unknown): session is Session => (
-    _isPlainObject(session) && isInteger(session.expiry) && isString(session.sessionKey)
+    _isPlainObject(session) &&
+    isInteger(session.expiry) &&
+    isString(session.sessionKey) &&
+    isString(session.sessionExchangeToken)
 );
 
 const _areOptionsValid = (options: unknown): options is DigiMeSDKConfiguration => (
