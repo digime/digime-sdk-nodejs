@@ -251,7 +251,11 @@ describe.each<[string, SDKType, string, string]>([
 
                     const appUrl = sdk.getAppURL(
                         "test-application-id",
-                        { expiry: 0, sessionKey: "test-session-key"},
+                        {
+                            expiry: 0,
+                            sessionKey: "test-session-key",
+                            sessionExchangeToken: "test-session-exchange-token",
+                        },
                         "https://callback.test?a=1&b=2#c",
                     );
 
@@ -266,7 +270,11 @@ describe.each<[string, SDKType, string, string]>([
                     (appId: any) => {
                         const fn = () => sdk.getAppURL(
                             appId,
-                            { expiry: 0, sessionKey: "test-session-key"},
+                            {
+                                expiry: 0,
+                                sessionKey: "test-session-key",
+                                sessionExchangeToken: "test-session-exchange-token",
+                            },
                             "https://callback.test?a=1&b=2#c",
                         );
 
@@ -297,7 +305,11 @@ describe.each<[string, SDKType, string, string]>([
                     (callbackURL: any) => {
                         const fn = () => sdk.getAppURL(
                             "test-application-id",
-                            { expiry: 0, sessionKey: "test-session-key"},
+                            {
+                                expiry: 0,
+                                sessionKey: "test-session-key",
+                                sessionExchangeToken: "test-session-exchange-token",
+                            },
                             callbackURL,
                         );
 
@@ -314,7 +326,11 @@ describe.each<[string, SDKType, string, string]>([
                 ["Protocol", "https:", (url) => url.protocol],
                 ["Host", host, (url) => url.host],
                 ["Pathname", "/apps/quark/direct-onboarding", (url) => url.pathname],
-                ["Query \"sessionKey\"", "test-session-key", (url) => url.searchParams.get("sessionKey")],
+                [
+                    "Query \"sessionExchangeToken\"",
+                    "test-session-exchange-token",
+                    (url) => url.searchParams.get("sessionExchangeToken"),
+                ],
                 [
                     "Query \"callbackURL\"",
                     "https://callback.test?a=1&b=2#c",
@@ -325,7 +341,11 @@ describe.each<[string, SDKType, string, string]>([
                 (_label, expected, getter) => {
 
                     const appUrl = sdk.getWebURL(
-                        { expiry: 0, sessionKey: "test-session-key"},
+                        {
+                            expiry: 0,
+                            sessionKey: "test-session-key",
+                            sessionExchangeToken: "test-session-exchange-token",
+                        },
                         "https://callback.test?a=1&b=2#c",
                     );
 
@@ -354,7 +374,11 @@ describe.each<[string, SDKType, string, string]>([
                     "%p",
                     (callbackURL: any) => {
                         const fn = () => sdk.getWebURL(
-                            { expiry: 0, sessionKey: "test-session-key"},
+                            {
+                                expiry: 0,
+                                sessionKey: "test-session-key",
+                                sessionExchangeToken: "test-session-exchange-token",
+                            },
                             callbackURL,
                         );
 
