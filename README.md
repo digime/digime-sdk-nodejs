@@ -71,7 +71,11 @@ The authorisation flow is separated into two phases:
 
 Initialise a session with Digi.me API which returns a session object.
 ```typescript
-establishSession = async (appId: string, contractId: string, scope: CAScope): Promise<Session>;
+establishSession = async (
+    appId: string, 
+    contractId: string, 
+    scope: CAScope
+): Promise<Session>;
 ```
 `appId` Type : string
 Your application ID. You can request this from digi.me.
@@ -122,21 +126,30 @@ For units we currently accept:
 
 For example to return data for the last six months : "6m"
 
-### Getting User Consent
+### Requesting User Data
+#### 1. Presenting request and getting User Consent
 In digi.me we provide two different ways to prompt user for consent
 1. Existing users who already have the digi.me application installed - Use the `getAppURL` method to get a URL which can be used to trigger the digi.me client to open on their Android or iOS devices. The callbackURL you pass in will be the URL the digi.me client will call once the user has accepted the data request. Given the session id, the client will know the details of the contract and ask for the user's permission on only the data the contract needs.
     ```typescript
-    getAppURL = (appId: string, session: Session, callbackURL: string);
+    getAppURL = (
+        appId: string, 
+        session: Session, 
+        callbackURL: string
+    );
     ```
 
 2. Guest consent - This is a demo feature which allows the user to consent and onboard to digi.me using the browser. To trigger this onboard mode, you can call the `getWebURL` method to get a URL which when opened will ask user for consent.
     ```typescript
-    getWebURL = (session: Session, callbackURL: string, options: DigiMeSDKConfiguration);
+    getWebURL = (
+        session: Session, 
+        callbackURL: string, 
+        options: DigiMeSDKConfiguration
+    );
     ```
 
 Regardless of which mode above you've trigger, the callbackURL will be triggered once the user has authorised the consent. The callbackURL will be triggered with a new param `result` where the value will either be `DATA_READY` or `CANCELLED` if the user decided to deny the request.
 
-### Fetching Data
+#### 2. Fetching Data
 Upon successful authorisation you can now request user's files. To fetch all available data for your contract you can call `getDataForSession` to start your data fetch. You'll need to provide us with a private key with which we will try and decrypt user data. In addition you can pass a onFileData and onFileError which will be triggered whenever a user data file is processed or if the fetch errored out.
 ```typescript
 getDataForSession = async (
@@ -162,7 +175,7 @@ callback = ({
 }): void;
 ```
 
-#### IFileDescriptor
+##### IFileDescriptor
 ```typescript
 interface IFileDescriptor {
     objectCount: number;

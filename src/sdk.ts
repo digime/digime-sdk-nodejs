@@ -30,7 +30,7 @@ interface Session {
     sessionExchangeToken: string;
 }
 
-interface FileMeta<T = IFileDescriptor>  {
+interface FileMeta<T = IFileDescriptor> {
     fileData: any;
     fileName: string;
     fileDescriptor: T;
@@ -57,6 +57,7 @@ interface IFileDescriptor {
     objectType: string;
     serviceGroup: string;
     serviceName: string;
+    mimetype?: string;
 }
 
 type FileSuccessResult = { data: any } & FileMeta;
@@ -177,7 +178,7 @@ const _getPushCompleteURL = (sessionId: string, postboxId: string, callbackURL: 
 
 const _getFileList = async (sessionKey: string, options: DigiMeSDKConfiguration): Promise<string[]> => {
     const url = `https://${options.host}/${options.version}/permission-access/query/${sessionKey}`;
-    const response = await net.get(url, {json: true});
+    const response = await net.get(url, { json: true });
 
     return response.body.fileList;
 };
@@ -188,8 +189,8 @@ const _getFile = async (
     options: DigiMeSDKConfiguration,
 ): Promise<IGetFileResponse> => {
     const url = `https://${options.host}/${options.version}/permission-access/query/${sessionKey}/${fileName}`;
-    const response = await retry(async () => net.get(url, {json: true}), options.retryOptions);
-    const {fileContent, fileMetadata, compression} = response.body;
+    const response = await retry(async () => net.get(url, { json: true }), options.retryOptions);
+    const { fileContent, fileMetadata, compression } = response.body;
 
     return {
         compression,
@@ -216,7 +217,8 @@ const _getDataForSession = async (
     const filePromises = fileList.map((fileName) => {
 
         return _getFile(sessionKey, fileName, options).then(async (response: IGetFileResponse) => {
-            const {compression, fileContent, fileDescriptor} = response;
+            const { compression, fileContent, fileDescriptor } = response;
+            const { mimetype } = fileDescriptor;
             let data: Buffer = decryptData(key, fileContent);
 
             if (compression === "brotli") {
@@ -225,7 +227,9 @@ const _getDataForSession = async (
                 data = zlib.gunzipSync(data);
             }
 
-            data = JSON.parse(data.toString("utf8"));
+            if (!mimetype || mimetype === "application/json") {
+                data = JSON.parse(data.toString("utf8"));
+            }
 
             if (isFunction(onFileData)) {
                 onFileData({
@@ -351,51 +355,51 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
             contractId: string,
             scope?: CAScope,
         ) => (
-            _establishSession(appId, contractId, options, scope)
-        ),
+                _establishSession(appId, contractId, options, scope)
+            ),
         getDataForSession: (
             sessionKey: string,
             privateKey: NodeRSA.Key,
             onFileData: FileSuccessHandler,
             onFileError: FileErrorHandler,
         ) => (
-            _getDataForSession(sessionKey, privateKey, onFileData, onFileError, options)
-        ),
+                _getDataForSession(sessionKey, privateKey, onFileData, onFileError, options)
+            ),
         pushDataToPostbox: (
             sessionKey: string,
             postboxId: string,
             publicKey: string,
             pushedData: FileMeta<string>,
         ) => (
-            _pushDataToPostbox(sessionKey, postboxId, publicKey, pushedData, options)
-        ),
-        getAppURL:  (
+                _pushDataToPostbox(sessionKey, postboxId, publicKey, pushedData, options)
+            ),
+        getAppURL: (
             appId: string,
             session: Session,
             callbackURL: string,
         ) => (
-            _getAppURL(appId, session, callbackURL)
-        ),
+                _getAppURL(appId, session, callbackURL)
+            ),
         getPostboxURL: (
             appId: string,
             session: Session,
             callbackURL: string,
         ) => (
-            _getPostboxURL(appId, session, callbackURL)
-        ),
+                _getPostboxURL(appId, session, callbackURL)
+            ),
         getWebURL: (
             session: Session,
             callbackURL: string,
         ) => (
-            _getWebURL(session, callbackURL, options)
-        ),
+                _getWebURL(session, callbackURL, options)
+            ),
         getPushCompleteURL: (
             sessionId: string,
             postboxId: string,
             callbackURL: string,
         ) => (
-            _getPushCompleteURL(sessionId, postboxId, callbackURL)
-        ),
+                _getPushCompleteURL(sessionId, postboxId, callbackURL)
+            ),
     };
 };
 
