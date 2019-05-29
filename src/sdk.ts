@@ -3,7 +3,6 @@
  */
 
 import { PartialAttemptOptions, retry } from "@lifeomic/attempt";
-import FormData from "form-data";
 import { HTTPError } from "got";
 import { decompress } from "iltorb";
 import get from "lodash.get";
@@ -13,9 +12,10 @@ import isPlainObject from "lodash.isplainobject";
 import isString from "lodash.isstring";
 import NodeRSA from "node-rsa";
 import * as zlib from "zlib";
-import { decryptData, encryptData, getRandomHex } from "./crypto";
+import { decryptData } from "./crypto";
 import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import { net } from "./net";
+import { getCompletionURL, getCreationURL, IPushedFileMeta, pushToPostbox } from "./postbox";
 import sdkVersion from "./sdk-version";
 
 interface DigiMeSDKConfiguration {
@@ -30,7 +30,7 @@ interface Session {
     sessionExchangeToken: string;
 }
 
-interface FileMeta<T = IFileDescriptor> {
+interface IFileMeta<T = IFileDescriptor> {
     fileData: any;
     fileName: string;
     fileDescriptor: T;
@@ -60,8 +60,8 @@ interface IFileDescriptor {
     mimetype?: string;
 }
 
-type FileSuccessResult = { data: any } & FileMeta;
-type FileErrorResult = { error: Error } & FileMeta;
+type FileSuccessResult = { data: any } & IFileMeta;
+type FileErrorResult = { error: Error } & IFileMeta;
 type FileSuccessHandler = (response: FileSuccessResult) => void;
 type FileErrorHandler = (response: FileErrorResult) => void;
 
@@ -125,7 +125,7 @@ const _establishSession = async (
 };
 
 const _getWebURL = (session: Session, callbackURL: string, options: DigiMeSDKConfiguration) => {
-    if (!_isSessionValid(session)) {
+    if (!isSessionValid(session)) {
         throw new ParameterValidationError(
             // tslint:disable-next-line: max-line-length
             "Session should be an object that contains expiry as number, sessionKey and sessionExchangeToken property as string",
@@ -139,7 +139,7 @@ const _getWebURL = (session: Session, callbackURL: string, options: DigiMeSDKCon
 };
 
 const _getAppURL = (appId: string, session: Session, callbackURL: string) => {
-    if (!_isSessionValid(session)) {
+    if (!isSessionValid(session)) {
         throw new ParameterValidationError(
             // tslint:disable-next-line: max-line-length
             "Session should be an object that contains expiry as number, sessionKey and sessionExchangeToken property as string",
@@ -153,27 +153,6 @@ const _getAppURL = (appId: string, session: Session, callbackURL: string) => {
     }
     // tslint:disable-next-line:max-line-length
     return `digime://consent-access?sessionKey=${session.sessionKey}&callbackURL=${encodeURIComponent(callbackURL)}&appId=${appId}&sdkVersion=${sdkVersion}`;
-};
-
-const _getPostboxURL = (appId: string, session: Session, callbackURL: string) => {
-    if (!_isSessionValid(session)) {
-        throw new ParameterValidationError(
-            "Session should be an object that contains expiry as number and sessionKey property as string",
-        );
-    }
-    if (!isString(callbackURL)) {
-        throw new ParameterValidationError("Parameter callbackURL should be string");
-    }
-    if (!isString(appId)) {
-        throw new ParameterValidationError("Parameter appId should be string");
-    }
-    // tslint:disable-next-line:max-line-length
-    return `digime://postbox/create?sessionKey=${session.sessionKey}&callbackURL=${encodeURIComponent(callbackURL)}&appId=${appId}&sdkVersion=${sdkVersion}`;
-};
-
-const _getPushCompleteURL = (sessionId: string, postboxId: string, callbackURL: string) => {
-    // tslint:disable-next-line:max-line-length
-    return `digime://postbox/push-complete?sessionKey=${sessionId}&postboxId=${postboxId}&callbackURL=${encodeURIComponent(callbackURL)}&sdkVersion=${sdkVersion}`;
 };
 
 const _getFileList = async (sessionKey: string, options: DigiMeSDKConfiguration): Promise<string[]> => {
@@ -227,13 +206,14 @@ const _getDataForSession = async (
                 data = zlib.gunzipSync(data);
             }
 
+            let fileData: any = data;
             if (!mimetype || mimetype === "application/json") {
-                data = JSON.parse(data.toString("utf8"));
+                fileData = JSON.parse(data.toString("utf8"));
             }
 
             if (isFunction(onFileData)) {
                 onFileData({
-                    fileData: data,
+                    fileData,
                     fileDescriptor,
                     fileName,
                     fileList,
@@ -257,6 +237,7 @@ const _getDataForSession = async (
     return;
 };
 
+<<<<<<< HEAD
 const _pushDataToPostbox = async (
     sessionKey: string,
     postboxId: string,
@@ -316,6 +297,10 @@ const _isSessionValid = (session: unknown): session is Session => (
     isInteger(session.expiry) &&
     isString(session.sessionKey) &&
     isString(session.sessionExchangeToken)
+=======
+const isSessionValid = (session: unknown): session is Session => (
+    _isPlainObject(session) && isInteger(session.expiry) && isString(session.sessionKey)
+>>>>>>> Updated postbox to support raw data fetch
 );
 
 const _areOptionsValid = (options: unknown): options is DigiMeSDKConfiguration => (
@@ -369,9 +354,9 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
             sessionKey: string,
             postboxId: string,
             publicKey: string,
-            pushedData: FileMeta<string>,
+            pushedData: IFileMeta<IPushedFileMeta>,
         ) => (
-                _pushDataToPostbox(sessionKey, postboxId, publicKey, pushedData, options)
+                pushToPostbox(sessionKey, postboxId, publicKey, pushedData, options)
             ),
         getAppURL: (
             appId: string,
@@ -385,7 +370,7 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
             session: Session,
             callbackURL: string,
         ) => (
-                _getPostboxURL(appId, session, callbackURL)
+                getCreationURL(appId, session, callbackURL)
             ),
         getWebURL: (
             session: Session,
@@ -398,15 +383,16 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
             postboxId: string,
             callbackURL: string,
         ) => (
-                _getPushCompleteURL(sessionId, postboxId, callbackURL)
+                getCompletionURL(sessionId, postboxId, callbackURL)
             ),
     };
 };
 
 export {
     createSDK,
+    isSessionValid,
     CAScope,
-    FileMeta,
+    IFileMeta,
     FileSuccessResult,
     FileErrorResult,
     FileSuccessHandler,
