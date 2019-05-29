@@ -1,6 +1,6 @@
 {
   "name": "@digime/digime-js-sdk",
-  "version": "0.3.0-postbox.3",
+  "version": "0.3.0-postbox.5",
   "description": "digime-js-sdk",
   "main": "dist/main/index.js",
   "typings": "dist/types/index.d.ts",

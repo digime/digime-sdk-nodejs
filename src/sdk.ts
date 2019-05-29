@@ -3,7 +3,6 @@
  */
 
 import { PartialAttemptOptions, retry } from "@lifeomic/attempt";
-import FormData from "form-data";
 import { HTTPError } from "got";
 import { decompress } from "iltorb";
 import get from "lodash.get";
@@ -13,9 +12,10 @@ import isPlainObject from "lodash.isplainobject";
 import isString from "lodash.isstring";
 import NodeRSA from "node-rsa";
 import * as zlib from "zlib";
-import { decryptData, encryptData, getRandomHex } from "./crypto";
+import { decryptData } from "./crypto";
 import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import { net } from "./net";
+import { getCompletionURL, getCreationURL, IPushedFileMeta, pushToPostbox } from "./postbox";
 import sdkVersion from "./sdk-version";
 
 interface DigiMeSDKConfiguration {
@@ -29,7 +29,7 @@ interface Session {
     sessionKey: string;
 }
 
-interface FileMeta<T = IFileDescriptor> {
+interface IFileMeta<T = IFileDescriptor> {
     fileData: any;
     fileName: string;
     fileDescriptor: T;
@@ -59,8 +59,8 @@ interface IFileDescriptor {
     mimetype?: string;
 }
 
-type FileSuccessResult = { data: any } & FileMeta;
-type FileErrorResult = { error: Error } & FileMeta;
+type FileSuccessResult = { data: any } & IFileMeta;
+type FileErrorResult = { error: Error } & IFileMeta;
 type FileSuccessHandler = (response: FileSuccessResult) => void;
 type FileErrorHandler = (response: FileErrorResult) => void;
 
@@ -124,7 +124,7 @@ const _establishSession = async (
 };
 
 const _getWebURL = (session: Session, callbackURL: string, options: DigiMeSDKConfiguration) => {
-    if (!_isSessionValid(session)) {
+    if (!isSessionValid(session)) {
         throw new ParameterValidationError(
             "Session should be an object that contains expiry as number and sessionKey property as string",
         );
@@ -137,7 +137,7 @@ const _getWebURL = (session: Session, callbackURL: string, options: DigiMeSDKCon
 };
 
 const _getAppURL = (appId: string, session: Session, callbackURL: string) => {
-    if (!_isSessionValid(session)) {
+    if (!isSessionValid(session)) {
         throw new ParameterValidationError(
             "Session should be an object that contains expiry as number and sessionKey property as string",
         );
@@ -150,27 +150,6 @@ const _getAppURL = (appId: string, session: Session, callbackURL: string) => {
     }
     // tslint:disable-next-line:max-line-length
     return `digime://consent-access?sessionKey=${session.sessionKey}&callbackURL=${encodeURIComponent(callbackURL)}&appId=${appId}&sdkVersion=${sdkVersion}`;
-};
-
-const _getPostboxURL = (appId: string, session: Session, callbackURL: string) => {
-    if (!_isSessionValid(session)) {
-        throw new ParameterValidationError(
-            "Session should be an object that contains expiry as number and sessionKey property as string",
-        );
-    }
-    if (!isString(callbackURL)) {
-        throw new ParameterValidationError("Parameter callbackURL should be string");
-    }
-    if (!isString(appId)) {
-        throw new ParameterValidationError("Parameter appId should be string");
-    }
-    // tslint:disable-next-line:max-line-length
-    return `digime://postbox/create?sessionKey=${session.sessionKey}&callbackURL=${encodeURIComponent(callbackURL)}&appId=${appId}&sdkVersion=${sdkVersion}`;
-};
-
-const _getPushCompleteURL = (sessionId: string, postboxId: string, callbackURL: string) => {
-    // tslint:disable-next-line:max-line-length
-    return `digime://postbox/push-complete?sessionKey=${sessionId}&postboxId=${postboxId}&callbackURL=${encodeURIComponent(callbackURL)}&sdkVersion=${sdkVersion}`;
 };
 
 const _getFileList = async (sessionKey: string, options: DigiMeSDKConfiguration): Promise<string[]> => {
@@ -224,13 +203,14 @@ const _getDataForSession = async (
                 data = zlib.gunzipSync(data);
             }
 
+            let fileData: any = data;
             if (!mimetype || mimetype === "application/json") {
-                data = JSON.parse(data.toString("utf8"));
+                fileData = JSON.parse(data.toString("utf8"));
             }
 
             if (isFunction(onFileData)) {
                 onFileData({
-                    fileData: data,
+                    fileData,
                     fileDescriptor,
                     fileName,
                     fileList,
@@ -254,61 +234,7 @@ const _getDataForSession = async (
     return;
 };
 
-const _pushDataToPostbox = async (
-    sessionKey: string,
-    postboxId: string,
-    publicKey: string,
-    data: FileMeta<string>,
-    options: DigiMeSDKConfiguration,
-): Promise<any> => {
-    const key: string = getRandomHex(64);
-    const rsa: NodeRSA = new NodeRSA(Buffer.from(publicKey, "utf8"), "pkcs1-public");
-    const encryptedKey: Buffer = rsa.encrypt(Buffer.from(key, "hex"));
-    const ivString: string = getRandomHex(32);
-    const iv: Buffer = Buffer.from(ivString, "hex");
-    const encryptedData: Buffer = encryptData(iv, Buffer.from(key, "hex"), Buffer.from(data.fileData, "base64"));
-    const encryptedMeta: Buffer = encryptData(iv, Buffer.from(key, "hex"), Buffer.from(data.fileDescriptor, "utf8"));
-    const url: string = `https://${options.host}/${options.version}/permission-access/postbox/${postboxId}`;
-    const form: FormData = new FormData();
-    form.append("file", encryptedData, data.fileName);
-
-    const headers = {
-        accept: "application/json",
-        contentType: "multipart/form-data",
-        sessionKey,
-        metadata: encryptedMeta.toString("base64"),
-        symmetricalKey: encryptedKey.toString("base64"),
-        iv: ivString,
-    };
-
-    try {
-        const response = await net.post(url, {
-            headers,
-            body: form,
-        });
-
-        return response.body;
-    } catch (error) {
-
-        if (!(error instanceof HTTPError)) {
-            throw error;
-        }
-
-        const errorCode = get(error, "body.error.code");
-
-        if (errorCode === "SDKInvalid") {
-            throw new SDKInvalidError(get(error, "body.error.message"));
-        }
-
-        if (errorCode === "SDKVersionInvalid") {
-            throw new SDKVersionInvalidError(get(error, "body.error.message"));
-        }
-
-        throw error;
-    }
-};
-
-const _isSessionValid = (session: unknown): session is Session => (
+const isSessionValid = (session: unknown): session is Session => (
     _isPlainObject(session) && isInteger(session.expiry) && isString(session.sessionKey)
 );
 
@@ -363,9 +289,9 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
             sessionKey: string,
             postboxId: string,
             publicKey: string,
-            pushedData: FileMeta<string>,
+            pushedData: IFileMeta<IPushedFileMeta>,
         ) => (
-                _pushDataToPostbox(sessionKey, postboxId, publicKey, pushedData, options)
+                pushToPostbox(sessionKey, postboxId, publicKey, pushedData, options)
             ),
         getAppURL: (
             appId: string,
@@ -379,7 +305,7 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
             session: Session,
             callbackURL: string,
         ) => (
-                _getPostboxURL(appId, session, callbackURL)
+                getCreationURL(appId, session, callbackURL)
             ),
         getWebURL: (
             session: Session,
@@ -392,15 +318,16 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
             postboxId: string,
             callbackURL: string,
         ) => (
-                _getPushCompleteURL(sessionId, postboxId, callbackURL)
+                getCompletionURL(sessionId, postboxId, callbackURL)
             ),
     };
 };
 
 export {
     createSDK,
+    isSessionValid,
     CAScope,
-    FileMeta,
+    IFileMeta,
     FileSuccessResult,
     FileErrorResult,
     FileSuccessHandler,
