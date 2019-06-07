@@ -204,8 +204,10 @@ const _getDataForSession = async (
             }
 
             let fileData: any = data;
-            if (!mimetype || mimetype === "application/json") {
+            if (!mimetype) {
                 fileData = JSON.parse(data.toString("utf8"));
+            } else {
+                fileData = data.toString("base64");
             }
 
             if (isFunction(onFileData)) {
