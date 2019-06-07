@@ -207,8 +207,10 @@ const _getDataForSession = async (
             }
 
             let fileData: any = data;
-            if (!mimetype || mimetype === "application/json") {
+            if (!mimetype) {
                 fileData = JSON.parse(data.toString("utf8"));
+            } else {
+                fileData = data.toString("base64");
             }
 
             if (isFunction(onFileData)) {
@@ -237,70 +239,11 @@ const _getDataForSession = async (
     return;
 };
 
-<<<<<<< HEAD
-const _pushDataToPostbox = async (
-    sessionKey: string,
-    postboxId: string,
-    publicKey: string,
-    data: FileMeta<string>,
-    options: DigiMeSDKConfiguration,
-): Promise<any> => {
-    const key: string = getRandomHex(64);
-    const rsa: NodeRSA = new NodeRSA(Buffer.from(publicKey, "utf8"), "pkcs1-public");
-    const encryptedKey: Buffer = rsa.encrypt(Buffer.from(key, "hex"));
-    const ivString: string = getRandomHex(32);
-    const iv: Buffer = Buffer.from(ivString, "hex");
-    const encryptedData: Buffer = encryptData(iv, Buffer.from(key, "hex"), Buffer.from(data.fileData, "base64"));
-    const encryptedMeta: Buffer = encryptData(iv, Buffer.from(key, "hex"), Buffer.from(data.fileDescriptor, "utf8"));
-    const url: string = `https://${options.host}/${options.version}/permission-access/postbox/${postboxId}`;
-    const form: FormData = new FormData();
-    form.append("file", encryptedData, data.fileName);
-
-    const headers = {
-        accept: "application/json",
-        contentType: "multipart/form-data",
-        sessionKey,
-        metadata: encryptedMeta.toString("base64"),
-        symmetricalKey: encryptedKey.toString("base64"),
-        iv: ivString,
-    };
-
-    try {
-        const response = await net.post(url, {
-            headers,
-            body: form,
-        });
-
-        return response.body;
-    } catch (error) {
-
-        if (!(error instanceof HTTPError)) {
-            throw error;
-        }
-
-        const errorCode = get(error, "body.error.code");
-
-        if (errorCode === "SDKInvalid") {
-            throw new SDKInvalidError(get(error, "body.error.message"));
-        }
-
-        if (errorCode === "SDKVersionInvalid") {
-            throw new SDKVersionInvalidError(get(error, "body.error.message"));
-        }
-
-        throw error;
-    }
-};
-
-const _isSessionValid = (session: unknown): session is Session => (
+const isSessionValid = (session: unknown): session is Session => (
     _isPlainObject(session) &&
     isInteger(session.expiry) &&
     isString(session.sessionKey) &&
     isString(session.sessionExchangeToken)
-=======
-const isSessionValid = (session: unknown): session is Session => (
-    _isPlainObject(session) && isInteger(session.expiry) && isString(session.sessionKey)
->>>>>>> Updated postbox to support raw data fetch
 );
 
 const _areOptionsValid = (options: unknown): options is DigiMeSDKConfiguration => (
