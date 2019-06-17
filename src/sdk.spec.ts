@@ -285,7 +285,7 @@ describe.each<[string, SDKType, string, string]>([
 
             describe("Throws ParameterValidationError when session (second parameter) is", () => {
                 // tslint:disable-next-line:max-line-length
-                it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", () => null, Symbol("test")])(
+                it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", (): null => null, Symbol("test")])(
                     "%p",
                     (session: any) => {
                         const fn = () => sdk.getAppURL(
@@ -356,7 +356,7 @@ describe.each<[string, SDKType, string, string]>([
 
             describe("Throws ParameterValidationError when session (first parameter) is", () => {
                 // tslint:disable-next-line:max-line-length
-                it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", () => null, Symbol("test")])(
+                it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", (): null => null, Symbol("test")])(
                     "%p",
                     (session: any) => {
                         const fn = () => sdk.getWebURL(
