@@ -153,6 +153,16 @@ const _getAppURL = (appId: string, session: Session, callbackURL: string) => {
     return `digime://consent-access?sessionKey=${session.sessionKey}&callbackURL=${encodeURIComponent(callbackURL)}&appId=${appId}&sdkVersion=${sdkVersion}`;
 };
 
+const _getReceiptURL = (contractId: string, appId: string) => {
+    if (!_isValidString(contractId)) {
+        throw new ParameterValidationError("Parameter contractId should be a non empty string");
+    }
+    if (!_isValidString(appId)) {
+        throw new ParameterValidationError("Parameter appId should be a non empty string");
+    }
+    return `digime://receipt?contractid=${contractId}&appid=${appId}`;
+};
+
 const _getFileList = async (sessionKey: string, options: DigiMeSDKConfiguration): Promise<string[]> => {
     const url = `https://${options.host}/${options.version}/permission-access/query/${sessionKey}`;
     const response = await net.get(url, {json: true});
@@ -287,6 +297,7 @@ const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>) => {
         ),
         getWebURL: (session: Session, callbackURL: string) => _getWebURL(session, callbackURL, options),
         getAppURL:  (appId: string, session: Session, callbackURL: string) => _getAppURL(appId, session, callbackURL),
+        getReceiptURL: (contractId: string, appId: string) => _getReceiptURL(contractId, appId),
     };
 };
 

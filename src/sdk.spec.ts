@@ -38,6 +38,7 @@ describe("createSDK", () => {
             "establishSession",
             "getWebURL",
             "getAppURL",
+            "getReceiptURL",
             "getDataForSession",
         ])("%s function", (property) => {
             expect(customSDK).toHaveProperty(property, expect.any(Function));
@@ -234,35 +235,37 @@ describe.each<[string, SDKType, string, string]>([
 
         describe("getAppURL", () => {
 
-            it.each<[string, string, (url: URL) => unknown]>([
-                ["Protocol", "digime:", (url) => url.protocol],
-                ["Host", "consent-access", (url) => url.host],
-                ["Query \"sessionKey\"", "test-session-key", (url) => url.searchParams.get("sessionKey")],
-                ["Query \"appId\"", "test-application-id", (url) => url.searchParams.get("appId")],
-                ["Query \"sdkVersion\"", sdkVersion, (url) => url.searchParams.get("sdkVersion")],
-                [
-                    "Query \"callbackURL\"",
-                    "https://callback.test?a=1&b=2#c",
-                    (url) => url.searchParams.get("callbackURL"),
-                ],
-            ])(
-                "%s is %p",
-                (_label, expected, getter) => {
-
-                    const appUrl = sdk.getAppURL(
-                        "test-application-id",
-                        {
-                            expiry: 0,
-                            sessionKey: "test-session-key",
-                            sessionExchangeToken: "test-session-exchange-token",
-                        },
+            describe("Returns a URL where", () => {
+                it.each<[string, string, (url: URL) => unknown]>([
+                    ["Protocol", "digime:", (url) => url.protocol],
+                    ["Host", "consent-access", (url) => url.host],
+                    ["Query \"sessionKey\"", "test-session-key", (url) => url.searchParams.get("sessionKey")],
+                    ["Query \"appId\"", "test-application-id", (url) => url.searchParams.get("appId")],
+                    ["Query \"sdkVersion\"", sdkVersion, (url) => url.searchParams.get("sdkVersion")],
+                    [
+                        "Query \"callbackURL\"",
                         "https://callback.test?a=1&b=2#c",
-                    );
+                        (url) => url.searchParams.get("callbackURL"),
+                    ],
+                ])(
+                    "%s is %p",
+                    (_label, expected, getter) => {
 
-                    const actual = getter(new URL(appUrl));
-                    expect(actual).toBe(expected);
-                },
-            );
+                        const appUrl = sdk.getAppURL(
+                            "test-application-id",
+                            {
+                                expiry: 0,
+                                sessionKey: "test-session-key",
+                                sessionExchangeToken: "test-session-exchange-token",
+                            },
+                            "https://callback.test?a=1&b=2#c",
+                        );
+
+                        const actual = getter(new URL(appUrl));
+                        expect(actual).toBe(expected);
+                    },
+                );
+            });
 
             describe("Throws ParameterValidationError when appId (first parameter) is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
@@ -320,39 +323,94 @@ describe.each<[string, SDKType, string, string]>([
 
         });
 
+        describe("getReceiptURL", () => {
+
+            describe("Returns a URL where", () => {
+                it.each<[string, string, (url: URL) => unknown]>([
+                    ["Protocol", "digime:", (url) => url.protocol],
+                    ["Host", "receipt", (url) => url.host],
+                    ["Query \"contractid\"", "test-contract-id", (url) => url.searchParams.get("contractid")],
+                    ["Query \"appid\"", "test-application-id", (url) => url.searchParams.get("appid")],
+                ])(
+                    "%s is %p",
+                    (_label, expected, getter) => {
+
+                        const receiptUrl = sdk.getReceiptURL(
+                            "test-contract-id",
+                            "test-application-id",
+                        );
+
+                        const actual = getter(new URL(receiptUrl));
+                        expect(actual).toBe(expected);
+                    },
+                );
+            });
+
+            describe("Throws ParameterValidationError when contractid (first parameter) is", () => {
+                it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+                    "%p",
+                    (contractid: any) => {
+                        const fn = () => sdk.getReceiptURL(
+                            contractid,
+                            "test-application-id",
+                        );
+
+                        expect(fn).toThrow(ParameterValidationError);
+                    },
+                );
+            });
+
+            describe("Throws ParameterValidationError when applicationid (second parameter) is", () => {
+                // tslint:disable-next-line:max-line-length
+                it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", (): null => null, Symbol("test")])(
+                    "%p",
+                    (applicationid: any) => {
+                        const fn = () => sdk.getReceiptURL(
+                            "test-contract-id",
+                            applicationid,
+                        );
+
+                        expect(fn).toThrow(ParameterValidationError);
+                    },
+                );
+            });
+        });
+
         describe("getWebURL", () => {
 
-            it.each<[string, string, (url: URL) => unknown]>([
-                ["Protocol", "https:", (url) => url.protocol],
-                ["Host", host, (url) => url.host],
-                ["Pathname", "/apps/quark/direct-onboarding", (url) => url.pathname],
-                [
-                    "Query \"sessionExchangeToken\"",
-                    "test-session-exchange-token",
-                    (url) => url.searchParams.get("sessionExchangeToken"),
-                ],
-                [
-                    "Query \"callbackURL\"",
-                    "https://callback.test?a=1&b=2#c",
-                    (url) => url.searchParams.get("callbackUrl"),
-                ],
-            ])(
-                "%s is %p",
-                (_label, expected, getter) => {
-
-                    const appUrl = sdk.getWebURL(
-                        {
-                            expiry: 0,
-                            sessionKey: "test-session-key",
-                            sessionExchangeToken: "test-session-exchange-token",
-                        },
+            describe("Returns a URL where", () => {
+                it.each<[string, string, (url: URL) => unknown]>([
+                    ["Protocol", "https:", (url) => url.protocol],
+                    ["Host", host, (url) => url.host],
+                    ["Pathname", "/apps/quark/direct-onboarding", (url) => url.pathname],
+                    [
+                        "Query \"sessionExchangeToken\"",
+                        "test-session-exchange-token",
+                        (url) => url.searchParams.get("sessionExchangeToken"),
+                    ],
+                    [
+                        "Query \"callbackURL\"",
                         "https://callback.test?a=1&b=2#c",
-                    );
+                        (url) => url.searchParams.get("callbackUrl"),
+                    ],
+                ])(
+                    "%s is %p",
+                    (_label, expected, getter) => {
 
-                    const actual = getter(new URL(appUrl));
-                    expect(actual).toBe(expected);
-                },
-            );
+                        const appUrl = sdk.getWebURL(
+                            {
+                                expiry: 0,
+                                sessionKey: "test-session-key",
+                                sessionExchangeToken: "test-session-exchange-token",
+                            },
+                            "https://callback.test?a=1&b=2#c",
+                        );
+
+                        const actual = getter(new URL(appUrl));
+                        expect(actual).toBe(expected);
+                    },
+                );
+            });
 
             describe("Throws ParameterValidationError when session (first parameter) is", () => {
                 // tslint:disable-next-line:max-line-length
