@@ -12,4 +12,5 @@ export const {
     getDataForSession,
     getWebURL,
     getAppURL,
+    getReceiptURL,
 } = createSDK();
