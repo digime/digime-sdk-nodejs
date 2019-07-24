@@ -1,5 +1,5 @@
 {
-    "extends": "./tsconfig",
+    "extends": "./tsconfig.dist",
     "compilerOptions": {
       "target": "esnext",
       "outDir": "./dist/module",

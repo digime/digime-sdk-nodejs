@@ -3,6 +3,7 @@
  */
 
 import crypto from "crypto";
+import { ReadStream } from "fs";
 import { compressSync } from "iltorb";
 import isPlainObject from "lodash.isplainobject";
 import nock from "nock";
@@ -118,6 +119,10 @@ interface FileContentToCAFormatOptions {
     overrideCompression?: "no-compression" | "brotli" | "gzip";
 }
 
+const isResponsePlainObject = (value: unknown): value is nock.POJO => (
+    !(value instanceof Buffer) && !(value instanceof ReadStream) && isPlainObject(value)
+);
+
 // Takes definitions of CA file responses and converts fileContent properties to the CA format
 const fileContentToCAFormat = (
     definitions: nock.NockDefinition[],
@@ -128,29 +133,37 @@ const fileContentToCAFormat = (
         overrideCompression,
     }: FileContentToCAFormatOptions = {},
 ): nock.NockDefinition[] => (
-    definitions.map((definition) => {
-        let fileContent: any = definition.response.fileContent;
+    definitions.reduce((acc, definition) => {
+
+        const response: unknown = definition.response;
+
+        if (!isResponsePlainObject(response)) {
+            return acc;
+        }
+
+        let fileContent: any = response.fileContent;
 
         if (isPlainObject(fileContent)) {
             fileContent = JSON.stringify(fileContent);
         }
 
-        return {
+        const def: nock.NockDefinition = {
             ...definition,
             response: {
-                ...definition.response,
+                ...response,
                 fileContent: createCAData(
                     key,
                     fileContent,
                     {
-                        compression: overrideCompression || definition.response.compression,
+                        compression: overrideCompression || response.compression,
                         corruptHash,
                         corruptLength,
                     },
                 ),
             },
         };
-    })
+        return [...acc, def];
+    }, [] as nock.NockDefinition[])
 );
 
 export {
