@@ -3,6 +3,7 @@
  */
 
 import { HTTPError } from "got";
+import { Dictionary } from "lodash";
 import escapeRegExp from "lodash.escaperegexp";
 import nock from "nock";
 import NodeRSA from "node-rsa";
@@ -510,7 +511,7 @@ describe.each<[string, SDKType, string, string]>([
                     );
                     nock.define(fileListDefs);
 
-                    const fileList: string[] = fileListDefs[0].response.fileList;
+                    const fileList: string[] = (fileListDefs[0].response as Dictionary<any>).fileList;
                     const fileDefs = loadScopeDefinitions(
                         `fixtures/network/get-file/${file}`,
                         `https://${host}`,
@@ -536,10 +537,10 @@ describe.each<[string, SDKType, string, string]>([
 
                     fileDefs.forEach((fileDef) => {
                         expect(successCallback).toHaveBeenCalledWith(expect.objectContaining({
-                            fileData: fileDef.response.fileContent,
+                            fileData: (fileDef.response as Dictionary<any>).fileContent,
                             fileName: basename(fileDef.path),
                             fileList,
-                            fileDescriptor: fileDef.response.fileMetadata,
+                            fileDescriptor: (fileDef.response as Dictionary<any>).fileMetadata,
                         }));
                     });
                 });
@@ -566,7 +567,7 @@ describe.each<[string, SDKType, string, string]>([
                         );
                         nock.define(fileListDefs);
 
-                        const fileList: string[] = fileListDefs[0].response.fileList;
+                        const fileList: string[] = (fileListDefs[0].response as Dictionary<any>).fileList;
 
                         const fileDefs = loadScopeDefinitions(`fixtures/network/get-file/${file}`, `https://${host}`);
 

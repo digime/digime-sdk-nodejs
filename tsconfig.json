@@ -1,8 +1,6 @@
 {
     "compilerOptions": {
         "target": "es2017",
-        "outDir": "./dist/main",
-        "rootDir": "src",
         "moduleResolution": "node",
         "module": "commonjs",
         "declaration": true,
@@ -26,7 +24,7 @@
 
         "lib": ["es2017"]
     },
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "utils/**/*", "tools/**/*"],
     "exclude": ["dist/**", "node_modules/**", "**/*.spec.*"],
     "compileOnSave": false
 }
