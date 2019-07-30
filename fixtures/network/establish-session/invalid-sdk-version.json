@@ -16,7 +16,7 @@
     {
         "scope": "https://api.digi.test",
         "method": "POST",
-        "path": "/v7/permission-access/session",
+        "path": "/v1.0/permission-access/session",
         "status": 403,
         "response": {
             "error": {

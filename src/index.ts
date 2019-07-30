@@ -2,18 +2,19 @@
  * Copyright (c) 2009-2018 digi.me Limited. All rights reserved.
  */
 
-import { createSDK } from "./sdk";
+import { init } from "./sdk";
 
 export * from "./sdk";
 export * from "./errors";
 
 export const {
     establishSession,
-    getDataForSession,
-    getWebURL,
-    getAppURL,
-    getReceiptURL,
-    getPostboxURL,
+    getSessionAccounts,
+    getSessionData,
+    getGuestAuthorizeUrl,
+    getAuthorizeUrl,
+    getReceiptUrl,
+    getCreatePostboxUrl,
     pushDataToPostbox,
-    getPushCompleteURL,
-} = createSDK();
+    getPostboxImportUrl,
+} = init();
