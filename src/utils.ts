@@ -5,7 +5,7 @@
 import isInteger from "lodash.isinteger";
 import isPlainObjectLodash from "lodash.isplainobject";
 import isString from "lodash.isstring";
-import { DigiMeSDKConfiguration, Session } from "./sdk";
+import { DMESDKConfiguration, Session } from "./sdk";
 
 export const isValidString = (o: unknown): o is string => isString(o) && o.length > 0;
 
@@ -18,6 +18,6 @@ export const isSessionValid = (session: unknown): session is Session => (
     isString(session.sessionExchangeToken)
 );
 
-export const areOptionsValid = (options: unknown): options is DigiMeSDKConfiguration => (
-    isPlainObject(options) && isString(options.host) && isString(options.version)
+export const isConfigurationValid = (options: unknown): options is DMESDKConfiguration => (
+    isPlainObject(options) && isString(options.baseUrl)
 );

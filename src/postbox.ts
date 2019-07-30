@@ -9,7 +9,7 @@ import NodeRSA from "node-rsa";
 import { encryptData, getRandomHex } from "./crypto";
 import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import { net } from "./net";
-import { DigiMeSDKConfiguration, FileMeta, isSessionValid, Session } from "./sdk";
+import { DMESDKConfiguration, FileMeta, isSessionValid, Session } from "./sdk";
 import sdkVersion from "./sdk-version";
 import { isValidString } from "./utils";
 
@@ -24,42 +24,30 @@ interface MetaAccount {
     accountId: string;
 }
 
-const getPostboxURL = (appId: string, session: Session, callbackURL: string) => {
+const getCreatePostboxUrl = (appId: string, session: Session, callbackUrl: string) => {
     if (!isSessionValid(session)) {
         throw new ParameterValidationError(
             "Session should be an object that contains expiry as number and sessionKey property as string",
         );
     }
-    if (!isValidString(callbackURL)) {
-        throw new ParameterValidationError("Parameter callbackURL should be string");
+    if (!isValidString(callbackUrl)) {
+        throw new ParameterValidationError("Parameter callbackUrl should be string");
     }
     if (!isValidString(appId)) {
         throw new ParameterValidationError("Parameter appId should be string");
     }
     // tslint:disable-next-line:max-line-length
-    return `digime://postbox/create?sessionKey=${session.sessionKey}&callbackURL=${encodeURIComponent(callbackURL)}&appId=${appId}&sdkVersion=${sdkVersion}`;
+    return `digime://postbox/create?sessionKey=${session.sessionKey}&callbackUrl=${encodeURIComponent(callbackUrl)}&appId=${appId}&sdkVersion=${sdkVersion}&resultVersion=2`;
 };
 
-const getPushCompletionURL = (sessionKey: string, postboxId: string, callbackURL: string) => {
-    if (!isValidString(sessionKey)) {
-        throw new ParameterValidationError("Parameter sessionKey should be string");
-    }
-    if (!isValidString(callbackURL)) {
-        throw new ParameterValidationError("Parameter callbackURL should be string");
-    }
-    if (!isValidString(postboxId)) {
-        throw new ParameterValidationError("Parameter postboxId should be string");
-    }
-    // tslint:disable-next-line:max-line-length
-    return `digime://postbox/push-complete?sessionKey=${sessionKey}&postboxId=${postboxId}&callbackURL=${encodeURIComponent(callbackURL)}&sdkVersion=${sdkVersion}`;
-};
+const getPostboxImportUrl = () => "digime://postbox/import";
 
 const pushDataToPostbox = async (
     sessionKey: string,
     postboxId: string,
     publicKey: string,
     data: FileMeta<PushedFileMeta>,
-    options: DigiMeSDKConfiguration,
+    options: DMESDKConfiguration,
 ): Promise<any> => {
     if (!isValidString(sessionKey)) {
         throw new ParameterValidationError("Parameter sessionKey should be string");
@@ -86,7 +74,7 @@ const pushDataToPostbox = async (
         Buffer.from(key, "hex"),
         Buffer.from(JSON.stringify(data.fileDescriptor), "utf8"),
     );
-    const url: string = `https://${options.host}/${options.version}/permission-access/postbox/${postboxId}`;
+    const url: string = `${options.baseUrl}/permission-access/postbox/${postboxId}`;
     const form: FormData = new FormData();
     form.append("file", encryptedData, data.fileName);
 
@@ -128,8 +116,8 @@ const pushDataToPostbox = async (
 };
 
 export {
-    getPostboxURL,
-    getPushCompletionURL,
+    getCreatePostboxUrl,
+    getPostboxImportUrl,
     pushDataToPostbox,
     PushedFileMeta,
 };
