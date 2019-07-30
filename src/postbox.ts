@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2018 digi.me Limited. All rights reserved.
+ * Copyright (c) 2009-2019 digi.me Limited. All rights reserved.
  */
 
 import FormData from "form-data";
@@ -9,20 +9,10 @@ import NodeRSA from "node-rsa";
 import { encryptData, getRandomHex } from "./crypto";
 import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import { net } from "./net";
-import { DMESDKConfiguration, FileMeta, isSessionValid, Session } from "./sdk";
+import { DMESDKConfiguration, isSessionValid, Session } from "./sdk";
 import sdkVersion from "./sdk-version";
+import { PushedFileMeta } from "./types";
 import { isValidString } from "./utils";
-
-interface PushedFileMeta {
-    mimeType: string;
-    accounts: MetaAccount[];
-    reference?: string[];
-    tags?: string[];
-}
-
-interface MetaAccount {
-    accountId: string;
-}
 
 const getCreatePostboxUrl = (appId: string, session: Session, callbackUrl: string) => {
     if (!isSessionValid(session)) {
@@ -46,7 +36,7 @@ const pushDataToPostbox = async (
     sessionKey: string,
     postboxId: string,
     publicKey: string,
-    data: FileMeta<PushedFileMeta>,
+    data: PushedFileMeta,
     options: DMESDKConfiguration,
 ): Promise<any> => {
     if (!isValidString(sessionKey)) {
@@ -91,6 +81,7 @@ const pushDataToPostbox = async (
         const response = await net.post(url, {
             headers,
             body: form,
+            retry: options.retryOptions,
         });
 
         return response.body;

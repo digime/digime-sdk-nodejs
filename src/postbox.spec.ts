@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2009-2018 digi.me Limited. All rights reserved.
+/*!
+ * Copyright (c) 2009-2019 digi.me Limited. All rights reserved.
  */
 
 import { HTTPError } from "got";
@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 
 describe.each<[string, ReturnType<typeof SDK.init>, string]>([
-    ["Default exported SDK", SDK, "https://api.digi.me/v1.0"],
+    ["Default exported SDK", SDK, "https://api.digi.me/v1.4"],
     ["Custom SDK", customSDK, "https://api.digi.test/v7"],
 ])(
     "%s",

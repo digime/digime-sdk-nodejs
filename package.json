@@ -54,7 +54,6 @@
     "typescript": "~3.6.2"
   },
   "dependencies": {
-    "@lifeomic/attempt": "~3.0.0",
     "form-data": "~2.5.1",
     "got": "~9.6.0",
     "iltorb": "~2.4.3",

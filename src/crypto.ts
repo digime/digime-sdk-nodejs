@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2018 digi.me Limited. All rights reserved.
+ * Copyright (c) 2009-2019 digi.me Limited. All rights reserved.
  */
 
 import crypto from "crypto";
@@ -21,7 +21,6 @@ const isValidSize = (data: string): boolean => {
 };
 
 const decryptData = (key: NodeRSA, fileData: string): Buffer => {
-
     if (!isString(fileData)) {
         throw new FileDecryptionError(`File data is not a string, received: "${fileData}"`);
     }

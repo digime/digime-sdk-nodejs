@@ -1,0 +1,44 @@
+[
+    {
+        "scope": "https://api.digi.me",
+        "path": "/v1.4/permission-access/query/test-session-key",
+        "method": "GET",
+        "status": 200,
+        "response": {
+            "status":{
+                "details":{
+                    "test-account-id":{
+                        "state":"running"
+                    }
+                },
+                "state":"running"
+            },
+            "fileList": [
+                {"name":"file1.json","updatedDate":1568716294874},
+                {"name":"file2.json","updatedDate":1568716294874},
+                {"name":"file3.json","updatedDate":1568716294874}
+            ]
+        }
+    },
+    {
+        "scope": "https://api.digi.test",
+        "path": "/v7/permission-access/query/test-session-key",
+        "method": "GET",
+        "status": 200,
+        "response": {
+            "status":{
+                "details":{
+                    "test-account-id":{
+                        "state":"running"
+                    }
+                },
+                "state":"running"
+            },
+            "fileList": [
+                {"name":"file1.json","updatedDate":1568716294874},
+                {"name":"file2.json","updatedDate":1568716294874},
+                {"name":"file3.json","updatedDate":1568716294874}
+            ]
+        }
+    }
+]

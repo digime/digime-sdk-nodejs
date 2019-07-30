@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2018 digi.me Limited. All rights reserved.
+ * Copyright (c) 2009-2019 digi.me Limited. All rights reserved.
  */
 
 import isInteger from "lodash.isinteger";
@@ -21,3 +21,5 @@ export const isSessionValid = (session: unknown): session is Session => (
 export const isConfigurationValid = (options: unknown): options is DMESDKConfiguration => (
     isPlainObject(options) && isString(options.baseUrl)
 );
+
+export const sleep = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));

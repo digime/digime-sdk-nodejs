@@ -1,20 +1,23 @@
 [
     {
         "scope": "https://api.digi.me",
-        "path": "/v1.4/permission-access/query/test-session-key",
+        "path": "/v1.4/permission-access/query/test-session-key/accounts.json",
         "method": "GET",
         "status": 200,
         "response": {
-            "fileList": []
+            "expiry": "0",
+            "sessionKey": 0
         }
     },
+
     {
         "scope": "https://api.digi.test",
-        "path": "/v7/permission-access/query/test-session-key",
+        "path": "/v7/permission-access/query/test-session-key/accounts.json",
         "method": "GET",
         "status": 200,
         "response": {
-            "fileList": []
+            "expiry": "1",
+            "sessionKey": 1
         }
     }
 ]
