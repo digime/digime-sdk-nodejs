@@ -1,7 +1,7 @@
 [
     {
         "scope": "https://api.digi.me",
-        "path": "/v1.0/permission-access/session",
+        "path": "/v1.4/permission-access/session",
         "method": "POST",
         "status": 200,
         "response": {

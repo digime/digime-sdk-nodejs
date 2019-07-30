@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2018 digi.me Limited. All rights reserved.
+ * Copyright (c) 2009-2019 digi.me Limited. All rights reserved.
  */
 
 // tslint:disable:max-classes-per-file

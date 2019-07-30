@@ -1,7 +1,8 @@
-/*
- * Copyright (c) 2009-2018 digi.me Limited. All rights reserved.
+/*!
+ * Copyright (c) 2009-2019 digi.me Limited. All rights reserved.
  */
 
+import * as attempt from "@lifeomic/attempt";
 import { HTTPError } from "got";
 import { Dictionary } from "lodash";
 import nock from "nock";
@@ -10,7 +11,6 @@ import { basename } from "path";
 import { URL } from "url";
 import {
     captureNetworkRequest,
-    fileContentToCAFormat,
     loadDefinitions,
     loadScopeDefinitions,
 } from "../utils/test-utils";
@@ -21,8 +21,6 @@ import sdkVersion from "./sdk-version";
 const customSDK = SDK.init({
     baseUrl: "https://api.digi.test/v7",
 });
-
-const testKeyPair: NodeRSA = new NodeRSA({ b: 2048 });
 
 beforeEach(() => {
     nock.cleanAll();
@@ -57,7 +55,7 @@ describe("init", () => {
 });
 
 describe.each<[string, ReturnType<typeof SDK.init>, string]>([
-    ["Default exported SDK", SDK, "https://api.digi.me/v1.0"],
+    ["Default exported SDK", SDK, "https://api.digi.me/v1.4"],
     ["Custom SDK", customSDK, "https://api.digi.test/v7"],
 ])(
     "%s",
@@ -380,7 +378,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 it.each<[string, string, (url: URL) => unknown]>([
                     ["Protocol", "https:", (url) => url.protocol],
                     ["Host", `${new URL(baseUrl).host}`, (url) => url.host],
-                    ["Pathname", `/apps/quark/direct-onboarding`, (url) => url.pathname],
+                    ["Pathname", `/apps/quark/v1/direct-onboarding`, (url) => url.pathname],
                     [
                         "Query \"sessionExchangeToken\"",
                         "test-session-exchange-token",
@@ -477,171 +475,37 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 );
 
             });
-        });
-
-        describe("getSessionData", () => {
-
-            it(`Requests target API baseUrl: ${baseUrl}`, async () => {
-                const listScopes = nock.define(
-                    loadDefinitions("fixtures/network/get-file-list/valid-file-list.json"),
-                );
-                const fileScopes = nock.define(
-                    loadDefinitions("fixtures/network/get-file/valid-files.json"),
-                );
-
-                const listCallback = jest.fn();
-                const fileCallback = jest.fn();
-
-                listScopes.forEach((scope) => {
-                    scope.on("request", listCallback);
-                });
-
-                fileScopes.forEach((scope) => {
-                    scope.on("request", fileCallback);
-                });
-
-                await sdk.getSessionData(
-                    "test-session-key",
-                    testKeyPair.exportKey("pkcs1-private-pem"),
-                    () => null,
-                    () => null,
-                );
-
-                expect(listCallback).toHaveBeenCalledTimes(1);
-                expect(fileCallback).toHaveBeenCalledTimes(3);
-            });
 
             describe("Throws ParameterValidationError when sessionKey (first parameter) is", () => {
 
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (sessionKey: any) => {
-                        const promise = sdk.getSessionData(
-                            sessionKey,
-                            testKeyPair.exportKey("pkcs1-private-pem"),
-                            () => null,
-                            () => null,
-                        );
-
-                        return expect(promise).rejects.toThrow(ParameterValidationError);
+                        return expect(sdk.getSessionAccounts(sessionKey)).rejects.toThrow(ParameterValidationError);
                     },
                 );
 
             });
 
-            describe("Triggers onFileData (third parameter) with the correct data when it", () => {
-
-                it.each<[string, string]>([
-                    ["uncompressed", "valid-files.json"],
-                    ["brotlified", "valid-files-compression-brotli.json"],
-                    ["gzipped", "valid-files-compression-gzip.json"],
-                ])("Retrieves encrypted and %s files", async (_label, file) => {
-                    const fileListDefs = loadScopeDefinitions(
-                        "fixtures/network/get-file-list/valid-file-list.json",
-                        `${new URL(baseUrl).origin}`,
-                    );
-                    nock.define(fileListDefs);
-
-                    const fileList: string[] = (fileListDefs[0].response as Dictionary<any>).fileList;
-                    const fileDefs = loadScopeDefinitions(
-                        `fixtures/network/get-file/${file}`,
-                        `${new URL(baseUrl).origin}`,
-                    );
-
-                    const caFormatted = await fileContentToCAFormat(
-                        fileDefs,
-                        testKeyPair,
-                    );
-
-                    nock.define(caFormatted);
-
-                    const successCallback = jest.fn();
-
-                    await sdk.getSessionData(
-                        "test-session-key",
-                        testKeyPair.exportKey("pkcs1-private-pem"),
-                        successCallback,
-                        () => null,
-                    );
-
-                    expect(successCallback).toHaveBeenCalledTimes(fileDefs.length);
-
-                    fileDefs.forEach((fileDef) => {
-                        expect(successCallback).toHaveBeenCalledWith(expect.objectContaining({
-                            fileData: (fileDef.response as Dictionary<any>).fileContent,
-                            fileName: basename(fileDef.path),
-                            fileList,
-                            fileDescriptor: (fileDef.response as Dictionary<any>).fileMetadata,
-                        }));
-                    });
+            describe("Throws appropriate exceptions when argon returns errors", () => {
+                it("Re-throws HTTPErrors if it encounters one", () => {
+                    nock.define(loadDefinitions("fixtures/network/get-session-accounts/bad-request.json"));
+                    const promise = sdk.getSessionAccounts("test-session-key");
+                    return expect(promise).rejects.toThrowError(HTTPError);
                 });
 
+                it("Throws SDKInvalidError if the API responds with SDKInvalid in error.code", () => {
+                    nock.define(loadDefinitions("fixtures/network/get-session-accounts/invalid-sdk.json"));
+                    const promise = sdk.getSessionAccounts("test-session-key");
+                    return expect(promise).rejects.toThrowError(SDKInvalidError);
+                });
+
+                it("Throws SDKVersionInvalidError if the API responds with SDKVersionInvalid in error.code", () => {
+                    nock.define(loadDefinitions("fixtures/network/get-session-accounts/invalid-sdk-version.json"));
+                    const promise = sdk.getSessionAccounts("test-session-key");
+                    return expect(promise).rejects.toThrowError(SDKVersionInvalidError);
+                });
             });
-
-            describe("Triggers onFileError (fourth parameter) correctly", () => {
-
-                it.each<[string, string, string, NodeRSA, boolean, boolean]>([
-                    // tslint:disable:max-line-length
-                    ["SyntaxError", "it receives invalid JSON", "invalid-json-in-file-content.json", testKeyPair, false, false],
-                    ["Error", "brotli decompression fails", "valid-files-compression-brotli.json", testKeyPair, false, false],
-                    ["Error", "gzip decompression fails", "valid-files-compression-gzip.json", testKeyPair, false, false],
-                    ["Error", "decryption fails due to wrong key", "valid-files.json", new NodeRSA({ b: 2048 }), false, false],
-                    ["FileDecryptionError", "the data length validation fails", "valid-files.json", testKeyPair, true, false],
-                    ["FileDecryptionError", "the hash validation fails", "valid-files.json", testKeyPair, false, true],
-                    // tslint:enable:max-line-length
-                ])(
-                    "With %p error when %s",
-                    async (errorName, _label2, file, keyPair, corruptLength, corruptHash) => {
-                        const fileListDefs = loadScopeDefinitions(
-                            "fixtures/network/get-file-list/valid-file-list.json",
-                            `${new URL(baseUrl).origin}`,
-                        );
-                        nock.define(fileListDefs);
-
-                        const fileList: string[] = (fileListDefs[0].response as Dictionary<any>).fileList;
-
-                        const fileDefs = loadScopeDefinitions(
-                            `fixtures/network/get-file/${file}`,
-                            `${new URL(baseUrl).origin}`,
-                        );
-
-                        const caFormatted = await fileContentToCAFormat(
-                            fileDefs,
-                            keyPair,
-                            {
-                                overrideCompression: "no-compression",
-                                corruptLength,
-                                corruptHash,
-                            },
-                        );
-
-                        nock.define(caFormatted);
-
-                        const failureCallback = jest.fn();
-
-                        await sdk.getSessionData(
-                            "test-session-key",
-                            testKeyPair.exportKey("pkcs1-private-pem"),
-                            () => null,
-                            failureCallback,
-                        );
-
-                        expect(failureCallback).toHaveBeenCalledTimes(fileList.length);
-
-                        fileList.forEach((fileListFile) => {
-                            expect(failureCallback).toHaveBeenCalledWith(expect.objectContaining({
-                                // Comparing names as apparently Error is not an instance of Error in some cases?
-                                error: expect.objectContaining({ name: errorName }),
-                                fileName: fileListFile,
-                                fileList,
-                            }));
-                        });
-                    },
-                );
-            });
-
-            // NOTE: This is currently messed up, we'll test it when we fix it
-            it.todo("Performs network request retries in case network is not available");
         });
     },
 );

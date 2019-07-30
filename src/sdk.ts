@@ -1,8 +1,8 @@
 /*!
- * Copyright (c) 2009-2018 digi.me Limited. All rights reserved.
+ * Copyright (c) 2009-2019 digi.me Limited. All rights reserved.
  */
 
-import { PartialAttemptOptions, retry } from "@lifeomic/attempt";
+import { retry, sleep } from "@lifeomic/attempt";
 import { HTTPError } from "got";
 import { decompress } from "iltorb";
 import get from "lodash.get";
@@ -10,55 +10,16 @@ import isFunction from "lodash.isfunction";
 import NodeRSA from "node-rsa";
 import { URL } from "url";
 import * as zlib from "zlib";
+import { GetFileListResponse, GetFileResponse, LibrarySyncStatus } from "./api-responses";
 import { decryptData } from "./crypto";
 import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import { net } from "./net";
 import { getCreatePostboxUrl, getPostboxImportUrl, pushDataToPostbox, PushedFileMeta } from "./postbox";
 import sdkVersion from "./sdk-version";
+import { CAScope, DMESDKConfiguration, FileMeta, GetSessionDataResponse, Session } from "./types";
 import {
     isConfigurationValid, isPlainObject, isSessionValid, isValidString,
 } from "./utils";
-
-interface DMESDKConfiguration {
-    baseUrl: string;
-    retryOptions?: PartialAttemptOptions<any>;
-}
-
-interface Session {
-    expiry: number;
-    sessionKey: string;
-    sessionExchangeToken: string;
-}
-
-interface FileMeta<T = FileDescriptor> {
-    fileData: any;
-    fileName: string;
-    fileDescriptor: T;
-}
-
-interface CAScope {
-    timeRanges?: TimeRange[];
-}
-
-interface TimeRange {
-    from?: number;
-    last?: string;
-    to?: number;
-}
-
-interface GetFileResponse {
-    fileContent: string;
-    fileDescriptor: FileDescriptor;
-    compression?: string;
-}
-
-interface FileDescriptor {
-    objectCount: number;
-    objectType: string;
-    serviceGroup: string;
-    serviceName: string;
-    mimetype?: string;
-}
 
 type FileSuccessResult = { data: any } & FileMeta;
 type FileErrorResult = { error: Error } & FileMeta;
@@ -135,7 +96,7 @@ const _getGuestAuthorizeUrl = (session: Session, callbackUrl: string, options: D
         throw new ParameterValidationError("Parameter callbackUrl should be a non empty string");
     }
     // tslint:disable-next-line:max-line-length
-    return `${new URL(options.baseUrl).origin}/apps/quark/direct-onboarding?sessionExchangeToken=${session.sessionExchangeToken}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
+    return `${new URL(options.baseUrl).origin}/apps/quark/v1/direct-onboarding?sessionExchangeToken=${session.sessionExchangeToken}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
 };
 
 const _getAuthorizeUrl = (appId: string, session: Session, callbackUrl: string) => {
@@ -165,11 +126,11 @@ const _getReceiptUrl = (contractId: string, appId: string) => {
     return `digime://receipt?contractId=${contractId}&appId=${appId}`;
 };
 
-const _getFileList = async (sessionKey: string, options: DMESDKConfiguration): Promise<string[]> => {
+const _getFileList = async (sessionKey: string, options: DMESDKConfiguration): Promise<GetFileListResponse> => {
     const url = `${options.baseUrl}/permission-access/query/${sessionKey}`;
     const response = await net.get(url, { json: true });
 
-    return response.body.fileList;
+    return response.body;
 };
 
 const _getFile = async (
@@ -188,65 +149,96 @@ const _getFile = async (
     };
 };
 
-const _getSessionData = async (
+const _getSessionData = (
     sessionKey: string,
     privateKey: NodeRSA.Key,
     onFileData: FileSuccessHandler,
     onFileError: FileErrorHandler,
     options: DMESDKConfiguration,
-): Promise<any> => {
+): GetSessionDataResponse => {
 
     if (!isValidString(sessionKey)) {
         throw new ParameterValidationError("Parameter sessionKey should be a non empty string");
     }
 
-    // Set up key
-    const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
-    const fileList = await _getFileList(sessionKey, options);
-    const filePromises = fileList.map((fileName) => {
+    let allowPollingToContinue: boolean = true;
 
-        return _getFile(sessionKey, fileName, options).then(async (response: GetFileResponse) => {
-            const { compression, fileContent, fileDescriptor } = response;
-            const { mimetype } = fileDescriptor;
-            let data: Buffer = decryptData(key, fileContent);
+    const allFilesPromise: Promise<unknown> = new Promise(async (resolve) => {
+        // Set up key
+        const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
+        const filePromises: Array<Promise<unknown>> = [];
+        const handledFiles: {[name: string]: number} = {};
+        let state: LibrarySyncStatus = "pending";
 
-            if (compression === "brotli") {
-                data = await decompress(data);
-            } else if (compression === "gzip") {
-                data = zlib.gunzipSync(data);
+        while ( allowPollingToContinue && state !== "partial" && state !== "completed" ) {
+            const {status, fileList}: GetFileListResponse = await _getFileList(sessionKey, options);
+            state = status.state;
+
+            if (state === "pending") {
+                break;
             }
 
-            let fileData: any = data;
-            if (!mimetype) {
-                fileData = JSON.parse(data.toString("utf8"));
-            } else {
-                fileData = data.toString("base64");
-            }
+            const newFiles: string[] = (fileList || []).reduce((accumulator: string[], file) => {
+                const {name, updatedDate} = file;
+                if (get(handledFiles, name, 0) < updatedDate) {
+                    accumulator.push(name);
+                    handledFiles[name] = updatedDate;
+                }
 
-            if (isFunction(onFileData)) {
-                onFileData({
-                    fileData,
-                    fileDescriptor,
-                    fileName,
-                    fileList,
+                return accumulator;
+            }, []);
+
+            const newPromises = newFiles.map((fileName: string) => {
+                return _getFile(sessionKey, fileName, options).then(async (response: GetFileResponse) => {
+                    const { compression, fileContent, fileDescriptor } = response;
+                    const { mimetype } = fileDescriptor;
+                    let data: Buffer = decryptData(key, fileContent);
+
+                    if (compression === "brotli") {
+                        data = await decompress(data);
+                    } else if (compression === "gzip") {
+                        data = zlib.gunzipSync(data);
+                    }
+
+                    let fileData: any = data;
+                    if (!mimetype) {
+                        fileData = JSON.parse(data.toString("utf8"));
+                    } else {
+                        fileData = data.toString("base64");
+                    }
+
+                    if (isFunction(onFileData)) {
+                        onFileData({ fileData, fileDescriptor, fileName, fileList });
+                    }
+
+                    return;
+                }).catch((error) => {
+                    // Failed all attempts
+                    if (isFunction(onFileError)) {
+                        onFileError({ error, fileName, fileList });
+                    }
+                    return;
                 });
+            });
+
+            filePromises.push(...newPromises);
+
+            if (state === "running") {
+                await sleep(3000);
             }
-            return;
-        }).catch((error) => {
-            // Failed all attempts
-            if (isFunction(onFileError)) {
-                onFileError({
-                    error,
-                    fileName,
-                    fileList,
-                });
-            }
-            return;
+        }
+
+        Promise.all(filePromises).then(() => {
+            resolve();
         });
     });
 
-    await Promise.all(filePromises);
-    return;
+    return ({
+        stopPolling: () => {
+            allowPollingToContinue = false;
+        },
+        filePromise: allFilesPromise,
+    });
 };
 
 const _getSessionAccounts = async (
@@ -295,7 +287,7 @@ const init = (sdkOptions?: Partial<DMESDKConfiguration>) => {
     }
 
     const options: DMESDKConfiguration = {
-        baseUrl: "https://api.digi.me/v1.0",
+        baseUrl: "https://api.digi.me/v1.4",
         retryOptions: {
             delay: 750,
             factor: 2,
@@ -335,7 +327,7 @@ const init = (sdkOptions?: Partial<DMESDKConfiguration>) => {
             sessionKey: string,
             postboxId: string,
             publicKey: string,
-            pushedData: FileMeta<PushedFileMeta>,
+            pushedData: PushedFileMeta,
         ) => (
             pushDataToPostbox(sessionKey, postboxId, publicKey, pushedData, options)
         ),
