@@ -1,4 +1,4 @@
-/*!
+/*
  * Copyright (c) 2009-2018 digi.me Limited. All rights reserved.
  */
 
@@ -10,9 +10,8 @@ import * as SDK from "./";
 import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import sdkVersion from "./sdk-version";
 
-const customSDK = SDK.createSDK({
-    host: "api.digi.test",
-    version: "v7",
+const customSDK = SDK.init({
+    baseUrl: "https://api.digi.test/v7",
 });
 
 const testKeyPair: NodeRSA = new NodeRSA({ b: 2048 });
@@ -21,15 +20,15 @@ beforeEach(() => {
     nock.cleanAll();
 });
 
-describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
-    ["Default exported SDK", SDK, "api.digi.me", "v1.0"],
-    ["Custom SDK", customSDK, "api.digi.test", "v7"],
+describe.each<[string, ReturnType<typeof SDK.init>, string]>([
+    ["Default exported SDK", SDK, "https://api.digi.me/v1.0"],
+    ["Custom SDK", customSDK, "https://api.digi.test/v7"],
 ])(
     "%s",
-    (_title, sdk, host, version) => {
+    (_title, sdk, baseUrl) => {
 
-    describe("getPostboxURL", () => {
-        describe("Returns a URL where", () => {
+    describe("getCreatePostboxUrl", () => {
+        describe("Returns a Url where", () => {
             it.each<[string, string, (url: URL) => unknown]>([
                 ["Protocol", "digime:", (url) => url.protocol],
                 ["Host", "postbox", (url) => url.host],
@@ -37,16 +36,17 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
                 ["Query \"sessionKey\"", "test-session-key", (url) => url.searchParams.get("sessionKey")],
                 ["Query \"appId\"", "test-application-id", (url) => url.searchParams.get("appId")],
                 ["Query \"sdkVersion\"", sdkVersion, (url) => url.searchParams.get("sdkVersion")],
+                ["Query \"resultVersion\"", "2", (url) => url.searchParams.get("resultVersion")],
                 [
-                    "Query \"callbackURL\"",
+                    "Query \"callbackUrl\"",
                     "https://callback.test?a=1&b=2#c",
-                    (url) => url.searchParams.get("callbackURL"),
+                    (url) => url.searchParams.get("callbackUrl"),
                 ],
             ])(
                 "%s is %p",
                 (_label, expected, getter) => {
 
-                    const appUrl = sdk.getPostboxURL(
+                    const appUrl = sdk.getCreatePostboxUrl(
                         "test-application-id",
                         {
                             expiry: 0,
@@ -66,7 +66,7 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
             it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                 "%p",
                 (appId: any) => {
-                    const fn = () => sdk.getPostboxURL(
+                    const fn = () => sdk.getCreatePostboxUrl(
                         appId,
                         {
                             expiry: 0,
@@ -86,7 +86,7 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
             it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", (): null => null, Symbol("test")])(
                 "%p",
                 (session: any) => {
-                    const fn = () => sdk.getPostboxURL(
+                    const fn = () => sdk.getCreatePostboxUrl(
                         "test-application-id",
                         session,
                         "https://callback.test?a=1&b=2#c",
@@ -97,18 +97,18 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
             );
         });
 
-        describe("Throws ParameterValidationError when callbackURL (third parameter) is", () => {
+        describe("Throws ParameterValidationError when callbackUrl (third parameter) is", () => {
             it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                 "%p",
-                (callbackURL: any) => {
-                    const fn = () => sdk.getPostboxURL(
+                (callbackUrl: any) => {
+                    const fn = () => sdk.getCreatePostboxUrl(
                         "test-application-id",
                         {
                             expiry: 0,
                             sessionKey: "test-session-key",
                             sessionExchangeToken: "test-session-exchange-token",
                         },
-                        callbackURL,
+                        callbackUrl,
                     );
 
                     expect(fn).toThrow(ParameterValidationError);
@@ -117,88 +117,28 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
         });
     });
 
-    describe("getCompletionURL", () => {
-        describe("Returns a URL where", () => {
+    describe("getPostboxImportUrl", () => {
+        describe("Returns a Url where", () => {
             it.each<[string, string, (url: URL) => unknown]>([
                 ["Protocol", "digime:", (url) => url.protocol],
                 ["Host", "postbox", (url) => url.host],
-                ["Pathname", "/push-complete", (url) => url.pathname],
-                ["Query \"sessionKey\"", "test-session-key", (url) => url.searchParams.get("sessionKey")],
-                ["Query \"postboxId\"", "test-postbox-id", (url) => url.searchParams.get("postboxId")],
-                ["Query \"sdkVersion\"", sdkVersion, (url) => url.searchParams.get("sdkVersion")],
-                [
-                    "Query \"callbackURL\"",
-                    "https://callback.test?a=1&b=2#c",
-                    (url) => url.searchParams.get("callbackURL"),
-                ],
+                ["Pathname", "/import", (url) => url.pathname],
             ])(
                 "%s is %p",
                 (_label, expected, getter) => {
-
-                    const url = sdk.getPushCompleteURL(
-                        "test-session-key",
-                        "test-postbox-id",
-                        "https://callback.test?a=1&b=2#c",
-                    );
-
-                    const actual = getter(new URL(url));
+                    const actual = getter(new URL(sdk.getPostboxImportUrl()));
                     expect(actual).toBe(expected);
-                },
-            );
-        });
-
-        describe("Throws ParameterValidationError when session key (first parameter) is", () => {
-            it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
-                "%p",
-                (sessionKey: any) => {
-                    const fn = () => sdk.getPushCompleteURL(
-                        sessionKey,
-                        "test-postbox-id",
-                        "https://callback.test?a=1&b=2#c",
-                    );
-
-                    expect(fn).toThrow(ParameterValidationError);
-                },
-            );
-        });
-
-        describe("Throws ParameterValidationError when postbox id (second parameter) is", () => {
-            it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
-                "%p",
-                (postboxId: any) => {
-                    const fn = () => sdk.getPushCompleteURL(
-                        "test-session-key",
-                        postboxId,
-                        "https://callback.test?a=1&b=2#c",
-                    );
-
-                    expect(fn).toThrow(ParameterValidationError);
-                },
-            );
-        });
-
-        describe("Throws ParameterValidationError when callbackURL (third parameter) is", () => {
-            it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
-                "%p",
-                (callbackURL: any) => {
-                    const fn = () => sdk.getPushCompleteURL(
-                        "test-session-key",
-                        "test-postbox-id",
-                        callbackURL,
-                    );
-
-                    expect(fn).toThrow(ParameterValidationError);
                 },
             );
         });
     });
 
     describe("pushToPostbox", () => {
-        it(`Requests target API host and version: https://${host}/${version}/`, async () => {
+        it(`Requests target API host and version: ${baseUrl}`, async () => {
 
             const callback = jest.fn();
-            const scope = nock(`https://${host}`)
-                .post(`/${version}/permission-access/postbox/test-postbox-id`)
+            const scope = nock(`${new URL(baseUrl).origin}`)
+                .post(`${new URL(baseUrl).pathname}/permission-access/postbox/test-postbox-id`)
                 .reply(200);
 
             // Request event only fires when the scope target has been hit
@@ -298,11 +238,11 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
             );
         });
 
-        describe("Handles server side errors", () => {
+        describe(`Handles server side errors with endpoint ${baseUrl}`, () => {
             it("Throws HTTPError when we get an error from the call", async () => {
                 const callback = jest.fn();
-                const scope = nock(`https://${host}`)
-                    .post(`/${version}/permission-access/postbox/test-postbox-id`)
+                const scope = nock(`${new URL(baseUrl).origin}`)
+                    .post(`${new URL(baseUrl).pathname}/permission-access/postbox/test-postbox-id`)
                     .reply(404);
 
                 // Request event only fires when the scope target has been hit
@@ -329,8 +269,8 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
 
             it("Throws SDKInvalid when we get an SDKInvalid message from the server", () => {
 
-                nock(`https://${host}`)
-                    .post(`/${version}/permission-access/postbox/test-postbox-id`)
+                nock(`${new URL(baseUrl).origin}`)
+                    .post(`${new URL(baseUrl).pathname}/permission-access/postbox/test-postbox-id`)
                     .reply(404, {
                         error: {
                             code: "SDKInvalid",
@@ -360,8 +300,8 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
 
             it("Throws SDKVersionInvalid when we get an SDKVersionInvalid message from the server", () => {
 
-                nock(`https://${host}`)
-                    .post(`/${version}/permission-access/postbox/test-postbox-id`)
+                nock(`${new URL(baseUrl).origin}`)
+                    .post(`${new URL(baseUrl).pathname}/permission-access/postbox/test-postbox-id`)
                     .reply(404, {
                         error: {
                             code: "SDKVersionInvalid",
