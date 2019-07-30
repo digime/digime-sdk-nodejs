@@ -13,8 +13,9 @@ In order to run the complete Consent Access process, the Digi.me SDK for JavaScr
   * [Installation](#installation)
   * [Example Application](#example-application)
   * [SDK initialisation](#sdk-initialisation)
-  * [Requesting User Data](#requesting-user-data)
-  * [Pushing Data To User via Postbox](#pushing-data-to-user-via-postbox)
+  * [Requesting user data](#requesting-user-data)
+  * [Requesting account data](#requesting-account-data)
+  * [Returning data via Postbox](#returning-data-via-postbox)
 
 ## Installation
 
@@ -29,8 +30,8 @@ You can check out an example application which uses the Digi.me SDK [here](https
 ## SDK Initialisation
 ### Obtaining your Contract ID/App ID/Private Key
 
-Before accessing the public APIs, a valid Contract ID needs to be registered for an App ID.
-The Contract ID uniquely identifies a contract with the user that spells out what type of data you want, what you will and won't do with it, how long you will retain the data and whether you will implement the right to be forgotten.
+Before accessing the public APIs, a valid contract needs to be registered along with an App.
+The Contract uniquely identifies a digi.me contract which spells out what type of data you wish to request or return to the user, what you will and won't do with it, how long you will retain the data for and whether you will implement the right to be forgotten.
 
 Additionally it also specifies how the data is encrypted in transit.
 
@@ -42,27 +43,21 @@ To register a Consent Access contract check out [Digi.me Dev Support](https://de
 When initialising the SDK, you have the ability to override the default behaviour and specify some options.
 The create SDK function has the following signature:
 ```typescript
-const createSDK = (sdkOptions?: Partial<DigiMeSDKConfiguration>);
+const init = (sdkOptions?: Partial<DMESDKConfiguration>);
 ```
 
-##### DigiMeSDKConfiguration
+##### DMESDKConfiguration
 Options you can configure when initialising the SDK:
 ```typescript
-interface DigiMeSDKConfiguration {
-    host: string;
-    version: string;
+interface DMESDKConfiguration {
+    baseUrl: string;
     retryOptions: PartialAttemptOptions<any>;
 }
 ```
-`host`
+`baseUrl`
 
 Type: string
-The environment of digi.me to point to. By default it will use the production environment of digi.me. Unless specifically instructed, it is best to use this environment as it will be the most stable. Default: "api.digi.me"
-
-`version`
-
-Type: string
-The version of the public api to point to. Default: "v1.0"
+The environment of digi.me to point to. By default it will use the production environment of digi.me. Unless specifically instructed, it is best to use this environment as it will be the most stable. Default: "https://api.digi.me/v1.0"
 
 `retryOptions`
 
@@ -73,10 +68,10 @@ Options to specify retry logic for failed API calls
 Check out the class [here](https://github.com/lifeomic/attempt/blob/master/src/index.ts#L14-L27)
 
 ### Establishing a session
-To start fetching data into your application, you will need to authorise a session.
+To start requesting or returning data to the user, you will need to first establish a session.
 The authorisation flow is separated into two phases:
 
-Initialise a session with Digi.me API which returns a session object.
+Initialise a session with digi.me API which returns a session object.
 ```typescript
 establishSession = async (
     appId: string,
@@ -147,35 +142,33 @@ For example to return data for the last six months : "6m"
 
 #### 1. Presenting request and getting User Consent
 In digi.me we provide two different ways to prompt user for consent
-1. Existing users who already have the digi.me application installed - Use the `getAppURL` method to get a URL which can be used to trigger the digi.me client to open on their Android or iOS devices. The callbackURL you pass in will be the URL the digi.me client will call once the user has accepted the data request. Given the session id, the client will know the details of the contract and ask for the user's permission on only the data the contract needs.
+1. Existing users who already have the digi.me application installed - Use the `getAuthorizeUrl` method to get a Url which can be used to trigger the digi.me client to open on their desktop, Android or iOS devices. The callbackUrl you pass in will be the Url the digi.me client will call once the user has given consent. Given the session id, the client will know the details of the contract and ask for the user's permission on only the data the contract needs.
     ```typescript
-    getAppURL = (
+    getAuthorizeUrl = (
         appId: string,
         session: Session,
-        callbackURL: string
+        callbackUrl: string
     );
     ```
 
-2. Guest consent - This is a demo feature which allows the user to consent and onboard to digi.me using the browser. To trigger this onboard mode, you can call the `getWebURL` method to get a URL which when opened will ask user for consent.
+2. Guest consent - This is a demo feature which allows the user to consent and onboard to digi.me using the browser. To trigger this onboard mode, you can call the `getGuestAuthorizeUrl` method to get a Url which when opened will ask user for consent.
     ```typescript
-    getWebURL = (
+    getGuestAuthorizeUrl = (
         session: Session,
-        callbackURL: string,
-        options: DigiMeSDKConfiguration
+        callbackUrl: string
     );
     ```
 
-Regardless of which mode above you've trigger, the callbackURL will be triggered once the user has authorised the consent. The callbackURL will be triggered with a new param `result` where the value will either be `DATA_READY` or `CANCELLED` if the user decided to deny the request.
+Regardless of which mode above you trigger, the callbackUrl will be triggered once the user has authorised the consent. The callbackUrl will be triggered with a new param `result` where the value will either be `SUCCESS`, `ERROR` or `CANCEL`.
 
 #### 2. Fetching Data
-Upon successful authorisation you can now request user's files. To fetch all available data for your contract you can call `getDataForSession` to start your data fetch. You'll need to provide us with a private key with which we will try and decrypt user data. In addition you can pass a onFileData and onFileError which will be triggered whenever a user data file is processed or if the fetch errored out.
+Upon user consent you can now request user's files. To fetch all available data for your contract you can call `getSessionData` to start your data fetch. You'll need to provide us with a private key with which we will try and decrypt user data. The private key is linked to the contract which you would have received when you obtained the contract ID. In addition you can pass callbacks `onFileData` and `onFileError` which will be triggered whenever a user data file is processed or if the fetch errored out.
 ```typescript
-getDataForSession = async (
+getSessionData = async (
     sessionId: string,
     privateKey: NodeRSA.Key,
     onFileData: FileSuccessHandler,
-    onFileError: FileErrorHandler,
-    options: DigiMeSDKConfiguration
+    onFileError: FileErrorHandler
 ): Promise<any>;
 ```
 
@@ -226,7 +219,9 @@ Type: string
 What service the data came from. E.g. Facebook.
 For a full list, please check out our developer docs [here](http://developers.digi.me/reference-objects).
 
-The `onFileError` callback function is triggered whenever we have failed to receive any data for the data file. By default, we try to fetch the data five times with exponential backoff before invoking the error callback. The error callback will be triggered with an object in the parameter. The object has the following properties:
+The `onFileError` callback function is triggered whenever we have failed to receive any data for the data file. By default, we try to fetch the data five times with exponential backoff before invoking the error callback. You can configure the retry options when you initiate the SDK. 
+
+The error callback will be triggered with an object in the parameter. The object has the following properties:
     1. error - error object
     2. fileName - the filename which the objects reside in
     3. fileList - the list of all files that are to be returned
@@ -238,29 +233,39 @@ callback = ({
 }): void;
 ```
 
-## Pushing Data To User via Postbox
+## Requesting account data
+Additionally, you can also request to get account information for a user. This will return all accounts that data belongs to, which will contain service names, account identifiers and logos (of applicable).
 
-#### 1. Presenting request and getting user consent
-In order to push data to a user's library, the user needs to have the native digi.me application installed. To trigger a data push request, we first need to ask the user permission for us to create a postbox for them. A postbox is a temporary secure storage that only you and your user can access. Your user's digi.me will periodically import any data stored in their postboxes. You should create a new postbox for each [session](#establishing-a-session).
+To fetch account data
+```typescript
+getSessionAccounts = async (
+    sessionKey: string,
+);
+```
 
-Use the `getPostboxURL` function to get a URL which can be used to trigger the native digi.me client to create a postbox. Once the user has given consent, the digi.me client will trigger the callbackURL with the `postboxId` and `publicKey` in the query parameter.
+## Returning data via Postbox
+
+#### 1. Create user postbox
+In order to push data to a user, the user needs to have a postbox. A postbox is a temporary secure storage that only you and your user can access. To create a postbox, the user needs to have the native digi.me application installed. Your user's digi.me will periodically import any data stored in their postboxes. You should create a new postbox for each [session](#establishing-a-session).
+
+Use the `getCreatePostboxUrl` function to get a Url which can be used to trigger the native digi.me client to create a postbox. Once the user has given consent, the digi.me client will trigger the callbackUrl with the `postboxId` and `publicKey` in the query parameter.
 
 ```typescript
-getPostboxURL = (
+getCreatePostboxUrl = (
     appId: string,
     session: Session,
-    callbackURL: string
+    callbackUrl: string
 );
 ```
 
 A link which the digi.me application triggers once the postbox is created should look something like this:
-*<CALLBACK_URL>?publicKey=<PUBLIC_KEY>&postboxId=<POSTBOX_ID>&result=POSTBOX_READY*
+*<CALLBACK_Url>?publicKey=<PUBLIC_KEY>&postboxId=<POSTBOX_ID>&result=SUCCESS*
 
-#### 2. Pushing data into user library.
+#### 2. Pushing data into postbox.
 Once we have the postbox created from step 1 above, we are ready to push data to the user! In order to push data, we need the following: `sessionId`, `postboxId`, `publicKey`, and `pushedData`, which is an object encapculating the data and an object describing the data:
 
 ```typescript
-pushDataToPostbox = (
+pushDataToPostbox = async (
     sessionId: string,
     postboxId: string,
     publicKey: string,
@@ -336,14 +341,10 @@ Account ID of the user in your system
 
 #### 3. Importing data into user's digi.me library
 
-Once the data has been pushed into the user's postbox, we can trigger the digi.me application to import the data in the user's library. To do that, we can use the following function to return a special URL which when triggered will launch the native digi.me application. You'll need the `sessionId`, the `postboxId` and a `callbackURL`.
+Once the data has been pushed into the user's postbox, digi.me will import it the next time the application syncs.
+
+You can also use the `getPostboxImportUrl` call to instantly trigger digi.me to import data from their postbox.
 
 ```typescript
-getPushCompleteURL = (
-    sessionId: string,
-    postboxId: string,
-    callbackURL: string,
-);
+getPostboxImportUrl = ();
 ```
-
-Note, this function forces the user's digi.me to import data from their postbox straight away. If this isn't called, the user will check their postboxes next time their digi.me application is launched.
