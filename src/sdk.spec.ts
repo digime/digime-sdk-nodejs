@@ -4,7 +4,6 @@
 
 import { HTTPError } from "got";
 import { Dictionary } from "lodash";
-import escapeRegExp from "lodash.escaperegexp";
 import nock from "nock";
 import NodeRSA from "node-rsa";
 import { basename } from "path";
@@ -19,9 +18,8 @@ import * as SDK from "./";
 import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import sdkVersion from "./sdk-version";
 
-const customSDK = SDK.createSDK({
-    host: "api.digi.test",
-    version: "v7",
+const customSDK = SDK.init({
+    baseUrl: "https://api.digi.test/v7",
 });
 
 const testKeyPair: NodeRSA = new NodeRSA({ b: 2048 });
@@ -30,16 +28,16 @@ beforeEach(() => {
     nock.cleanAll();
 });
 
-describe("createSDK", () => {
+describe("init", () => {
 
     describe("Returns an object containing", () => {
 
         it.each([
             "establishSession",
-            "getWebURL",
-            "getAppURL",
-            "getReceiptURL",
-            "getDataForSession",
+            "getAuthorizeUrl",
+            "getGuestAuthorizeUrl",
+            "getReceiptUrl",
+            "getSessionData",
         ])("%s function", (property) => {
             expect(customSDK).toHaveProperty(property, expect.any(Function));
         });
@@ -48,28 +46,28 @@ describe("createSDK", () => {
 
     describe("Throws ParameterValidationError when options (first parameter) is", () => {
         // tslint:disable-next-line:max-line-length
-        it.each([true, false, null, [], 0, NaN, "", (): null => null, Symbol("test"), { version: null }, { host: null }])(
+        it.each([true, false, null, [], 0, NaN, "", (): null => null, Symbol("test"), { baseUrl: null }])(
             "%p",
             (options: any) => {
-                expect(() => SDK.createSDK(options)).toThrow(ParameterValidationError);
+                expect(() => SDK.init(options)).toThrow(ParameterValidationError);
             },
         );
     });
 
 });
 
-describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
-    ["Default exported SDK", SDK, "api.digi.me", "v1.0"],
-    ["Custom SDK", customSDK, "api.digi.test", "v7"],
+describe.each<[string, ReturnType<typeof SDK.init>, string]>([
+    ["Default exported SDK", SDK, "https://api.digi.me/v1.0"],
+    ["Custom SDK", customSDK, "https://api.digi.test/v7"],
 ])(
     "%s",
-    (_title, sdk, host, version) => {
+    (_title, sdk, baseUrl) => {
 
         describe("establishSession", () => {
 
-            it(`Targets API host and version: https://${host}/${version}/`, async () => {
+            it(`Targets API with base url: ${baseUrl}/`, async () => {
                 const callback = jest.fn();
-                const scope = nock(`https://${host}`).post(new RegExp(`^/${escapeRegExp(version)}/(.*)`)).reply(200);
+                const scope = nock(`${baseUrl}`).post(new RegExp(`^/(.*)`)).reply(200);
 
                 // Request event only fires when the scope target has been hit
                 scope.on("request", callback);
@@ -160,13 +158,15 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
             });
 
             it("Returns session sent in response body", async () => {
-                const defs = loadDefinitions("fixtures/network/establish-session/valid-session.json");
-                const expected = defs.find((def) => `https://${host}` === def.scope);
+                const defs = loadScopeDefinitions(
+                    "fixtures/network/establish-session/valid-session.json",
+                    `${new URL(`${baseUrl}`).origin}`,
+                );
 
                 nock.define(defs);
 
                 const promise = sdk.establishSession("test-application-id", "test-contract-id");
-                return expect(promise).resolves.toEqual(expected!.response);
+                return expect(promise).resolves.toEqual(defs[0].response);
             });
 
             // NOTE: There is no runtime validation of the session object in SDK yet
@@ -233,25 +233,25 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
             });
         });
 
-        describe("getAppURL", () => {
-
-            describe("Returns a URL where", () => {
+        describe("getAuthorizationUrl", () => {
+            describe("Returns a Url where", () => {
                 it.each<[string, string, (url: URL) => unknown]>([
                     ["Protocol", "digime:", (url) => url.protocol],
                     ["Host", "consent-access", (url) => url.host],
                     ["Query \"sessionKey\"", "test-session-key", (url) => url.searchParams.get("sessionKey")],
                     ["Query \"appId\"", "test-application-id", (url) => url.searchParams.get("appId")],
                     ["Query \"sdkVersion\"", sdkVersion, (url) => url.searchParams.get("sdkVersion")],
+                    ["Query \"resultVersion\"", "2", (url) => url.searchParams.get("resultVersion")],
                     [
-                        "Query \"callbackURL\"",
+                        "Query \"callbackUrl\"",
                         "https://callback.test?a=1&b=2#c",
-                        (url) => url.searchParams.get("callbackURL"),
+                        (url) => url.searchParams.get("callbackUrl"),
                     ],
                 ])(
                     "%s is %p",
                     (_label, expected, getter) => {
 
-                        const appUrl = sdk.getAppURL(
+                        const appUrl = sdk.getAuthorizeUrl(
                             "test-application-id",
                             {
                                 expiry: 0,
@@ -271,7 +271,7 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (appId: any) => {
-                        const fn = () => sdk.getAppURL(
+                        const fn = () => sdk.getAuthorizeUrl(
                             appId,
                             {
                                 expiry: 0,
@@ -291,7 +291,7 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
                 it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", (): null => null, Symbol("test")])(
                     "%p",
                     (session: any) => {
-                        const fn = () => sdk.getAppURL(
+                        const fn = () => sdk.getAuthorizeUrl(
                             "test-application-id",
                             session,
                             "https://callback.test?a=1&b=2#c",
@@ -302,18 +302,18 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
                 );
             });
 
-            describe("Throws ParameterValidationError when callbackURL (third parameter) is", () => {
+            describe("Throws ParameterValidationError when callbackUrl (third parameter) is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
-                    (callbackURL: any) => {
-                        const fn = () => sdk.getAppURL(
+                    (callbackUrl: any) => {
+                        const fn = () => sdk.getAuthorizeUrl(
                             "test-application-id",
                             {
                                 expiry: 0,
                                 sessionKey: "test-session-key",
                                 sessionExchangeToken: "test-session-exchange-token",
                             },
-                            callbackURL,
+                            callbackUrl,
                         );
 
                         expect(fn).toThrow(ParameterValidationError);
@@ -323,19 +323,18 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
 
         });
 
-        describe("getReceiptURL", () => {
-
-            describe("Returns a URL where", () => {
+        describe("getReceiptUrl", () => {
+            describe("Returns a Url where", () => {
                 it.each<[string, string, (url: URL) => unknown]>([
                     ["Protocol", "digime:", (url) => url.protocol],
                     ["Host", "receipt", (url) => url.host],
-                    ["Query \"contractid\"", "test-contract-id", (url) => url.searchParams.get("contractid")],
-                    ["Query \"appid\"", "test-application-id", (url) => url.searchParams.get("appid")],
+                    ["Query \"contractId\"", "test-contract-id", (url) => url.searchParams.get("contractId")],
+                    ["Query \"appId\"", "test-application-id", (url) => url.searchParams.get("appId")],
                 ])(
                     "%s is %p",
                     (_label, expected, getter) => {
 
-                        const receiptUrl = sdk.getReceiptURL(
+                        const receiptUrl = sdk.getReceiptUrl(
                             "test-contract-id",
                             "test-application-id",
                         );
@@ -350,7 +349,7 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (contractid: any) => {
-                        const fn = () => sdk.getReceiptURL(
+                        const fn = () => sdk.getReceiptUrl(
                             contractid,
                             "test-application-id",
                         );
@@ -360,14 +359,14 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
                 );
             });
 
-            describe("Throws ParameterValidationError when applicationid (second parameter) is", () => {
+            describe("Throws ParameterValidationError when applicationId (second parameter) is", () => {
                 // tslint:disable-next-line:max-line-length
                 it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", (): null => null, Symbol("test")])(
                     "%p",
-                    (applicationid: any) => {
-                        const fn = () => sdk.getReceiptURL(
+                    (applicationId: any) => {
+                        const fn = () => sdk.getReceiptUrl(
                             "test-contract-id",
-                            applicationid,
+                            applicationId,
                         );
 
                         expect(fn).toThrow(ParameterValidationError);
@@ -376,20 +375,19 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
             });
         });
 
-        describe("getWebURL", () => {
-
-            describe("Returns a URL where", () => {
+        describe("getGuestAuthorizationUrl", () => {
+            describe("Returns a Url where", () => {
                 it.each<[string, string, (url: URL) => unknown]>([
                     ["Protocol", "https:", (url) => url.protocol],
-                    ["Host", host, (url) => url.host],
-                    ["Pathname", "/apps/quark/direct-onboarding", (url) => url.pathname],
+                    ["Host", `${new URL(baseUrl).host}`, (url) => url.host],
+                    ["Pathname", `/apps/quark/direct-onboarding`, (url) => url.pathname],
                     [
                         "Query \"sessionExchangeToken\"",
                         "test-session-exchange-token",
                         (url) => url.searchParams.get("sessionExchangeToken"),
                     ],
                     [
-                        "Query \"callbackURL\"",
+                        "Query \"callbackUrl\"",
                         "https://callback.test?a=1&b=2#c",
                         (url) => url.searchParams.get("callbackUrl"),
                     ],
@@ -397,7 +395,7 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
                     "%s is %p",
                     (_label, expected, getter) => {
 
-                        const appUrl = sdk.getWebURL(
+                        const appUrl = sdk.getGuestAuthorizeUrl(
                             {
                                 expiry: 0,
                                 sessionKey: "test-session-key",
@@ -417,7 +415,7 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
                 it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", (): null => null, Symbol("test")])(
                     "%p",
                     (session: any) => {
-                        const fn = () => sdk.getWebURL(
+                        const fn = () => sdk.getGuestAuthorizeUrl(
                             session,
                             "https://callback.test?a=1&b=2#c",
                         );
@@ -430,14 +428,14 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
             describe("Throws ParameterValidationError when callbackUrl (second parameter) is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
-                    (callbackURL: any) => {
-                        const fn = () => sdk.getWebURL(
+                    (callbackUrl: any) => {
+                        const fn = () => sdk.getGuestAuthorizeUrl(
                             {
                                 expiry: 0,
                                 sessionKey: "test-session-key",
                                 sessionExchangeToken: "test-session-exchange-token",
                             },
-                            callbackURL,
+                            callbackUrl,
                         );
 
                         expect(fn).toThrow(ParameterValidationError);
@@ -447,9 +445,43 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
 
         });
 
-        describe("getDataForSession", () => {
+        describe("getSessionAccounts", () => {
+            it(`Requests target API baseUrl: ${baseUrl}`, async () => {
 
-            it(`Requests target API host and version: https://${host}/${version}/`, async () => {
+                nock(`${new URL(baseUrl).origin}`)
+                    .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key/accounts.json`)
+                    .reply(200, {
+                        fileContent: {
+                            accounts: [{
+                                name: "test-account",
+                            }],
+                        },
+                    });
+
+                const result = await sdk.getSessionAccounts("test-session-key");
+
+                expect(result).toEqual({
+                    accounts: [{
+                        name: "test-account",
+                    }],
+                });
+            });
+
+            describe("Throws ParameterValidationError when sessionKey (first parameter) is", () => {
+
+                it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+                    "%p",
+                    (sessionKey: any) => {
+                        return expect(sdk.getSessionAccounts(sessionKey)).rejects.toThrow(ParameterValidationError);
+                    },
+                );
+
+            });
+        });
+
+        describe("getSessionData", () => {
+
+            it(`Requests target API baseUrl: ${baseUrl}`, async () => {
                 const listScopes = nock.define(
                     loadDefinitions("fixtures/network/get-file-list/valid-file-list.json"),
                 );
@@ -468,7 +500,7 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
                     scope.on("request", fileCallback);
                 });
 
-                await sdk.getDataForSession(
+                await sdk.getSessionData(
                     "test-session-key",
                     testKeyPair.exportKey("pkcs1-private-pem"),
                     () => null,
@@ -484,7 +516,7 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (sessionKey: any) => {
-                        const promise = sdk.getDataForSession(
+                        const promise = sdk.getSessionData(
                             sessionKey,
                             testKeyPair.exportKey("pkcs1-private-pem"),
                             () => null,
@@ -506,14 +538,14 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
                 ])("Retrieves encrypted and %s files", async (_label, file) => {
                     const fileListDefs = loadScopeDefinitions(
                         "fixtures/network/get-file-list/valid-file-list.json",
-                        `https://${host}`,
+                        `${new URL(baseUrl).origin}`,
                     );
                     nock.define(fileListDefs);
 
                     const fileList: string[] = (fileListDefs[0].response as Dictionary<any>).fileList;
                     const fileDefs = loadScopeDefinitions(
                         `fixtures/network/get-file/${file}`,
-                        `https://${host}`,
+                        `${new URL(baseUrl).origin}`,
                     );
 
                     const caFormatted = await fileContentToCAFormat(
@@ -525,7 +557,7 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
 
                     const successCallback = jest.fn();
 
-                    await sdk.getDataForSession(
+                    await sdk.getSessionData(
                         "test-session-key",
                         testKeyPair.exportKey("pkcs1-private-pem"),
                         successCallback,
@@ -562,13 +594,16 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
                     async (errorName, _label2, file, keyPair, corruptLength, corruptHash) => {
                         const fileListDefs = loadScopeDefinitions(
                             "fixtures/network/get-file-list/valid-file-list.json",
-                            `https://${host}`,
+                            `${new URL(baseUrl).origin}`,
                         );
                         nock.define(fileListDefs);
 
                         const fileList: string[] = (fileListDefs[0].response as Dictionary<any>).fileList;
 
-                        const fileDefs = loadScopeDefinitions(`fixtures/network/get-file/${file}`, `https://${host}`);
+                        const fileDefs = loadScopeDefinitions(
+                            `fixtures/network/get-file/${file}`,
+                            `${new URL(baseUrl).origin}`,
+                        );
 
                         const caFormatted = await fileContentToCAFormat(
                             fileDefs,
@@ -584,7 +619,7 @@ describe.each<[string, ReturnType<typeof SDK.createSDK>, string, string]>([
 
                         const failureCallback = jest.fn();
 
-                        await sdk.getDataForSession(
+                        await sdk.getSessionData(
                             "test-session-key",
                             testKeyPair.exportKey("pkcs1-private-pem"),
                             () => null,
