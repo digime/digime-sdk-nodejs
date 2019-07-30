@@ -12,7 +12,7 @@
 
     {
         "scope": "https://api.digi.test",
-        "path": "/v7/permission-access/session",
+        "path": "/v1.0/permission-access/session",
         "method": "POST",
         "status": 200,
         "response": {

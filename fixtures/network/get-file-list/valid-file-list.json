@@ -15,7 +15,7 @@
 
     {
         "scope": "https://api.digi.test",
-        "path": "/v7/permission-access/query/test-session-key",
+        "path": "/v1.0/permission-access/query/test-session-key",
         "method": "GET",
         "status": 200,
         "response": {
