@@ -1,29 +1,24 @@
 [
     {
         "scope": "https://api.digi.me",
-        "path": "/v1.0/permission-access/query/test-session-key",
+        "path": "/v1.4/permission-access/query/test-session-key",
         "method": "GET",
         "status": 200,
         "response": {
-            "fileList": [
-                "file1.json",
-                "file2.json",
-                "file3.json"
-            ]
+            "status":{
+                "state":"completed"
+            }
         }
     },
-
     {
         "scope": "https://api.digi.test",
         "path": "/v7/permission-access/query/test-session-key",
         "method": "GET",
         "status": 200,
         "response": {
-            "fileList": [
-                "file1.json",
-                "file2.json",
-                "file3.json"
-            ]
+            "status":{
+                "state":"completed"
+            }
         }
     }
 ]
