@@ -52,6 +52,14 @@ interface GetFileResponse {
     compression?: string;
 }
 
+interface GetFileListResponse {
+    status: {
+        state: LibrarySyncStatus;
+        details: unknown[];
+    };
+    fileList: unknown[];
+}
+
 interface FileDescriptor {
     objectCount: number;
     objectType: string;
@@ -59,6 +67,9 @@ interface FileDescriptor {
     serviceName: string;
     mimetype?: string;
 }
+
+type AccountSyncStatus = "running" | "partial" | "completed";
+type LibrarySyncStatus = AccountSyncStatus | "pending";
 
 type FileSuccessResult = { data: any } & FileMeta;
 type FileErrorResult = { error: Error } & FileMeta;
@@ -169,7 +180,7 @@ const _getFileList = async (sessionKey: string, options: DMESDKConfiguration): P
     const url = `${options.baseUrl}/permission-access/query/${sessionKey}`;
     const response = await net.get(url, { json: true });
 
-    return response.body.fileList;
+    return response.body;
 };
 
 const _getFile = async (
@@ -202,7 +213,15 @@ const _getSessionData = async (
 
     // Set up key
     const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
-    const fileList = await _getFileList(sessionKey, options);
+    const response: GetFileListResponse = await _getFileList(sessionKey, options);
+    const { status, fileList } = response;
+    let state: LibrarySyncStatus = status.state;
+
+    while ( state !== "pending" && state !== "completed" ) {
+        const filePromises = fileList.map((fileName) => {});
+        return;
+    }
+
     const filePromises = fileList.map((fileName) => {
 
         return _getFile(sessionKey, fileName, options).then(async (response: GetFileResponse) => {
