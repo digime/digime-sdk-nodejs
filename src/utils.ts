@@ -21,3 +21,5 @@ export const isSessionValid = (session: unknown): session is Session => (
 export const isConfigurationValid = (options: unknown): options is DMESDKConfiguration => (
     isPlainObject(options) && isString(options.baseUrl)
 );
+
+export const sleep = (milliseconds: number) => new Promise(resolve => setTimeout(resolve, milliseconds));

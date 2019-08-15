@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2018 digi.me Limited. All rights reserved.
  */
 
-import { PartialAttemptOptions, retry } from "@lifeomic/attempt";
+import { PartialAttemptOptions, retry, sleep } from "@lifeomic/attempt";
 import { HTTPError } from "got";
 import { decompress } from "iltorb";
 import get from "lodash.get";
@@ -18,6 +18,7 @@ import sdkVersion from "./sdk-version";
 import {
     isConfigurationValid, isPlainObject, isSessionValid, isValidString,
 } from "./utils";
+import { GetFileListResponse, LibrarySyncStatus } from "./api-responses";
 
 interface DMESDKConfiguration {
     baseUrl: string;
@@ -52,14 +53,6 @@ interface GetFileResponse {
     compression?: string;
 }
 
-interface GetFileListResponse {
-    status: {
-        state: LibrarySyncStatus;
-        details: unknown[];
-    };
-    fileList: unknown[];
-}
-
 interface FileDescriptor {
     objectCount: number;
     objectType: string;
@@ -67,9 +60,6 @@ interface FileDescriptor {
     serviceName: string;
     mimetype?: string;
 }
-
-type AccountSyncStatus = "running" | "partial" | "completed";
-type LibrarySyncStatus = AccountSyncStatus | "pending";
 
 type FileSuccessResult = { data: any } & FileMeta;
 type FileErrorResult = { error: Error } & FileMeta;
@@ -176,7 +166,7 @@ const _getReceiptUrl = (contractId: string, appId: string) => {
     return `digime://receipt?contractId=${contractId}&appId=${appId}`;
 };
 
-const _getFileList = async (sessionKey: string, options: DMESDKConfiguration): Promise<string[]> => {
+const _getFileList = async (sessionKey: string, options: DMESDKConfiguration): Promise<GetFileListResponse> => {
     const url = `${options.baseUrl}/permission-access/query/${sessionKey}`;
     const response = await net.get(url, { json: true });
 
@@ -213,56 +203,60 @@ const _getSessionData = async (
 
     // Set up key
     const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
-    const response: GetFileListResponse = await _getFileList(sessionKey, options);
-    const { status, fileList } = response;
-    let state: LibrarySyncStatus = status.state;
+    let state: LibrarySyncStatus = "pending";
+    let filePromises: Promise<any>[] = [];
+    let handledFiles: {name: string, updated: number}[] = [];
 
-    while ( state !== "pending" && state !== "completed" ) {
-        const filePromises = fileList.map((fileName) => {});
-        return;
-    }
+    while ( state !== "partial" && state !== "completed" ) {
+        const {status, fileList}: GetFileListResponse = await _getFileList(sessionKey, options);
+        state = status.state;
 
-    const filePromises = fileList.map((fileName) => {
-
-        return _getFile(sessionKey, fileName, options).then(async (response: GetFileResponse) => {
-            const { compression, fileContent, fileDescriptor } = response;
-            const { mimetype } = fileDescriptor;
-            let data: Buffer = decryptData(key, fileContent);
-
-            if (compression === "brotli") {
-                data = await decompress(data);
-            } else if (compression === "gzip") {
-                data = zlib.gunzipSync(data);
-            }
-
-            let fileData: any = data;
-            if (!mimetype) {
-                fileData = JSON.parse(data.toString("utf8"));
-            } else {
-                fileData = data.toString("base64");
-            }
-
-            if (isFunction(onFileData)) {
-                onFileData({
-                    fileData,
-                    fileDescriptor,
-                    fileName,
-                    fileList,
-                });
-            }
-            return;
-        }).catch((error) => {
-            // Failed all attempts
-            if (isFunction(onFileError)) {
-                onFileError({
-                    error,
-                    fileName,
-                    fileList,
-                });
-            }
-            return;
+        const newFiles = fileList.filter(({name}) => handledFiles.map(({name}) => name).indexOf(name) === -1);
+        handledFiles = handledFiles.concat(...newFiles);
+        
+        filePromises = newFiles.map(({name: fileName}) => {
+            return _getFile(sessionKey, fileName, options).then(async (response: GetFileResponse) => {
+                const { compression, fileContent, fileDescriptor } = response;
+                const { mimetype } = fileDescriptor;
+                let data: Buffer = decryptData(key, fileContent);
+    
+                if (compression === "brotli") {
+                    data = await decompress(data);
+                } else if (compression === "gzip") {
+                    data = zlib.gunzipSync(data);
+                }
+    
+                let fileData: any = data;
+                if (!mimetype) {
+                    fileData = JSON.parse(data.toString("utf8"));
+                } else {
+                    fileData = data.toString("base64");
+                }
+    
+                if (isFunction(onFileData)) {
+                    onFileData({
+                        fileData,
+                        fileDescriptor,
+                        fileName,
+                        fileList,
+                    });
+                }
+                return;
+            }).catch((error) => {
+                // Failed all attempts
+                if (isFunction(onFileError)) {
+                    onFileError({
+                        error,
+                        fileName,
+                        fileList,
+                    });
+                }
+                return;
+            });
         });
-    });
+
+        await sleep(3000);
+    }
 
     await Promise.all(filePromises);
     return;
@@ -314,7 +308,7 @@ const init = (sdkOptions?: Partial<DMESDKConfiguration>) => {
     }
 
     const options: DMESDKConfiguration = {
-        baseUrl: "https://api.digi.me/v1.0",
+        baseUrl: "https://api.digi.me/v1.1",
         retryOptions: {
             delay: 750,
             factor: 2,
