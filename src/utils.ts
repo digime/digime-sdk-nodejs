@@ -22,4 +22,4 @@ export const isConfigurationValid = (options: unknown): options is DMESDKConfigu
     isPlainObject(options) && isString(options.baseUrl)
 );
 
-export const sleep = (milliseconds: number) => new Promise(resolve => setTimeout(resolve, milliseconds));
+export const sleep = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));

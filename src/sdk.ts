@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2018 digi.me Limited. All rights reserved.
  */
 
-import { PartialAttemptOptions, retry, sleep } from "@lifeomic/attempt";
+import { retry, sleep } from "@lifeomic/attempt";
 import { HTTPError } from "got";
 import { decompress } from "iltorb";
 import get from "lodash.get";
@@ -10,56 +10,16 @@ import isFunction from "lodash.isfunction";
 import NodeRSA from "node-rsa";
 import { URL } from "url";
 import * as zlib from "zlib";
+import { GetFileListResponse, GetFileResponse, LibrarySyncStatus } from "./api-responses";
 import { decryptData } from "./crypto";
 import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import { net } from "./net";
 import { getCreatePostboxUrl, getPostboxImportUrl, pushDataToPostbox, PushedFileMeta } from "./postbox";
 import sdkVersion from "./sdk-version";
+import { CAScope, DMESDKConfiguration, FileMeta, Session } from "./types";
 import {
     isConfigurationValid, isPlainObject, isSessionValid, isValidString,
 } from "./utils";
-import { GetFileListResponse, LibrarySyncStatus } from "./api-responses";
-
-interface DMESDKConfiguration {
-    baseUrl: string;
-    retryOptions?: PartialAttemptOptions<any>;
-}
-
-interface Session {
-    expiry: number;
-    sessionKey: string;
-    sessionExchangeToken: string;
-}
-
-interface FileMeta<T = FileDescriptor> {
-    fileData: any;
-    fileName: string;
-    fileDescriptor: T;
-}
-
-interface CAScope {
-    timeRanges?: TimeRange[];
-}
-
-interface TimeRange {
-    from?: number;
-    last?: string;
-    to?: number;
-}
-
-interface GetFileResponse {
-    fileContent: string;
-    fileDescriptor: FileDescriptor;
-    compression?: string;
-}
-
-interface FileDescriptor {
-    objectCount: number;
-    objectType: string;
-    serviceGroup: string;
-    serviceName: string;
-    mimetype?: string;
-}
 
 type FileSuccessResult = { data: any } & FileMeta;
 type FileErrorResult = { error: Error } & FileMeta;
@@ -204,52 +164,44 @@ const _getSessionData = async (
     // Set up key
     const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
     let state: LibrarySyncStatus = "pending";
-    let filePromises: Promise<any>[] = [];
-    let handledFiles: {name: string, updated: number}[] = [];
+    let filePromises: Array<Promise<any>> = [];
+    let handledFiles: Array<{name: string, updated: number}> = [];
 
     while ( state !== "partial" && state !== "completed" ) {
         const {status, fileList}: GetFileListResponse = await _getFileList(sessionKey, options);
         state = status.state;
 
-        const newFiles = fileList.filter(({name}) => handledFiles.map(({name}) => name).indexOf(name) === -1);
+        const handledFilenames: string[] = handledFiles.map(({name}) => name);
+        const newFiles = fileList.filter(({name}) => handledFilenames.indexOf(name) === -1);
         handledFiles = handledFiles.concat(...newFiles);
-        
+
         filePromises = newFiles.map(({name: fileName}) => {
             return _getFile(sessionKey, fileName, options).then(async (response: GetFileResponse) => {
                 const { compression, fileContent, fileDescriptor } = response;
                 const { mimetype } = fileDescriptor;
                 let data: Buffer = decryptData(key, fileContent);
-    
+
                 if (compression === "brotli") {
                     data = await decompress(data);
                 } else if (compression === "gzip") {
                     data = zlib.gunzipSync(data);
                 }
-    
+
                 let fileData: any = data;
                 if (!mimetype) {
                     fileData = JSON.parse(data.toString("utf8"));
                 } else {
                     fileData = data.toString("base64");
                 }
-    
+
                 if (isFunction(onFileData)) {
-                    onFileData({
-                        fileData,
-                        fileDescriptor,
-                        fileName,
-                        fileList,
-                    });
+                    onFileData({ fileData, fileDescriptor, fileName, fileList });
                 }
                 return;
             }).catch((error) => {
                 // Failed all attempts
                 if (isFunction(onFileError)) {
-                    onFileError({
-                        error,
-                        fileName,
-                        fileList,
-                    });
+                    onFileError({ error, fileName, fileList });
                 }
                 return;
             });
@@ -348,7 +300,7 @@ const init = (sdkOptions?: Partial<DMESDKConfiguration>) => {
             sessionKey: string,
             postboxId: string,
             publicKey: string,
-            pushedData: FileMeta<PushedFileMeta>,
+            pushedData: PushedFileMeta,
         ) => (
             pushDataToPostbox(sessionKey, postboxId, publicKey, pushedData, options)
         ),

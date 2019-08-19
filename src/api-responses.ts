@@ -1,4 +1,8 @@
 /*!
+ * Copyright (c) 2009-2018 digi.me Limited. All rights reserved.
+ */
+
+/*!
  * Copyright (c) 2009-2019 digi.me Limited. All rights reserved.
  */
 
@@ -7,10 +11,22 @@ export interface GetFileListResponse {
         state: LibrarySyncStatus;
         details: unknown[];
     };
-    fileList: {
+    fileList: Array<{
         name: string;
         updated: number;
-    }[];
+    }>;
+}
+
+export interface GetFileResponse {
+    fileContent: string;
+    fileDescriptor: {
+        objectCount: number;
+        objectType: string;
+        serviceGroup: string;
+        serviceName: string;
+        mimetype?: string;
+    };
+    compression?: string;
 }
 
 export type AccountSyncStatus = "running" | "partial" | "completed";
