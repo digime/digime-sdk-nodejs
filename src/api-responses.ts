@@ -13,7 +13,7 @@ export interface GetFileListResponse {
     };
     fileList: Array<{
         name: string;
-        updated: number;
+        updatedDate: number;
     }>;
 }
 

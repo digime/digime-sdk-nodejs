@@ -16,7 +16,7 @@ import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } fro
 import { net } from "./net";
 import { getCreatePostboxUrl, getPostboxImportUrl, pushDataToPostbox, PushedFileMeta } from "./postbox";
 import sdkVersion from "./sdk-version";
-import { CAScope, DMESDKConfiguration, FileMeta, Session } from "./types";
+import { CAScope, DMESDKConfiguration, FileMeta, GetSessionDataResponse, Session } from "./types";
 import {
     isConfigurationValid, isPlainObject, isSessionValid, isValidString,
 } from "./utils";
@@ -96,7 +96,7 @@ const _getGuestAuthorizeUrl = (session: Session, callbackUrl: string, options: D
         throw new ParameterValidationError("Parameter callbackUrl should be a non empty string");
     }
     // tslint:disable-next-line:max-line-length
-    return `${new URL(options.baseUrl).origin}/apps/quark/direct-onboarding?sessionExchangeToken=${session.sessionExchangeToken}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
+    return `${new URL(options.baseUrl).origin}/apps/quark/v1/direct-onboarding?sessionExchangeToken=${session.sessionExchangeToken}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
 };
 
 const _getAuthorizeUrl = (appId: string, session: Session, callbackUrl: string) => {
@@ -149,69 +149,104 @@ const _getFile = async (
     };
 };
 
-const _getSessionData = async (
+const getTimeTaken = (startTime: number): string => `[${((new Date().getTime() - startTime) / 1000).toFixed(2)} secs]`;
+
+const _getSessionData = (
     sessionKey: string,
     privateKey: NodeRSA.Key,
     onFileData: FileSuccessHandler,
     onFileError: FileErrorHandler,
     options: DMESDKConfiguration,
-): Promise<any> => {
+): GetSessionDataResponse => {
 
     if (!isValidString(sessionKey)) {
         throw new ParameterValidationError("Parameter sessionKey should be a non empty string");
     }
 
-    // Set up key
-    const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
-    let state: LibrarySyncStatus = "pending";
-    let filePromises: Array<Promise<any>> = [];
-    let handledFiles: Array<{name: string, updated: number}> = [];
+    console.log("GetSessionData");
 
-    while ( state !== "partial" && state !== "completed" ) {
-        const {status, fileList}: GetFileListResponse = await _getFileList(sessionKey, options);
-        state = status.state;
+    let allowPollingToContinue: boolean = true;
+    const startTime: number = new Date().getTime();
 
-        const handledFilenames: string[] = handledFiles.map(({name}) => name);
-        const newFiles = fileList.filter(({name}) => handledFilenames.indexOf(name) === -1);
-        handledFiles = handledFiles.concat(...newFiles);
+    const allFilesPromise: Promise<unknown> = new Promise(async (resolve) => {
+        // Set up key
+        const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
+        const filePromises: Array<Promise<unknown>> = [];
+        const handledFiles: {[name: string]: number} = {};
+        let state: LibrarySyncStatus = "pending";
 
-        filePromises = newFiles.map(({name: fileName}) => {
-            return _getFile(sessionKey, fileName, options).then(async (response: GetFileResponse) => {
-                const { compression, fileContent, fileDescriptor } = response;
-                const { mimetype } = fileDescriptor;
-                let data: Buffer = decryptData(key, fileContent);
+        let counter: number = 0;
 
-                if (compression === "brotli") {
-                    data = await decompress(data);
-                } else if (compression === "gzip") {
-                    data = zlib.gunzipSync(data);
+        while ( allowPollingToContinue && state !== "partial" && state !== "completed" ) {
+            counter = counter + 1;
+            console.log(`----------------------------------------------`);
+            const {status, fileList}: GetFileListResponse = await _getFileList(sessionKey, options);
+            state = status.state;
+            console.log(`${getTimeTaken(startTime)} Polling started ${counter}, state is ${state}`);
+
+            if (state === "pending") {
+                break;
+            }
+
+            console.log(`${getTimeTaken(startTime)} Details are ${JSON.stringify(status.details)}`);
+            const newFiles: string[] = fileList.reduce((accumulator: string[], file) => {
+                const {name, updatedDate} = file;
+                if (get(handledFiles, name, 0) < updatedDate) {
+                    accumulator.push(name);
+                    handledFiles[name] = updatedDate;
                 }
 
-                let fileData: any = data;
-                if (!mimetype) {
-                    fileData = JSON.parse(data.toString("utf8"));
-                } else {
-                    fileData = data.toString("base64");
-                }
+                return accumulator;
+            }, []);
 
-                if (isFunction(onFileData)) {
-                    onFileData({ fileData, fileDescriptor, fileName, fileList });
-                }
-                return;
-            }).catch((error) => {
-                // Failed all attempts
-                if (isFunction(onFileError)) {
-                    onFileError({ error, fileName, fileList });
-                }
-                return;
+            const newPromises = newFiles.map((fileName: string) => {
+                console.log(`${getTimeTaken(startTime)} Downloading a new file ${fileName}`);
+                return _getFile(sessionKey, fileName, options).then(async (response: GetFileResponse) => {
+                    const { compression, fileContent, fileDescriptor } = response;
+                    const { mimetype } = fileDescriptor;
+                    let data: Buffer = decryptData(key, fileContent);
+
+                    if (compression === "brotli") {
+                        data = await decompress(data);
+                    } else if (compression === "gzip") {
+                        data = zlib.gunzipSync(data);
+                    }
+
+                    let fileData: any = data;
+                    if (!mimetype) {
+                        fileData = JSON.parse(data.toString("utf8"));
+                    } else {
+                        fileData = data.toString("base64");
+                    }
+
+                    if (isFunction(onFileData)) {
+                        onFileData({ fileData, fileDescriptor, fileName, fileList });
+                    }
+                    return;
+                }).catch((error) => {
+                    // Failed all attempts
+                    if (isFunction(onFileError)) {
+                        onFileError({ error, fileName, fileList });
+                    }
+                    return;
+                });
             });
-        });
 
-        await sleep(3000);
-    }
+            filePromises.push(...newPromises);
 
-    await Promise.all(filePromises);
-    return;
+            if (state === "running") {
+                await sleep(3000);
+            }
+        }
+
+        console.log(`${getTimeTaken(startTime)} Polling has finished`);
+        Promise.all(filePromises).then(resolve);
+    });
+
+    return ({
+        stopPolling: () => { allowPollingToContinue = false; },
+        filePromise: allFilesPromise,
+    });
 };
 
 const _getSessionAccounts = async (

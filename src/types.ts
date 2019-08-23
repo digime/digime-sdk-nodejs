@@ -52,3 +52,8 @@ export interface PushedFileMeta {
         tags?: string[];
     };
 }
+
+export interface GetSessionDataResponse {
+    stopPolling: () => void;
+    filePromise: Promise<any>;
+}
