@@ -2,4 +2,4 @@
 * Copyright (c) 2009-2018 digi.me Limited. All rights reserved.
 */
 
-export default "1.0.0-harmonisation.2";
+export default "1.0.0-implicit-sync.1";

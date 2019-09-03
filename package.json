@@ -1,6 +1,6 @@
 {
   "name": "@digime/digime-js-sdk",
-  "version": "1.0.0-harmonisation.2",
+  "version": "1.0.0-implicit-sync.1",
   "description": "digime-js-sdk",
   "main": "dist/main/index.js",
   "typings": "dist/types/index.d.ts",

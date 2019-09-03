@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 
 describe.each<[string, ReturnType<typeof SDK.init>, string]>([
-    ["Default exported SDK", SDK, "https://api.digi.me/v1.0"],
+    ["Default exported SDK", SDK, "https://api.digi.me/v1.4"],
     ["Custom SDK", customSDK, "https://api.digi.test/v7"],
 ])(
     "%s",

@@ -149,8 +149,6 @@ const _getFile = async (
     };
 };
 
-const getTimeTaken = (startTime: number): string => `[${((new Date().getTime() - startTime) / 1000).toFixed(2)} secs]`;
-
 const _getSessionData = (
     sessionKey: string,
     privateKey: NodeRSA.Key,
@@ -163,10 +161,7 @@ const _getSessionData = (
         throw new ParameterValidationError("Parameter sessionKey should be a non empty string");
     }
 
-    console.log("GetSessionData");
-
     let allowPollingToContinue: boolean = true;
-    const startTime: number = new Date().getTime();
 
     const allFilesPromise: Promise<unknown> = new Promise(async (resolve) => {
         // Set up key
@@ -175,20 +170,14 @@ const _getSessionData = (
         const handledFiles: {[name: string]: number} = {};
         let state: LibrarySyncStatus = "pending";
 
-        let counter: number = 0;
-
         while ( allowPollingToContinue && state !== "partial" && state !== "completed" ) {
-            counter = counter + 1;
-            console.log(`----------------------------------------------`);
             const {status, fileList}: GetFileListResponse = await _getFileList(sessionKey, options);
             state = status.state;
-            console.log(`${getTimeTaken(startTime)} Polling started ${counter}, state is ${state}`);
 
             if (state === "pending") {
                 break;
             }
 
-            console.log(`${getTimeTaken(startTime)} Details are ${JSON.stringify(status.details)}`);
             const newFiles: string[] = fileList.reduce((accumulator: string[], file) => {
                 const {name, updatedDate} = file;
                 if (get(handledFiles, name, 0) < updatedDate) {
@@ -200,7 +189,6 @@ const _getSessionData = (
             }, []);
 
             const newPromises = newFiles.map((fileName: string) => {
-                console.log(`${getTimeTaken(startTime)} Downloading a new file ${fileName}`);
                 return _getFile(sessionKey, fileName, options).then(async (response: GetFileResponse) => {
                     const { compression, fileContent, fileDescriptor } = response;
                     const { mimetype } = fileDescriptor;
@@ -239,12 +227,13 @@ const _getSessionData = (
             }
         }
 
-        console.log(`${getTimeTaken(startTime)} Polling has finished`);
         Promise.all(filePromises).then(resolve);
     });
 
     return ({
-        stopPolling: () => { allowPollingToContinue = false; },
+        stopPolling: () => {
+            allowPollingToContinue = false;
+        },
         filePromise: allFilesPromise,
     });
 };
@@ -295,7 +284,7 @@ const init = (sdkOptions?: Partial<DMESDKConfiguration>) => {
     }
 
     const options: DMESDKConfiguration = {
-        baseUrl: "https://api.digi.me/v1.1",
+        baseUrl: "https://api.digi.me/v1.4",
         retryOptions: {
             delay: 750,
             factor: 2,
