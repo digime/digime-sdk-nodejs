@@ -48,7 +48,7 @@ const _establishSession = async (
     };
     try {
 
-        const response = await net.post(url, {
+        const {body, headers} = await net.post(url, {
             json: true,
             body: {
                 appId,
@@ -62,8 +62,13 @@ const _establishSession = async (
             retry: options.retryOptions,
         });
 
+        if (headers["x-digi-sdk-status"]) {
+            // tslint:disable-next-line:no-console max-line-length
+            console.warn(`[digime-js-sdk@${sdkVersion}][${headers["x-digi-sdk-status"]}] ${headers["x-digi-sdk-status-message"]}`);
+        }
+
         // TODO: Session validation
-        return response.body;
+        return body;
 
     } catch (error) {
 

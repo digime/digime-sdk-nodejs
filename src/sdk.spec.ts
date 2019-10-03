@@ -214,6 +214,26 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 );
             });
 
+            describe("Handling SDK statuses from Argon", () => {
+                it("Logs in the console when we receive sdk status", async () => {
+                    const spy: jest.SpyInstance = jest.spyOn(console, "warn").mockImplementation();
+                    nock(`${new URL(baseUrl).origin}`)
+                        .post(`${new URL(baseUrl).pathname}/permission-access/session`)
+                        .reply(200, {
+                            expiry: 0,
+                            sessionKey: "test-session-key",
+                        }, {
+                            "x-digi-sdk-status": "deprecated",
+                            "x-digi-sdk-status-message": "status-message-test",
+                        });
+
+                    await sdk.establishSession("test-application-id", "test-contract-id");
+                    expect(spy).toHaveBeenCalledTimes(1);
+                    expect(spy).toBeCalledWith(`[digime-js-sdk@${sdkVersion}][deprecated] status-message-test`);
+                    spy.mockRestore();
+                });
+            });
+
             // NOTE: Tests skipped as there is no runtime validation of the CA scope in the SDK yet
             describe.skip("Throws ParameterValidationError when CA scope (third parameter) is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
