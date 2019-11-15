@@ -1,8 +1,9 @@
 /*!
- * Copyright (c) 2009-2019 digi.me Limited. All rights reserved.
+ * Copyright (c) 2009-2020 digi.me Limited. All rights reserved.
  */
 
 import { RetryOptions } from "got";
+import NodeRSA from "node-rsa";
 
 export interface DMESDKConfiguration {
     baseUrl: string;
@@ -13,6 +14,21 @@ export interface Session {
     expiry: number;
     sessionKey: string;
     sessionExchangeToken: string;
+}
+
+export interface PrivateShareConfiguration {
+    applicationId: string;
+    contractId: string;
+    privateKey: NodeRSA.Key;
+}
+
+export interface OngoingAccessConfiguration extends PrivateShareConfiguration {
+    redirectUri: string;
+}
+
+export interface OngoingAccessAuthorization extends OngoingAccessConfiguration {
+    accessToken?: UserAccessToken;
+    state?: string;
 }
 
 export interface CAScope {
@@ -67,4 +83,10 @@ export interface PushedFileMeta {
 export interface GetSessionDataResponse {
     stopPolling: () => void;
     filePromise: Promise<any>;
+}
+
+export interface UserAccessToken {
+    accessToken: string;
+    refreshToken: string;
+    expiry: number;
 }

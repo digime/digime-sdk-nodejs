@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2019 digi.me Limited. All rights reserved.
+ * Copyright (c) 2009-2020 digi.me Limited. All rights reserved.
  */
 
 import crypto from "crypto";
@@ -14,6 +14,11 @@ const BYTES = {
     HASH: [0, 64],
     DATA: [64],
 };
+
+const ALPHA_LOWER: string = `abcdefghijklmnopqrstuvwxyz`;
+const ALPHA_UPPER: string = ALPHA_LOWER.toUpperCase();
+const NUMERIC: string = `0123456789`;
+const ALPHA_NUMERIC: string = `${ALPHA_LOWER}${ALPHA_UPPER}${NUMERIC}`;
 
 const isValidSize = (data: string): boolean => {
     const bytes = Buffer.byteLength(data, "base64");
@@ -61,8 +66,25 @@ const encryptData = (iv: Buffer, key: Buffer, input: Buffer): Buffer => {
 
 const getRandomHex = (size: number): string => crypto.randomBytes(Math.ceil(size / 2)).toString("hex").slice(0, size);
 
+const getRandomAlphaNumeric = (size: number): string => {
+    const charsLength: number = ALPHA_NUMERIC.length;
+    const value: string[] = new Array(size);
+    for (let i: number = 0; i < size; i++) {
+        let random: number;
+        do {
+            random = crypto.randomBytes(1).readUInt8(0);
+        } while (random > (256 - (256 % charsLength)));
+        value[i] = ALPHA_NUMERIC[random % charsLength];
+    }
+    return value.join("");
+};
+
+const hashSha256 = (data: string | Buffer): Buffer => crypto.createHash("sha256").update(data).digest();
+
 export {
     encryptData,
     decryptData,
     getRandomHex,
+    getRandomAlphaNumeric,
+    hashSha256,
 };

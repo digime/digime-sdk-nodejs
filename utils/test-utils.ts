@@ -99,7 +99,7 @@ const captureNetworkRequest = async ({
 };
 
 // Wrapper around nock.loadDefs which creates definitions which ignore request bodies
-const loadDefinitions = (path: string): nock.NockDefinition[] => (
+const loadDefinitions = (path: string): nock.Definition[] => (
     nock.loadDefs(path).map((definition) => ({
         ...definition,
 
@@ -109,7 +109,7 @@ const loadDefinitions = (path: string): nock.NockDefinition[] => (
 );
 
 // Same as above, but with added scope filtering
-const loadScopeDefinitions = (path: string, scope: string): nock.NockDefinition[] => (
+const loadScopeDefinitions = (path: string, scope: string): nock.Definition[] => (
     loadDefinitions(path).filter((definition) => definition.scope === scope)
 );
 
@@ -119,20 +119,20 @@ interface FileContentToCAFormatOptions {
     overrideCompression?: "no-compression" | "brotli" | "gzip";
 }
 
-const isResponsePlainObject = (value: unknown): value is nock.POJO => (
+const isResponsePlainObject = (value: unknown): value is Record<string, any> => (
     !(value instanceof Buffer) && !(value instanceof ReadStream) && isPlainObject(value)
 );
 
 // Takes definitions of CA file responses and converts fileContent properties to the CA format
 const fileContentToCAFormat = (
-    definitions: nock.NockDefinition[],
+    definitions: nock.Definition[],
     key: NodeRSA,
     {
         corruptHash = false,
         corruptLength = false,
         overrideCompression,
     }: FileContentToCAFormatOptions = {},
-): nock.NockDefinition[] => (
+): nock.Definition[] => (
     definitions.reduce((acc, definition) => {
 
         const response: unknown = definition.response;
@@ -147,7 +147,7 @@ const fileContentToCAFormat = (
             fileContent = JSON.stringify(fileContent);
         }
 
-        const def: nock.NockDefinition = {
+        const def: nock.Definition = {
             ...definition,
             response: {
                 ...response,
@@ -163,7 +163,7 @@ const fileContentToCAFormat = (
             },
         };
         return [...acc, def];
-    }, [] as nock.NockDefinition[])
+    }, [] as nock.Definition[])
 );
 
 export {

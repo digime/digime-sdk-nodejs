@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2019 digi.me Limited. All rights reserved.
+ * Copyright (c) 2009-2020 digi.me Limited. All rights reserved.
  */
 
 // tslint:disable:max-classes-per-file
@@ -32,6 +32,14 @@ class ServerIdentityError extends DigiMeSDKError {
     public name = "ServerIdentityError";
 }
 
+class OAuthError extends DigiMeSDKError {
+    public name = "OAuthError";
+}
+
+class JWTVerificationError extends DigiMeSDKError {
+    public name = "JWTVerificationError";
+}
+
 export {
     DigiMeSDKError,
     SDKInvalidError,
@@ -39,4 +47,6 @@ export {
     ParameterValidationError,
     FileDecryptionError,
     ServerIdentityError,
+    OAuthError,
+    JWTVerificationError,
 };

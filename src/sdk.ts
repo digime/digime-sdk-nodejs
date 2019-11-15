@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2019 digi.me Limited. All rights reserved.
+ * Copyright (c) 2009-2020 digi.me Limited. All rights reserved.
  */
 
 import { HTTPError } from "got";
@@ -11,11 +11,16 @@ import { URL } from "url";
 import * as zlib from "zlib";
 import { GetFileListResponse, GetFileResponse, LibrarySyncStatus } from "./api-responses";
 import { decryptData } from "./crypto";
+import { authorizeOngoingAccess, exchangeCodeForToken } from "./cyclic-ca";
 import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import { net } from "./net";
+import { getAuthorizeUrl } from "./paths";
 import { getCreatePostboxUrl, getPostboxImportUrl, pushDataToPostbox, PushedFileMeta } from "./postbox";
 import sdkVersion from "./sdk-version";
-import { CAScope, DMESDKConfiguration, FileMeta, GetSessionDataResponse, Session } from "./types";
+import {
+    CAScope, DMESDKConfiguration, FileMeta, GetSessionDataResponse, OngoingAccessAuthorization,
+    OngoingAccessConfiguration, Session,
+} from "./types";
 import {
     isConfigurationValid, isPlainObject, isSessionValid, isValidString, sleep,
 } from "./utils";
@@ -102,23 +107,6 @@ const _getGuestAuthorizeUrl = (session: Session, callbackUrl: string, options: D
     }
     // tslint:disable-next-line:max-line-length
     return `${new URL(options.baseUrl).origin}/apps/quark/v1/direct-onboarding?sessionExchangeToken=${session.sessionExchangeToken}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
-};
-
-const _getAuthorizeUrl = (appId: string, session: Session, callbackUrl: string) => {
-    if (!isSessionValid(session)) {
-        throw new ParameterValidationError(
-            // tslint:disable-next-line: max-line-length
-            "Session should be an object that contains expiry as number, sessionKey and sessionExchangeToken property as string",
-        );
-    }
-    if (!isValidString(callbackUrl)) {
-        throw new ParameterValidationError("Parameter callbackUrl should be string");
-    }
-    if (!isValidString(appId)) {
-        throw new ParameterValidationError("Parameter appId should be a non empty string");
-    }
-    // tslint:disable-next-line:max-line-length
-    return `digime://consent-access?sessionKey=${session.sessionKey}&callbackUrl=${encodeURIComponent(callbackUrl)}&appId=${appId}&sdkVersion=${sdkVersion}&resultVersion=2`;
 };
 
 const _getReceiptUrl = (contractId: string, appId: string) => {
@@ -360,6 +348,13 @@ const init = (sdkOptions?: Partial<DMESDKConfiguration>) => {
         ) => (
                 _getSessionData(sessionKey, privateKey, onFileData, onFileError, options)
             ),
+        exchangeCodeForToken: (
+            details: OngoingAccessConfiguration,
+            codeVerifier: string,
+            authorizationCode: string,
+        ) => (
+                exchangeCodeForToken(details, codeVerifier, authorizationCode, options)
+            ),
         getSessionAccounts: (
             sessionKey: string,
             privateKey: NodeRSA.Key,
@@ -377,9 +372,15 @@ const init = (sdkOptions?: Partial<DMESDKConfiguration>) => {
         getAuthorizeUrl: (
             appId: string,
             session: Session,
-            callbackUrl: string,
+            callbackUrl?: string,
         ) => (
-                _getAuthorizeUrl(appId, session, callbackUrl)
+                getAuthorizeUrl(appId, session, callbackUrl)
+            ),
+        authorizeOngoingAccess: (
+            details: OngoingAccessAuthorization,
+            session: Session,
+        ) => (
+                authorizeOngoingAccess(details, session, options)
             ),
         getGuestAuthorizeUrl: (
             session: Session,
