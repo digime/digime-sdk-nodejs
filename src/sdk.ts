@@ -313,6 +313,19 @@ const init = (sdkOptions?: Partial<DMESDKConfiguration>) => {
     }
 
     return {
+        getFile: (
+            sessionKey: string,
+            fileName: string,
+            options: DMESDKConfiguration,
+        ) => (
+            _getFile(sessionKey, fileName, options)
+        ),
+        getFileList: (
+            sessionKey: string,
+            options: DMESDKConfiguration,
+        ) => (
+            _getFileList(sessionKey, options)
+        ),
         establishSession: (
             appId: string,
             contractId: string,
