@@ -4,9 +4,11 @@
 
 import { HTTPError } from "got";
 import nock from "nock";
+import NodeRSA from "node-rsa";
 import { URL } from "url";
 import {
     captureNetworkRequest,
+    createCAData,
     loadDefinitions,
     loadScopeDefinitions,
 } from "../utils/test-utils";
@@ -17,6 +19,8 @@ import sdkVersion from "./sdk-version";
 const customSDK = SDK.init({
     baseUrl: "https://api.digi.test/v7",
 });
+
+const testKeyPair: NodeRSA = new NodeRSA({ b: 2048 });
 
 beforeEach(() => {
     nock.cleanAll();
@@ -460,25 +464,31 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         });
 
         describe("getSessionAccounts", () => {
-            it(`Requests target API baseUrl: ${baseUrl}`, async () => {
+
+            it(`Retrieves data correctly`, async () => {
+
+                const expected = {
+                    accounts: [{
+                        id: "4_123456789",
+                        name: "test",
+                        service: {
+                            logo: "https://domain.test/test.png",
+                            name: "Instagram",
+                        },
+                    }],
+                };
+
+                const encryptedData = createCAData(testKeyPair, JSON.stringify(expected));
 
                 nock(`${new URL(baseUrl).origin}`)
                     .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key/accounts.json`)
                     .reply(200, {
-                        fileContent: {
-                            accounts: [{
-                                name: "test-account",
-                            }],
-                        },
+                        fileContent: encryptedData,
                     });
 
-                const result = await sdk.getSessionAccounts("test-session-key");
+                const result = await sdk.getSessionAccounts("test-session-key", testKeyPair.exportKey("pkcs1-private"));
 
-                expect(result).toEqual({
-                    accounts: [{
-                        name: "test-account",
-                    }],
-                });
+                expect(result).toEqual(expected);
             });
 
             describe("Throws ParameterValidationError when sessionKey (first parameter) is", () => {
@@ -486,39 +496,28 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (sessionKey: any) => {
-                        return expect(sdk.getSessionAccounts(sessionKey)).rejects.toThrow(ParameterValidationError);
+                        // tslint:disable-next-line:max-line-length
+                        return expect(sdk.getSessionAccounts(sessionKey, testKeyPair.exportKey("pkcs1-private"))).rejects.toThrow(ParameterValidationError);
                     },
                 );
-
-            });
-
-            describe("Throws ParameterValidationError when sessionKey (first parameter) is", () => {
-
-                it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
-                    "%p",
-                    (sessionKey: any) => {
-                        return expect(sdk.getSessionAccounts(sessionKey)).rejects.toThrow(ParameterValidationError);
-                    },
-                );
-
             });
 
             describe("Throws appropriate exceptions when argon returns errors", () => {
                 it("Re-throws HTTPErrors if it encounters one", () => {
                     nock.define(loadDefinitions("fixtures/network/get-session-accounts/bad-request.json"));
-                    const promise = sdk.getSessionAccounts("test-session-key");
+                    const promise = sdk.getSessionAccounts("test-session-key", testKeyPair.exportKey("pkcs1-private"));
                     return expect(promise).rejects.toThrowError(HTTPError);
                 });
 
                 it("Throws SDKInvalidError if the API responds with SDKInvalid in error.code", () => {
                     nock.define(loadDefinitions("fixtures/network/get-session-accounts/invalid-sdk.json"));
-                    const promise = sdk.getSessionAccounts("test-session-key");
+                    const promise = sdk.getSessionAccounts("test-session-key", testKeyPair.exportKey("pkcs1-private"));
                     return expect(promise).rejects.toThrowError(SDKInvalidError);
                 });
 
                 it("Throws SDKVersionInvalidError if the API responds with SDKVersionInvalid in error.code", () => {
                     nock.define(loadDefinitions("fixtures/network/get-session-accounts/invalid-sdk-version.json"));
-                    const promise = sdk.getSessionAccounts("test-session-key");
+                    const promise = sdk.getSessionAccounts("test-session-key", testKeyPair.exportKey("pkcs1-private"));
                     return expect(promise).rejects.toThrowError(SDKVersionInvalidError);
                 });
             });
