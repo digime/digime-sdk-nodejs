@@ -255,9 +255,11 @@ const _getSessionData = (
 
 const _getSessionAccounts = async (
     sessionKey: string,
+    privateKey: string,
     options: DMESDKConfiguration,
 ) => {
     try {
+
         if (!isValidString(sessionKey)) {
             throw new ParameterValidationError("Parameter sessionKey should be a non empty string");
         }
@@ -269,8 +271,13 @@ const _getSessionAccounts = async (
 
         const { fileContent } = response.body;
 
+        const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
+        const decryptedData: Buffer = decryptData(key, fileContent);
+
+        const parsedData = JSON.parse(decryptedData.toString("utf8"));
+
         return {
-            accounts: fileContent.accounts,
+            accounts: parsedData.accounts,
         };
     } catch (error) {
 
@@ -313,6 +320,17 @@ const init = (sdkOptions?: Partial<DMESDKConfiguration>) => {
     }
 
     return {
+        getFile: (
+            sessionKey: string,
+            fileName: string,
+        ) => (
+            _getFile(sessionKey, fileName, options)
+        ),
+        getFileList: (
+            sessionKey: string,
+        ) => (
+            _getFileList(sessionKey, options)
+        ),
         establishSession: (
             appId: string,
             contractId: string,
@@ -330,8 +348,9 @@ const init = (sdkOptions?: Partial<DMESDKConfiguration>) => {
         ),
         getSessionAccounts: (
             sessionKey: string,
+            privateKey: string,
         ) => (
-            _getSessionAccounts(sessionKey, options)
+            _getSessionAccounts(sessionKey, privateKey, options)
         ),
         pushDataToPostbox: (
             sessionKey: string,
