@@ -17,4 +17,6 @@ export const {
     getCreatePostboxUrl,
     pushDataToPostbox,
     getPostboxImportUrl,
+    getFile,
+    getFileList,
 } = init();

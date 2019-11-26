@@ -48,7 +48,7 @@ const _establishSession = async (
     };
     try {
 
-        const {body, headers} = await net.post(url, {
+        const { body, headers } = await net.post(url, {
             json: true,
             body: {
                 appId,
@@ -144,6 +144,38 @@ const _getFileList = async (sessionKey: string, options: DMESDKConfiguration): P
 const _getFile = async (
     sessionKey: string,
     fileName: string,
+    privateKey: NodeRSA.Key,
+    options: DMESDKConfiguration,
+): Promise<FileMeta> => {
+    const response = await _fetchFile(sessionKey, fileName, options);
+    const { compression, fileContent, fileDescriptor } = response;
+    const { mimetype } = fileDescriptor;
+    const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
+    let data: Buffer = decryptData(key, fileContent);
+
+    if (compression === "brotli") {
+        data = await decompress(data);
+    } else if (compression === "gzip") {
+        data = zlib.gunzipSync(data);
+    }
+
+    let fileData: any = data;
+    if (!mimetype) {
+        fileData = JSON.parse(data.toString("utf8"));
+    } else {
+        fileData = data.toString("base64");
+    }
+
+    return {
+        fileData,
+        fileDescriptor,
+        fileName,
+    };
+};
+
+const _fetchFile = async (
+    sessionKey: string,
+    fileName: string,
     options: DMESDKConfiguration,
 ): Promise<GetFileResponse> => {
     const url = `${options.baseUrl}/permission-access/query/${sessionKey}/${fileName}`;
@@ -176,14 +208,12 @@ const _getSessionData = (
     let allowPollingToContinue: boolean = true;
 
     const allFilesPromise: Promise<unknown> = new Promise(async (resolve) => {
-        // Set up key
-        const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
         const filePromises: Array<Promise<unknown>> = [];
-        const handledFiles: {[name: string]: number} = {};
+        const handledFiles: { [name: string]: number } = {};
         let state: LibrarySyncStatus = "pending";
 
-        while ( allowPollingToContinue && state !== "partial" && state !== "completed" ) {
-            const {status, fileList}: GetFileListResponse = await _getFileList(sessionKey, options);
+        while (allowPollingToContinue && state !== "partial" && state !== "completed") {
+            const { status, fileList }: GetFileListResponse = await _getFileList(sessionKey, options);
             state = status.state;
 
             if (state === "pending") {
@@ -191,7 +221,7 @@ const _getSessionData = (
             }
 
             const newFiles: string[] = (fileList || []).reduce((accumulator: string[], file) => {
-                const {name, updatedDate} = file;
+                const { name, updatedDate } = file;
                 if (get(handledFiles, name, 0) < updatedDate) {
                     accumulator.push(name);
                     handledFiles[name] = updatedDate;
@@ -201,28 +231,11 @@ const _getSessionData = (
             }, []);
 
             const newPromises = newFiles.map((fileName: string) => {
-                return _getFile(sessionKey, fileName, options).then(async (response: GetFileResponse) => {
-                    const { compression, fileContent, fileDescriptor } = response;
-                    const { mimetype } = fileDescriptor;
-                    let data: Buffer = decryptData(key, fileContent);
-
-                    if (compression === "brotli") {
-                        data = await decompress(data);
-                    } else if (compression === "gzip") {
-                        data = zlib.gunzipSync(data);
-                    }
-
-                    let fileData: any = data;
-                    if (!mimetype) {
-                        fileData = JSON.parse(data.toString("utf8"));
-                    } else {
-                        fileData = data.toString("base64");
-                    }
+                return _getFile(sessionKey, fileName, privateKey, options).then((fileMeta) => {
 
                     if (isFunction(onFileData)) {
-                        onFileData({ fileData, fileDescriptor, fileName, fileList });
+                        onFileData({...fileMeta, fileList});
                     }
-
                     return;
                 }).catch((error) => {
                     // Failed all attempts
@@ -255,9 +268,11 @@ const _getSessionData = (
 
 const _getSessionAccounts = async (
     sessionKey: string,
+    privateKey: string,
     options: DMESDKConfiguration,
 ) => {
     try {
+
         if (!isValidString(sessionKey)) {
             throw new ParameterValidationError("Parameter sessionKey should be a non empty string");
         }
@@ -269,8 +284,13 @@ const _getSessionAccounts = async (
 
         const { fileContent } = response.body;
 
+        const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
+        const decryptedData: Buffer = decryptData(key, fileContent);
+
+        const parsedData = JSON.parse(decryptedData.toString("utf8"));
+
         return {
-            accounts: fileContent.accounts,
+            accounts: parsedData.accounts,
         };
     } catch (error) {
 
@@ -313,60 +333,73 @@ const init = (sdkOptions?: Partial<DMESDKConfiguration>) => {
     }
 
     return {
+        getFile: (
+            sessionKey: string,
+            fileName: string,
+            privateKey: NodeRSA.Key,
+        ) => (
+                _getFile(sessionKey, fileName, privateKey, options)
+            ),
+        getFileList: (
+            sessionKey: string,
+        ) => (
+                _getFileList(sessionKey, options)
+            ),
         establishSession: (
             appId: string,
             contractId: string,
             scope?: CAScope,
         ) => (
-            _establishSession(appId, contractId, options, scope)
-        ),
+                _establishSession(appId, contractId, options, scope)
+            ),
         getSessionData: (
             sessionKey: string,
             privateKey: NodeRSA.Key,
             onFileData: FileSuccessHandler,
             onFileError: FileErrorHandler,
         ) => (
-            _getSessionData(sessionKey, privateKey, onFileData, onFileError, options)
-        ),
+                _getSessionData(sessionKey, privateKey, onFileData, onFileError, options)
+            ),
         getSessionAccounts: (
             sessionKey: string,
+            privateKey: string,
         ) => (
-            _getSessionAccounts(sessionKey, options)
-        ),
+                _getSessionAccounts(sessionKey, privateKey, options)
+            ),
         pushDataToPostbox: (
             sessionKey: string,
             postboxId: string,
             publicKey: string,
             pushedData: PushedFileMeta,
         ) => (
-            pushDataToPostbox(sessionKey, postboxId, publicKey, pushedData, options)
-        ),
+                pushDataToPostbox(sessionKey, postboxId, publicKey, pushedData, options)
+            ),
         getAuthorizeUrl: (
             appId: string,
             session: Session,
             callbackUrl: string,
         ) => (
-            _getAuthorizeUrl(appId, session, callbackUrl)
-        ),
+                _getAuthorizeUrl(appId, session, callbackUrl)
+            ),
         getGuestAuthorizeUrl: (
             session: Session,
             callbackUrl: string,
         ) => (
-            _getGuestAuthorizeUrl(session, callbackUrl, options)
-        ),
+                _getGuestAuthorizeUrl(session, callbackUrl, options)
+            ),
         getReceiptUrl: (
             contractId: string,
             appId: string,
         ) => (
-            _getReceiptUrl(contractId, appId)
-        ),
+                _getReceiptUrl(contractId, appId)
+            ),
         getCreatePostboxUrl: (
             appId: string,
             session: Session,
             callbackUrl: string,
         ) => (
-            getCreatePostboxUrl(appId, session, callbackUrl)
-        ),
+                getCreatePostboxUrl(appId, session, callbackUrl)
+            ),
         getPostboxImportUrl: () => getPostboxImportUrl(),
     };
 };
