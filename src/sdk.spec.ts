@@ -460,23 +460,51 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         });
 
         describe("getSessionAccounts", () => {
+            const privateKey = `-----BEGIN RSA PRIVATE KEY-----
+                MIIEpAIBAAKCAQEArMZMuQF9dWKwxdC544CMoLYwBXKtzqLqsA8DXFYelex3MRCu
+                4ykIfl4PcfIWAKAwXygXBnXNnVGVJP+YPAH01Vx8ontX/y7mQ1IKjP8Iwp/4Gzu1
+                sog6+Xj0/7Nz+7bGkxEv+rkUAdO/u76/ZM1ffB2LR7vEoJn3O2ONoU2kWpkYFj+d
+                IgQuDeVu5XkO8fTmIx8z7K9q9twwOaTrraLLureD4T5UCpfJdjcqy1ltXtZMro/A
+                rR7jH2NI+lgIts46fK9lYmFy/Yt3qlv3JCsRGiGE/1x1+OW6tZG/2SVTtUZD8Pk5
+                bbCtWiFAftpZs/6AUkV4St9GAUzmqgzSjrkX8QIDAQABAoIBAQCCckHxGO/pVfcT
+                k7EV1LPYj1WYd2pE7np1LRCjgZ4cIeooEGmKtytjhY7xwA7esBN1dOZViVIR6kvK
+                IHSHMg7xnJ+5aZkZ4QYXY/T1WYT6tR71KNLZlcO5IZsRCCOUs/4fgcWQ7nXtnztO
+                /AizieAC7KeBJIKjozuoClUfqWhiwZwH7K/+qz0SHe3VqfS/U9wrD23fC+Awlq8q
+                iiV7203gDq/1p1I3T0Vqr0l1ZcW7AKSxBgHSlYshpxj+ySxiDtzQwZXfHWoIFU++
+                YdgNeTRLbzZmjR3DcblYgJjSWxd8uH894281dNuzCH8hitgUIBN74WbpCVTVOWEU
+                4VLlQS4FAoGBAPiXu1LAWhFG4j1RwQdUf77Gv1sHYVm7p2DhKd9FE4YLXLij3eEx
+                LpcoTUq/dYrYq2xBZcrlhjjNimxMddU+gGl3l1j6s1jRw0TpHHLSmL2s9gpY5KNF
+                dQ6TUUZou/AIr46wPTbT2aLiDy2bzk5JsCEotdIjcYj/rBWdnUP+DxcfAoGBALHs
+                OgHG7vCFCucZN43hrMi1Vpt8kIxU+3nqkaMBK2KJbwXjGBxPhie2yTvJxjPhuX3K
+                n4x9489E8ALQsP+OSSfXfvswP1+2nyqg6iNfRS1EX2CbaMAb4mLkyIvXm1ee06Ti
+                7oKapZGzKJAht1uzcNicLhBQ7kziWM1fuE401z7vAoGAeM0K+2h7nB+s+w1KVuyJ
+                80QTYwHQHdHhwWNJfLTNivrkgNkojjDfKhcskCE/1kv56W5SL+mfcuT22i/BpvFr
+                Z1T1GAkjtAqi8E6zQ1zxWmK9YUPXPzwWaRHPkf59LWSbIySjaoxCGzPtGkW3WDXY
+                wBRPXqFYn7FWh16DOLIx1RMCgYAkDv4Kkiimsi/tehzaMlx0KNwukuYwqqB0qudt
+                I7WJONU5Wjbutec4cUEDTvdOWHbhWYlQTcs3nH8P8v+MK2gEHRZtDfAqE7baStZo
+                6Mv6SpsR1y05ke0lobxLKx0eet/l0OAJtBHOH4MfAtZITWuXWr+zKtPA3TamGLof
+                j3H4HQKBgQDy+SJmfe/51ly3Ljx/X4ZoQC1PZeXqC9d7bIzpkQQsEH0gWXucFh1O
+                8oH4dQpNAv1BMsHIlFOVE2v1Qi0M6OYbtG+XE9SJULTImvBYsGe0uYtibWkRZEWg
+                PCM5QZF21ONlznJNmnDdPSUJ5WdYUbIxtn6oiiLlpg0FSEcSmzbpaQ==
+                -----END RSA PRIVATE KEY-----`;
             it(`Requests target API baseUrl: ${baseUrl}`, async () => {
 
                 nock(`${new URL(baseUrl).origin}`)
                     .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key/accounts.json`)
                     .reply(200, {
-                        fileContent: {
-                            accounts: [{
-                                name: "test-account",
-                            }],
-                        },
+                        fileContent: "g4AoAv2+WczMgo3tH/hGIxjKtiYTNm8SQ3x0KmA8LTIsljPCsZnFwyGdyoEpSCYFQIYe8hsPfmiiFadrsNA9zPnH93+wrgoxD9DmeNm/us6wTotjypXe0JpTdbBgudWp44j+FSPlat9lt1pFIHL1PTUjp3xR0mSHHJpa+nYGZ9y6vDpt8UiQw2FuKeFYzMws4er+uri0ZI3VPAFto7d65s7BQ+miaU71VTRY6e/N2g5C55JyYWonk2zS/8e1SzL86GtDjlviT8NU7CSG3UZ+d/gglfzzFafbk8/vO4/NPH6jOx2NmtwDYOzR8+jbqcJWk/fz8qJVfKT/766b2uk5qtHWXmNtbN+F21bp7e0LO26B9CKhowXBYUAB9Z7pOEP5bSBXMUwR0Kv3zFIu7e1yuj2pif+DiGsxYxEQjxLf6bHq2lzRtqi3jXJGEq96IDGouJd5ulcGUKo+I2zjKQicne3hRXppRneMt4KNdKilDLX5AErSL2syc+eRjLzLpHmaAAtfw+LUEqRPIlpDng2rE+i/1n8T9CQepWgaYhh7gEd9ZgZzxx+8oxW2gb9Hj5EhN0c7bO2dxOsS0g2PB4SVti+M8iEWLck9VXXfIu5he5kLXXMUROxLD7ZCugQvmRwqWUDC6R//dvqn6oViY3ffJu9VdjJsuTTpMygf5jlyekuWh4VbAzJS703P8Q7bSpyDXZZpd8xW8kbIBBs2GqPPMrngWTSQBA+FVxwCTrMWM3Lg84rNMGAOVEJAMaVb8Dui",
                     });
 
-                const result = await sdk.getSessionAccounts("test-session-key");
+                const result = await sdk.getSessionAccounts("test-session-key", privateKey);
 
                 expect(result).toEqual({
                     accounts: [{
-                        name: "test-account",
+                        "id": "4_314667644",
+                        "name": "selimovicz",
+                        "service": {
+                            "logo": "https://securedownloads.digi.me/static/development/discovery/services/instagram/icon75x75.png",
+                            "name": "Instagram",
+                        }
                     }],
                 });
             });
@@ -486,39 +514,27 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (sessionKey: any) => {
-                        return expect(sdk.getSessionAccounts(sessionKey)).rejects.toThrow(ParameterValidationError);
+                        return expect(sdk.getSessionAccounts(sessionKey, privateKey)).rejects.toThrow(ParameterValidationError);
                     },
                 );
-
-            });
-
-            describe("Throws ParameterValidationError when sessionKey (first parameter) is", () => {
-
-                it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
-                    "%p",
-                    (sessionKey: any) => {
-                        return expect(sdk.getSessionAccounts(sessionKey)).rejects.toThrow(ParameterValidationError);
-                    },
-                );
-
             });
 
             describe("Throws appropriate exceptions when argon returns errors", () => {
                 it("Re-throws HTTPErrors if it encounters one", () => {
                     nock.define(loadDefinitions("fixtures/network/get-session-accounts/bad-request.json"));
-                    const promise = sdk.getSessionAccounts("test-session-key");
+                    const promise = sdk.getSessionAccounts("test-session-key", privateKey);
                     return expect(promise).rejects.toThrowError(HTTPError);
                 });
 
                 it("Throws SDKInvalidError if the API responds with SDKInvalid in error.code", () => {
                     nock.define(loadDefinitions("fixtures/network/get-session-accounts/invalid-sdk.json"));
-                    const promise = sdk.getSessionAccounts("test-session-key");
+                    const promise = sdk.getSessionAccounts("test-session-key", privateKey);
                     return expect(promise).rejects.toThrowError(SDKInvalidError);
                 });
 
                 it("Throws SDKVersionInvalidError if the API responds with SDKVersionInvalid in error.code", () => {
                     nock.define(loadDefinitions("fixtures/network/get-session-accounts/invalid-sdk-version.json"));
-                    const promise = sdk.getSessionAccounts("test-session-key");
+                    const promise = sdk.getSessionAccounts("test-session-key", privateKey);
                     return expect(promise).rejects.toThrowError(SDKVersionInvalidError);
                 });
             });
