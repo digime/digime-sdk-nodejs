@@ -28,7 +28,7 @@ To request user data, you'll need to have [created a session](./establish-sessio
 Once the user has given consent, we can now call `getSessionData` to receive user data. This function polls digi.me until we have received all the data the user has that satisfies the contract. `getSessionData` will return a promise which will resolve when all the files are fetched and a function which you can trigger to stop the data fetch process for whatever reason. 
 ```typescript
 getSessionData = (
-    sessionId: string,
+    sessionKey: string,
     privateKey: NodeRSA.Key,
     onFileData: FileSuccessHandler,
     onFileError: FileErrorHandler
@@ -36,7 +36,7 @@ getSessionData = (
 ```
 > Returns [GetSessionDataResponse](#GetSessionDataResponse)
 
-`sessionId`: string
+`sessionKey`: string
 
 Session ID received when we first established as session
 
@@ -56,6 +56,42 @@ This callback function is triggered whenever we have failed to receive any data 
 [ParameterValidationError](./handling-errors.md)
 
 [FileDecryptionError](./handling-errors.md)
+
+## getFileList
+This call is part of the `getSessionData` above, but if you would like to have more control of the flow, you can call this method to see what files are available to download from the user.
+
+```typescript
+getFileList = (
+    sessionKey: string,
+): GetSessionDataResponse;
+```
+
+`sessionKey`: string
+
+Session ID received when we first established as session
+
+## getFile
+This call is part of the `getSessionData` above, but if you would like to have more control of the flow, you can call this method to download a specific file from the user.
+
+```typescript
+getFile = (
+    sessionKey: string,
+    fileName: string,
+    privateKey: NodeRSA.Key,
+): GetSessionDataResponse;
+```
+
+`sessionKey`: string
+
+Session ID received when we first established as session
+
+`fileName`: string
+
+File ID of the file you wish to download
+
+`privateKey`: NodeRSA.Key
+
+Private key in PKCS1 format which can be used to decrypt user's data. This is related to the contract, so you would need this when you receive the contract Id from digi.me.
 
 
 ## GetSessionDataResponse

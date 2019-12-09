@@ -30,8 +30,17 @@ To fetch account data
 ```typescript
 const getSessionAccounts = async (
     sessionKey: string,
+    privateKey: NodeRSA.Key,
 ): Promise<Accounts>;
 ```
+`sessionKey`: string
+
+Session ID received when we first established as session
+
+`privateKey`: NodeRSA.Key
+
+Private key in PKCS1 format which can be used to decrypt user's data. This is related to the contract, so you would need this when you receive the contract Id from digi.me.
+
 
 -----
 
