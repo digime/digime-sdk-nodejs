@@ -17,12 +17,27 @@ export interface Session {
 
 export interface CAScope {
     timeRanges?: TimeRange[];
+    serviceGroups?: ServiceGroup[];
 }
 
 export interface TimeRange {
     from?: number;
     last?: string;
     to?: number;
+}
+
+export interface ServiceGroup {
+    id: number;
+    serviceTypes: Service[];
+}
+
+export interface Service {
+    id: number;
+    serviceObjectTypes: ServiceObject[];
+}
+
+export interface ServiceObject {
+    id: number;
 }
 
 export interface FileMeta {

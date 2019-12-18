@@ -77,14 +77,22 @@ The session key is a key that binds your contract and your application ID and it
 
 ## CAScope
 
+If you only want to retrieve a subset of data that your contract allows, then setting the CAScope parameter when establishing the session will allow you to filter user data by time range, service group, service or object type. Note, the data you request is limited by your contract, so scoping can only allow you to filter on the maximum amount of data your contract allows.
+
 ```typescript
 interface CAScope {
     timeRanges? : TimeRange[];
+    serviceGroups?: ServiceGroup[];
 }
 ```
 `timeRanges`: [TimeRange](#TimeRange)[]
 
-Having timeRanges set will allow you to retrieve only a subset of data that the contract has asked for. This might come in handy if you already have data from the existing user and you might only want to retrieve any new data that might have been added to the user's library in the last x months. The format of ITimeRange is as follows:
+Having timeRanges set will allow you to retrieve only a subset of data that the contract has asked for. This might come in handy if you already have data from the existing user and you might only want to retrieve any new data that might have been added to the user's library in the last x months.
+
+`serviceGroups`: [TimeRange](#TimeRange)[]
+To filter user data based on the service group, service or object type, you can set this object. This object is made up of service groups on the top level, followed by service and then the service object. *NOTE*: At the moment, every level must be explicity set in order for the scoping to take effect.
+
+For more information on how they are related and what services are on offer, please checkout the developer documentation here: https://developers.digi.me/reference-objects
 
 ## TimeRange
 
@@ -114,6 +122,121 @@ For units we currently accept:
 'y' - year
 
 For example to return data for the last six months : "6m"
+
+## ServiceGroup
+
+```typescript
+interface ServiceGroup {
+    id: number;
+    serviceTypes: Service[];
+}
+```
+
+`id`: number
+
+This is id of the service group you wish to filter by.
+
+`serviceTypes`: Service[]
+
+This contains all the services you want to filter by.
+
+## Service
+
+```typescript
+interface Service {
+    id: number;
+    serviceObjectTypes: ServiceObject[];
+}
+```
+
+`id`: number
+
+This is id of the service group you wish to filter by.
+
+`serviceObjectTypes`: ServiceObject[]
+
+This contains all the service objects you want to filter by.
+
+## ServiceObject
+
+```typescript
+interface ServiceObject {
+    id: number;
+}
+```
+
+`id`: number
+
+This is id of the service object you wish to filter by.
+
+# Scoping Examples
+In this section, we will give a few examples of how to use scoping to control the amount of data we request from the user.
+
+To only receive Media and Posts from Instagram and Twitter in the last year
+```typescript
+{
+    "serviceGroups": [
+      {
+        "id": 1,
+        "serviceTypes": [
+          {
+            "id": 3,
+            "serviceObjectTypes": [
+              {
+                "id": 1
+              },
+              {
+                "id": 2
+              }
+            ]
+          },
+          {
+            "id": 4,
+            "serviceObjectTypes": [
+              {
+                "id": 1
+              },
+              {
+                "id": 2
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "timeRanges": [
+      {
+         "last": "1y"
+      }
+    ]
+  }
+```
+
+To only receive Play History from Spotify in the last month
+```typescript
+{
+    "serviceGroups": [
+      {
+        "id": 5,
+        "serviceTypes": [
+          {
+            "id": 19,
+            "serviceObjectTypes": [
+              {
+                "id": 406
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "timeRanges": [
+      {
+         "last": "1m"
+      }
+    ]
+  }
+```
 
 -----
 
