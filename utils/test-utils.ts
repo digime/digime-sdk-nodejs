@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2018 digi.me Limited. All rights reserved.
+ * Copyright (c) 2009-2020 digi.me Limited. All rights reserved.
  */
 
 import crypto from "crypto";
