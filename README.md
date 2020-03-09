@@ -28,7 +28,7 @@ This SDK is a server side Node library that allows seamless authentication with 
 ## Requirements
 
 ### Development
-- Node 8 or above
+- Node 10.16 or above
 
 ## Installation
 
