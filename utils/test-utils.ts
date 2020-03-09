@@ -4,11 +4,10 @@
 
 import crypto from "crypto";
 import { ReadStream } from "fs";
-import { compressSync } from "iltorb";
 import isPlainObject from "lodash.isplainobject";
 import nock from "nock";
 import NodeRSA from "node-rsa";
-import { gzipSync } from "zlib";
+import { gzipSync, brotliCompressSync } from "zlib";
 
 interface CreateCADataOptions {
     compression?: "no-compression" | "brotli" | "gzip";
@@ -38,7 +37,7 @@ const createCAData = (key: NodeRSA, inputData: string, options?: CreateCADataOpt
 
     // Perform compression if necessary
     if (compression === "brotli") {
-        data = compressSync(data);
+        data = brotliCompressSync(data);
     }
 
     if (compression === "gzip") {

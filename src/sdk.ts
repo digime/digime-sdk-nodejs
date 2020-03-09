@@ -3,7 +3,6 @@
  */
 
 import { HTTPError } from "got";
-import { decompress } from "iltorb";
 import get from "lodash.get";
 import isFunction from "lodash.isfunction";
 import NodeRSA from "node-rsa";
@@ -142,7 +141,7 @@ const _getFile = async (
     let data: Buffer = decryptData(key, fileContent);
 
     if (compression === "brotli") {
-        data = await decompress(data);
+        data = zlib.brotliDecompressSync(data);
     } else if (compression === "gzip") {
         data = zlib.gunzipSync(data);
     }
