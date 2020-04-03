@@ -25,7 +25,7 @@ To request user data, you'll need to have [created a session](./establish-sessio
 
 
 ## getSessionData
-Once the user has given consent, we can now call `getSessionData` to receive user data. This function polls digi.me until we have received all the data the user has that satisfies the contract. `getSessionData` will return a promise which will resolve when all the files are fetched and a function which you can trigger to stop the data fetch process for whatever reason. 
+Once the user has given consent, we can now call `getSessionData` to receive user data. This function polls digi.me until we have received all the data the user has that satisfies the contract. `getSessionData` will return a promise which will resolve when all the files are fetched and a function which you can trigger to stop the data fetch process for whatever reason.
 ```typescript
 getSessionData = (
     sessionKey: string,
@@ -50,10 +50,10 @@ This callback function is triggered whenever we have received data from the serv
 
 `onFileError`: [FileErrorHandler](#FileErrorHandler)
 
-This callback function is triggered whenever we have failed to receive any data for the data file. By default, we try to fetch the data five times with exponential backoff before invoking the error callback. You can configure the retry options when you initiate the SDK. 
+This callback function is triggered whenever we have failed to receive any data for the data file. By default, we try to fetch the data five times with exponential backoff before invoking the error callback. You can configure the retry options when you initiate the SDK.
 
 #### Exceptions
-[ParameterValidationError](./handling-errors.md)
+[TypeValidationError](./handling-errors.md)
 
 [FileDecryptionError](./handling-errors.md)
 
@@ -117,7 +117,12 @@ This is the callback that is triggered whenever we've received data from a user.
 ```typescript
 type FileSuccessHandler = ({
     fileData: any,
-    fileDescriptor: FileDescriptor,
+    fileMetadata: {
+        objectCount: number;
+        objectType: string;
+        serviceGroup: string;
+        serviceName: string;
+    },
     fileName: string,
     fileList: string[],
 }): void;
@@ -126,9 +131,28 @@ type FileSuccessHandler = ({
 
 JSON string of data objects
 
-`fileDescriptor`: [FileDescriptor](#FileDescriptor)
+`fileMetadata`: object
 
 Object describing data that is returned
+
+- `objectCount`: number
+
+    How many data objects are returned in this file.
+
+- `objectType`: string
+
+    What data these objects represent. E.g. Media
+    For a full list, please check out our [Reference Objects](http://developers.digi.me/reference-objects) guide on our developer docs.
+
+- `serviceGroup`: string
+
+    What service group the data belongs to. E.g. Social.
+    For a full list, please check out our [Reference Objects](http://developers.digi.me/reference-objects) guide on our developer docs.
+
+- `serviceName`: string
+
+    What service the data came from. E.g. Facebook.
+    For a full list, please check out our [Reference Objects](http://developers.digi.me/reference-objects) guide on our developer docs.
 
 `fileName`: string
 
@@ -137,36 +161,6 @@ The filename which the objects reside in
 `fileList`: string[]
 
 The list of all files that are to be returned
-
-
-## FileDescriptor
-```typescript
-interface FileDescriptor {
-    objectCount: number;
-    objectType: string;
-    serviceGroup: string;
-    serviceName: string;
-}
-```
-
-`objectCount`: number
-
-How many data objects are returned in this file.
-
-`objectType`: string
-
-What data these objects represent. E.g. Media
-For a full list, please check out our [Reference Objects](http://developers.digi.me/reference-objects) guide on our developer docs.
-
-`serviceGroup`: string
-
-What service group the data belongs to. E.g. Social.
-For a full list, please check out our [Reference Objects](http://developers.digi.me/reference-objects) guide on our developer docs.
-
-`serviceName`: string
-
-What service the data came from. E.g. Facebook.
-For a full list, please check out our [Reference Objects](http://developers.digi.me/reference-objects) guide on our developer docs.
 
 
 ## FileErrorHandler

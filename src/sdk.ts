@@ -2,27 +2,34 @@
  * Copyright (c) 2009-2020 digi.me Limited. All rights reserved.
  */
 
-import { HTTPError } from "got";
+import { Response } from "got";
 import get from "lodash.get";
 import isFunction from "lodash.isfunction";
 import NodeRSA from "node-rsa";
 import { URL } from "url";
 import * as zlib from "zlib";
-import { GetFileListResponse, GetFileResponse, LibrarySyncStatus } from "./api-responses";
 import { decryptData } from "./crypto";
 import { authorizeOngoingAccess, exchangeCodeForToken } from "./cyclic-ca";
-import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
-import { net } from "./net";
+import { TypeValidationError } from "./errors";
+import { net, handleInvalidatedSdkResponse } from "./net";
 import { getAuthorizeUrl } from "./paths";
 import { getCreatePostboxUrl, getPostboxImportUrl, pushDataToPostbox, PushedFileMeta } from "./postbox";
 import sdkVersion from "./sdk-version";
-import {
-    CAScope, DMESDKConfiguration, FileMeta, GetSessionDataResponse, OngoingAccessAuthorization,
-    OngoingAccessConfiguration, Session,
+import type {
+    CAScope,
+    FileMeta,
+    GetSessionDataResponse,
+    OngoingAccessAuthorization,
+    OngoingAccessConfiguration,
 } from "./types";
-import {
-    isConfigurationValid, isPlainObject, isSessionValid, isValidString, sleep,
-} from "./utils";
+import { isPlainObject, isValidString } from "./utils";
+import { assertIsSession, Session } from "./types/api/session";
+import { sleep } from "./sleep";
+import { DMESDKConfiguration, assertIsDMESDKConfiguration } from "./types/dme-sdk-configuration";
+import { CAFileListResponse, assertIsCAFileListResponse } from "./types/api/ca-file-list-response";
+import { assertIsCAFileResponse, CAFileResponse } from "./types/api/ca-file-response";
+import isString from "lodash.isstring";
+import { assertIsCAAccountsResponse, CAAccountsResponse } from "./types/api/ca-accounts-response";
 
 type FileSuccessResult = { data: any } & FileMeta;
 type FileErrorResult = { error: Error } & FileMeta;
@@ -36,10 +43,10 @@ const _establishSession = async (
     scope?: CAScope,
 ): Promise<Session> => {
     if (!isValidString(appId)) {
-        throw new ParameterValidationError("Parameter appId should be a non empty string");
+        throw new TypeValidationError("Parameter appId should be a non empty string");
     }
     if (!isValidString(contractId)) {
-        throw new ParameterValidationError("Parameter contractId should be a non empty string");
+        throw new TypeValidationError("Parameter contractId should be a non empty string");
     }
     const url = `${options.baseUrl}/permission-access/session`;
 
@@ -53,8 +60,7 @@ const _establishSession = async (
     try {
 
         const { body, headers } = await net.post(url, {
-            json: true,
-            body: {
+            json: {
                 appId,
                 contractId,
                 scope,
@@ -63,6 +69,7 @@ const _establishSession = async (
                     compression: "gzip",
                 },
             },
+            responseType: "json",
             retry: options.retryOptions,
         });
 
@@ -71,38 +78,24 @@ const _establishSession = async (
             console.warn(`[digime-js-sdk@${sdkVersion}][${headers["x-digi-sdk-status"]}] ${headers["x-digi-sdk-status-message"]}`);
         }
 
-        // TODO: Session validation
+        assertIsSession(body);
+
         return body;
 
     } catch (error) {
 
-        if (!(error instanceof HTTPError)) {
-            throw error;
-        }
-
-        const errorCode = get(error, "body.error.code");
-
-        if (errorCode === "SDKInvalid") {
-            throw new SDKInvalidError(get(error, "body.error.message"));
-        }
-
-        if (errorCode === "SDKVersionInvalid") {
-            throw new SDKVersionInvalidError(get(error, "body.error.message"));
-        }
+        handleInvalidatedSdkResponse(error);
 
         throw error;
     }
 };
 
 const _getGuestAuthorizeUrl = (session: Session, callbackUrl: string, options: DMESDKConfiguration) => {
-    if (!isSessionValid(session)) {
-        throw new ParameterValidationError(
-            // tslint:disable-next-line: max-line-length
-            "Session should be an object that contains expiry as number, sessionKey and sessionExchangeToken property as string",
-        );
-    }
+
+    assertIsSession(session);
+
     if (!isValidString(callbackUrl)) {
-        throw new ParameterValidationError("Parameter callbackUrl should be a non empty string");
+        throw new TypeValidationError("Parameter callbackUrl should be a non empty string");
     }
     // tslint:disable-next-line:max-line-length
     return `${new URL(options.baseUrl).origin}/apps/quark/v1/direct-onboarding?sessionExchangeToken=${session.sessionExchangeToken}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
@@ -110,20 +103,22 @@ const _getGuestAuthorizeUrl = (session: Session, callbackUrl: string, options: D
 
 const _getReceiptUrl = (contractId: string, appId: string) => {
     if (!isValidString(contractId)) {
-        throw new ParameterValidationError("Parameter contractId should be a non empty string");
+        throw new TypeValidationError("Parameter contractId should be a non empty string");
     }
     if (!isValidString(appId)) {
-        throw new ParameterValidationError("Parameter appId should be a non empty string");
+        throw new TypeValidationError("Parameter appId should be a non empty string");
     }
     return `digime://receipt?contractId=${contractId}&appId=${appId}`;
 };
 
-const _getFileList = async (sessionKey: string, options: DMESDKConfiguration): Promise<GetFileListResponse> => {
+const _getFileList = async (sessionKey: string, options: DMESDKConfiguration): Promise<CAFileListResponse> => {
     const url = `${options.baseUrl}/permission-access/query/${sessionKey}`;
     const response = await net.get(url, {
-        json: true,
+        responseType: "json",
         retry: options.retryOptions,
     });
+
+    assertIsCAFileListResponse(response.body);
 
     return response.body;
 };
@@ -135,8 +130,8 @@ const _getFile = async (
     options: DMESDKConfiguration,
 ): Promise<FileMeta> => {
     const response = await _fetchFile(sessionKey, fileName, options);
-    const { compression, fileContent, fileDescriptor } = response;
-    const { mimetype } = fileDescriptor;
+    const { compression, fileContent, fileMetadata } = response;
+    const { mimetype } = fileMetadata;
     const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
     let data: Buffer = decryptData(key, fileContent);
 
@@ -155,7 +150,7 @@ const _getFile = async (
 
     return {
         fileData,
-        fileDescriptor,
+        fileMetadata,
         fileName,
     };
 };
@@ -164,19 +159,21 @@ const _fetchFile = async (
     sessionKey: string,
     fileName: string,
     options: DMESDKConfiguration,
-): Promise<GetFileResponse> => {
+): Promise<CAFileResponse> => {
     const url = `${options.baseUrl}/permission-access/query/${sessionKey}/${fileName}`;
     const response = await net.get(url, {
-        json: true,
+        responseType: "json",
         retry: options.retryOptions,
     });
+
+    assertIsCAFileResponse(response.body);
 
     const { fileContent, fileMetadata, compression } = response.body;
 
     return {
         compression,
         fileContent,
-        fileDescriptor: fileMetadata,
+        fileMetadata,
     };
 };
 
@@ -189,7 +186,7 @@ const _getSessionData = (
 ): GetSessionDataResponse => {
 
     if (!isValidString(sessionKey)) {
-        throw new ParameterValidationError("Parameter sessionKey should be a non empty string");
+        throw new TypeValidationError("Parameter sessionKey should be a non empty string");
     }
 
     let allowPollingToContinue: boolean = true;
@@ -197,10 +194,10 @@ const _getSessionData = (
     const allFilesPromise: Promise<unknown> = new Promise(async (resolve) => {
         const filePromises: Array<Promise<unknown>> = [];
         const handledFiles: { [name: string]: number } = {};
-        let state: LibrarySyncStatus = "pending";
+        let state: CAFileListResponse["status"]["state"] = "pending";
 
         while (allowPollingToContinue && state !== "partial" && state !== "completed") {
-            const { status, fileList }: GetFileListResponse = await _getFileList(sessionKey, options);
+            const { status, fileList }: CAFileListResponse = await _getFileList(sessionKey, options);
             state = status.state;
 
             if (state === "pending") {
@@ -209,6 +206,7 @@ const _getSessionData = (
 
             const newFiles: string[] = (fileList || []).reduce((accumulator: string[], file) => {
                 const { name, updatedDate } = file;
+
                 if (get(handledFiles, name, 0) < updatedDate) {
                     accumulator.push(name);
                     handledFiles[name] = updatedDate;
@@ -257,52 +255,57 @@ const _getSessionAccounts = async (
     sessionKey: string,
     privateKey: NodeRSA.Key,
     options: DMESDKConfiguration,
-) => {
+): Promise<Pick<CAAccountsResponse, "accounts">> => {
+
+    if (!isValidString(sessionKey)) {
+        throw new TypeValidationError("Parameter sessionKey should be a non empty string");
+    }
+
+    let response: Response<unknown>;
+
     try {
-
-        if (!isValidString(sessionKey)) {
-            throw new ParameterValidationError("Parameter sessionKey should be a non empty string");
-        }
-
-        const response = await net.get(`${options.baseUrl}/permission-access/query/${sessionKey}/accounts.json`, {
-            json: true,
+        response = await net.get(`${options.baseUrl}/permission-access/query/${sessionKey}/accounts.json`, {
+            responseType: "json",
             retry: options.retryOptions,
         });
-
-        const { fileContent } = response.body;
-
-        const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
-        const decryptedData: Buffer = decryptData(key, fileContent);
-
-        const parsedData = JSON.parse(decryptedData.toString("utf8"));
-
-        return {
-            accounts: parsedData.accounts,
-        };
     } catch (error) {
 
-        if (!(error instanceof HTTPError)) {
-            throw error;
-        }
-
-        const errorCode = get(error, "body.error.code");
-
-        if (errorCode === "SDKInvalid") {
-            throw new SDKInvalidError(get(error, "body.error.message"));
-        }
-
-        if (errorCode === "SDKVersionInvalid") {
-            throw new SDKVersionInvalidError(get(error, "body.error.message"));
-        }
+        handleInvalidatedSdkResponse(error);
 
         throw error;
     }
+
+    if (!isPlainObject(response.body) || !isString(response.body.fileContent)){
+        throw new TypeValidationError("API returned an unexpected response");
+    }
+
+    const { fileContent } = response.body;
+
+    const key = new NodeRSA(privateKey, "pkcs1-private-pem");
+    const decryptedData = decryptData(key, fileContent).toString("utf8");
+
+    let parsedData: unknown;
+
+    try {
+        parsedData = JSON.parse(decryptedData);
+    } catch(error) {
+        if (error instanceof SyntaxError) {
+            throw new SyntaxError(`API returned malformed JSON data - ${error.message}`);
+        }
+        throw error;
+    }
+
+    assertIsCAAccountsResponse(parsedData);
+
+    return {
+        accounts: parsedData.accounts,
+    };
 };
 
 const init = (sdkOptions?: Partial<DMESDKConfiguration>) => {
 
     if (sdkOptions !== undefined && !isPlainObject(sdkOptions)) {
-        throw new ParameterValidationError("SDK options should be object that contains host and version properties");
+        throw new TypeValidationError("SDK options should be object that contains host and version properties");
     }
 
     const options: DMESDKConfiguration = {
@@ -313,11 +316,7 @@ const init = (sdkOptions?: Partial<DMESDKConfiguration>) => {
         ...sdkOptions,
     };
 
-    if (!isConfigurationValid(options)) {
-        throw new ParameterValidationError(
-            "SDK options should be object that contains baseUrl property as string",
-        );
-    }
+    assertIsDMESDKConfiguration(options);
 
     return {
         getFile: (
@@ -406,7 +405,6 @@ const init = (sdkOptions?: Partial<DMESDKConfiguration>) => {
 
 export {
     init,
-    isSessionValid,
     CAScope,
     FileMeta,
     FileSuccessResult,

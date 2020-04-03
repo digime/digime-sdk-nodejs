@@ -52,7 +52,7 @@ Public key as received from step 1 above.
 Data to be pushed in to user postbox.
 
 #### Exceptions
-[ParameterValidationError](./handling-errors.md)
+[TypeValidationError](./handling-errors.md)
 
 ## FileMeta
 ```typescript

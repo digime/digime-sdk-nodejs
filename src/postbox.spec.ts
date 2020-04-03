@@ -7,7 +7,7 @@ import nock = require("nock");
 import NodeRSA from "node-rsa";
 import { URL } from "url";
 import * as SDK from "./";
-import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
+import { TypeValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import sdkVersion from "./sdk-version";
 
 const customSDK = SDK.init({
@@ -62,7 +62,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             );
         });
 
-        describe("Throws ParameterValidationError when appId (first parameter) is", () => {
+        describe("Throws TypeValidationError when appId (first parameter) is", () => {
             it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                 "%p",
                 (appId: any) => {
@@ -76,12 +76,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         "https://callback.test?a=1&b=2#c",
                     );
 
-                    expect(fn).toThrow(ParameterValidationError);
+                    expect(fn).toThrow(TypeValidationError);
                 },
             );
         });
 
-        describe("Throws ParameterValidationError when session (second parameter) is", () => {
+        describe("Throws TypeValidationError when session (second parameter) is", () => {
             // tslint:disable-next-line:max-line-length
             it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", (): null => null, Symbol("test")])(
                 "%p",
@@ -92,12 +92,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         "https://callback.test?a=1&b=2#c",
                     );
 
-                    expect(fn).toThrow(ParameterValidationError);
+                    expect(fn).toThrow(TypeValidationError);
                 },
             );
         });
 
-        describe("Throws ParameterValidationError when callbackUrl (third parameter) is", () => {
+        describe("Throws TypeValidationError when callbackUrl (third parameter) is", () => {
             it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                 "%p",
                 (callbackUrl: any) => {
@@ -111,7 +111,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         callbackUrl,
                     );
 
-                    expect(fn).toThrow(ParameterValidationError);
+                    expect(fn).toThrow(TypeValidationError);
                 },
             );
         });
@@ -163,7 +163,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             expect(callback).toHaveBeenCalledTimes(1);
         });
 
-        describe("Throws ParameterValidationError when sessionKey (first parameter) is", () => {
+        describe("Throws TypeValidationError when sessionKey (first parameter) is", () => {
             it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (sessionKey: any) => {
@@ -183,12 +183,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         },
                     );
 
-                    return expect(promise).rejects.toThrow(ParameterValidationError);
+                    return expect(promise).rejects.toThrow(TypeValidationError);
                 },
             );
         });
 
-        describe("Throws ParameterValidationError when postboxId (second parameter) is", () => {
+        describe("Throws TypeValidationError when postboxId (second parameter) is", () => {
             it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (postboxId: any) => {
@@ -208,12 +208,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         },
                     );
 
-                    return expect(promise).rejects.toThrow(ParameterValidationError);
+                    return expect(promise).rejects.toThrow(TypeValidationError);
                 },
             );
         });
 
-        describe("Throws ParameterValidationError when public key (third parameter) is", () => {
+        describe("Throws TypeValidationError when public key (third parameter) is", () => {
             it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (publicKey: any) => {
@@ -233,7 +233,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         },
                     );
 
-                    return expect(promise).rejects.toThrow(ParameterValidationError);
+                    return expect(promise).rejects.toThrow(TypeValidationError);
                 },
             );
         });

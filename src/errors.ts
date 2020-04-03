@@ -20,8 +20,8 @@ class SDKVersionInvalidError extends DigiMeSDKError {
     public name = "SDKVersionInvalidError";
 }
 
-class ParameterValidationError extends DigiMeSDKError {
-    public name = "ParameterValidationError";
+class TypeValidationError extends DigiMeSDKError {
+    public name = "TypeValidationError";
 }
 
 class FileDecryptionError extends DigiMeSDKError {
@@ -44,7 +44,7 @@ export {
     DigiMeSDKError,
     SDKInvalidError,
     SDKVersionInvalidError,
-    ParameterValidationError,
+    TypeValidationError,
     FileDecryptionError,
     ServerIdentityError,
     OAuthError,

@@ -4,7 +4,6 @@
         "moduleResolution": "node",
         "module": "commonjs",
         "declaration": true,
-        "declarationDir": "./dist/types",
         "inlineSourceMap": true,
         "esModuleInterop": true,
         "strict": true,
@@ -25,6 +24,6 @@
         "lib": ["es2017"]
     },
     "include": ["src/**/*", "utils/**/*", "tools/**/*"],
-    "exclude": ["dist/**", "node_modules/**", "**/*.spec.*"],
+    "exclude": ["dist/**", "node_modules/**"],
     "compileOnSave": false
 }

@@ -3,19 +3,24 @@
  */
 
 import fs from "fs";
-import got from "got";
+import got, { HTTPError } from "got";
+import type { ExtendOptions, Got } from "got";
 import memoize from "lodash.memoize";
 import path from "path";
 import pkgDir from "pkg-dir";
 import { PeerCertificate } from "tls";
-import { DigiMeSDKError, ServerIdentityError } from "./errors";
+import { DigiMeSDKError, ServerIdentityError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
+import { isApiErrorResponse } from "./types/api/api-error-response";
+import isString from "lodash.isstring";
 
-type ExtendedGotJSONOptions = got.GotOptions<string | null> & {
+type ExtendedGotExtendOptions = ExtendOptions & {
     checkServerIdentity?: (host: string, cert: PeerCertificate) => void;
 };
 
-type ExtendableGot = typeof got & {
-    extend: (options: ExtendedGotJSONOptions) => typeof got;
+type ExtendedInstancesOrOptions = Array<Got | ExtendedGotExtendOptions>;
+
+type ExtendedGot = typeof got & {
+    extend(...instancesOrOptions: ExtendedInstancesOrOptions): Got;
 };
 
 interface PinnedHosts {
@@ -61,8 +66,8 @@ const packageDir = (): string => {
 
 const defaultPinningDataPath: string = path.resolve(packageDir(), "certificates");
 
-export const net: typeof got = (got as ExtendableGot).extend({
-    checkServerIdentity: (host, cert) => {
+export const net: Got = (got as ExtendedGot).extend({
+    checkServerIdentity: (host: any, cert: any) => {
         const pinnedHosts: PinnedHosts = getPinningData(defaultPinningDataPath);
         const pinnedHost: Buffer[] | undefined = pinnedHosts[host];
 
@@ -82,3 +87,35 @@ export const net: typeof got = (got as ExtendableGot).extend({
         }
     },
 });
+
+export const handleInvalidatedSdkResponse = (error: Error): void => {
+
+    if (!(error instanceof HTTPError)) {
+        return;
+    }
+
+    let body: unknown = error.response.body;
+
+    // Attempt to parse body in case it's a string
+    if (isString(body)) {
+        try {
+            body = JSON.parse(body);
+        } catch {
+            return;
+        }
+    }
+
+    if (!isApiErrorResponse(body)) {
+        return;
+    }
+
+    const { code, message } = body.error;
+
+    if (code === "SDKInvalid") {
+        throw new SDKInvalidError(message);
+    }
+
+    if (code === "SDKVersionInvalid") {
+        throw new SDKVersionInvalidError(message);
+    }
+}

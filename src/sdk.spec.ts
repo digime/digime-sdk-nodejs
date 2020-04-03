@@ -6,14 +6,9 @@ import { HTTPError } from "got";
 import nock from "nock";
 import NodeRSA from "node-rsa";
 import { URL } from "url";
-import {
-    captureNetworkRequest,
-    createCAData,
-    loadDefinitions,
-    loadScopeDefinitions,
-} from "../utils/test-utils";
+import { createCAData, loadDefinitions, loadScopeDefinitions, spyOnScopeRequests } from "../utils/test-utils";
 import * as SDK from "./";
-import { ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
+import { TypeValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import sdkVersion from "./sdk-version";
 
 const customSDK = SDK.init({
@@ -42,12 +37,12 @@ describe("init", () => {
 
     });
 
-    describe("Throws ParameterValidationError when options (first parameter) is", () => {
+    describe("Throws TypeValidationError when options (first parameter) is", () => {
         // tslint:disable-next-line:max-line-length
         it.each([true, false, null, [], 0, NaN, "", (): null => null, Symbol("test"), { baseUrl: null }])(
             "%p",
             (options: any) => {
-                expect(() => SDK.init(options)).toThrow(ParameterValidationError);
+                expect(() => SDK.init(options)).toThrow(TypeValidationError);
             },
         );
     });
@@ -64,92 +59,102 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         describe("establishSession", () => {
 
             it(`Targets API with base url: ${baseUrl}/`, async () => {
-                const callback = jest.fn();
-                const scope = nock(`${baseUrl}`).post(new RegExp(`^/(.*)`)).reply(200);
 
-                // Request event only fires when the scope target has been hit
-                scope.on("request", callback);
+                const defs = loadScopeDefinitions(
+                    "fixtures/network/establish-session/valid-session.json",
+                    `${new URL(`${baseUrl}`).origin}`,
+                );
 
-                try {
-                    await sdk.establishSession("test-application-id", "test-contract-id");
-                } catch {
-                    // We don't really care about what it returns
-                }
+                const requestSpy = spyOnScopeRequests(nock.define(defs));
 
-                expect(callback).toHaveBeenCalled();
+                await sdk.establishSession("test-application-id", "test-contract-id");
+
+                expect(requestSpy).toHaveBeenCalledTimes(1);
             });
 
-            it("Sends a valid sdkAgent in body", () => {
-                const request = captureNetworkRequest({
-                    request: () => sdk.establishSession("test-application-id", "test-contract-id"),
-                });
+            it("Sends a valid sdkAgent in body", async () => {
 
-                return expect(request).resolves.toHaveBeenCalledWith(
+                const defs = loadScopeDefinitions(
+                    "fixtures/network/establish-session/valid-session.json",
+                    `${new URL(`${baseUrl}`).origin}`,
+                );
+
+                const requestSpy = spyOnScopeRequests(nock.define(defs));
+
+                await sdk.establishSession("test-application-id", "test-contract-id");
+
+                expect(requestSpy).toHaveBeenCalledTimes(1);
+                expect(requestSpy).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        body: expect.objectContaining({
-                            sdkAgent: expect.objectContaining({
-                                name: expect.stringMatching("js"),
-                                version: expect.stringMatching(sdkVersion),
-                                meta: expect.objectContaining({
-                                    node: expect.stringMatching(process.version),
-                                }),
+                        sdkAgent: expect.objectContaining({
+                            name: expect.stringMatching("js"),
+                            version: expect.stringMatching(sdkVersion),
+                            meta: expect.objectContaining({
+                                node: expect.stringMatching(process.version),
                             }),
                         }),
                     }),
                 );
             });
 
-            it("Sends appId in body", () => {
-                const request = captureNetworkRequest({
-                    request: () => sdk.establishSession("test-application-id", "test-contract-id"),
-                });
+            it("Sends appId in body", async () => {
 
-                expect.assertions(1);
+                const defs = loadScopeDefinitions(
+                    "fixtures/network/establish-session/valid-session.json",
+                    `${new URL(`${baseUrl}`).origin}`,
+                );
 
-                return expect(request).resolves.toHaveBeenCalledWith(
+                const requestSpy = spyOnScopeRequests(nock.define(defs));
+
+                await sdk.establishSession("test-application-id", "test-contract-id");
+
+                expect(requestSpy).toHaveBeenCalledTimes(1);
+                expect(requestSpy).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        body: expect.objectContaining({
-                            appId: expect.stringMatching("test-application-id"),
-                        }),
+                        appId: expect.stringMatching("test-application-id"),
                     }),
                 );
             });
 
-            it("Sends contractId in body", () => {
-                const request = captureNetworkRequest({
-                    request: () => sdk.establishSession("test-application-id", "test-contract-id"),
-                });
+            it("Sends contractId in body", async () => {
 
-                expect.assertions(1);
+                const defs = loadScopeDefinitions(
+                    "fixtures/network/establish-session/valid-session.json",
+                    `${new URL(`${baseUrl}`).origin}`,
+                );
 
-                return expect(request).resolves.toHaveBeenCalledWith(
+                const requestSpy = spyOnScopeRequests(nock.define(defs));
+
+                await sdk.establishSession("test-application-id", "test-contract-id");
+
+                expect(requestSpy).toHaveBeenCalledTimes(1);
+                expect(requestSpy).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        body: expect.objectContaining({
-                            contractId: expect.stringMatching("test-contract-id"),
-                        }),
+                        contractId: expect.stringMatching("test-contract-id"),
                     }),
                 );
             });
 
-            it("Sends sends scope in body, when defined", () => {
-                const request = captureNetworkRequest({
-                    request: () => sdk.establishSession(
-                        "test-application-id",
-                        "test-contract-id",
-                        {
-                            timeRanges: [{ last: "1Y" }],
-                        },
-                    ),
-                });
+            it("Sends scope in body, when defined", async () => {
 
-                expect.assertions(1);
+                const defs = loadScopeDefinitions(
+                    "fixtures/network/establish-session/valid-session.json",
+                    `${new URL(`${baseUrl}`).origin}`,
+                );
 
-                return expect(request).resolves.toHaveBeenCalledWith(
+                const requestSpy = spyOnScopeRequests(nock.define(defs));
+
+                await sdk.establishSession(
+                    "test-application-id",
+                    "test-contract-id",
+                    { timeRanges: [{ last: "1Y" }] },
+                );
+
+                expect(requestSpy).toHaveBeenCalledTimes(1);
+                expect(requestSpy).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        body: expect.objectContaining({
-                            scope: expect.objectContaining({
-                                timeRanges: expect.arrayContaining([{ last: "1Y" }]),
-                            }),
+                        scope: expect.objectContaining({
+                            timeRanges: expect.arrayContaining([{ last: "1Y" }]),
                         }),
                     }),
                 );
@@ -167,8 +172,17 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 return expect(promise).resolves.toEqual(defs[0].response);
             });
 
-            // NOTE: There is no runtime validation of the session object in SDK yet
-            it.todo("Throws if session sent in the response body is not of the correct format");
+            it("Throws if session sent in the response body is not of the correct format", async () => {
+                const defs = loadScopeDefinitions(
+                    "fixtures/network/establish-session/invalid-session-wrong-format.json",
+                    `${new URL(`${baseUrl}`).origin}`,
+                );
+
+                nock.define(defs);
+
+                const promise = sdk.establishSession("test-application-id", "test-contract-id");
+                return expect(promise).rejects.toThrowError(TypeValidationError);
+            });
 
             it("Re-throws HTTPErrors if it encounters one", () => {
                 nock.define(loadDefinitions("fixtures/network/establish-session/bad-request.json"));
@@ -196,56 +210,59 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 return expect(promise).rejects.toThrowError();
             });
 
-            describe("Throws ParameterValidationError when appId (first parameter) is", () => {
+            describe("Throws TypeValidationError when appId (first parameter) is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (appId: any) => {
                         nock.define(loadDefinitions("fixtures/network/establish-session/valid-session.json"));
                         const promise = sdk.establishSession(appId, "test-contract-id");
-                        return expect(promise).rejects.toThrow(ParameterValidationError);
+                        return expect(promise).rejects.toThrow(TypeValidationError);
                     },
                 );
             });
 
-            describe("Throws ParameterValidationError when contractId (second parameter) is", () => {
+            describe("Throws TypeValidationError when contractId (second parameter) is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (contractId: any) => {
                         nock.define(loadDefinitions("fixtures/network/establish-session/valid-session.json"));
                         const promise = sdk.establishSession("test-application-id", contractId);
-                        return expect(promise).rejects.toThrow(ParameterValidationError);
+                        return expect(promise).rejects.toThrow(TypeValidationError);
                     },
                 );
             });
 
             describe("Handling SDK statuses from Argon", () => {
                 it("Logs in the console when we receive sdk status", async () => {
+
+                    const defs = loadScopeDefinitions(
+                        "fixtures/network/establish-session/valid-session-sdk-deprecated.json",
+                        `${new URL(`${baseUrl}`).origin}`,
+                    );
+
+                    nock.define(defs);
+
                     const spy: jest.SpyInstance = jest.spyOn(console, "warn").mockImplementation();
-                    nock(`${new URL(baseUrl).origin}`)
-                        .post(`${new URL(baseUrl).pathname}/permission-access/session`)
-                        .reply(200, {
-                            expiry: 0,
-                            sessionKey: "test-session-key",
-                        }, {
-                            "x-digi-sdk-status": "deprecated",
-                            "x-digi-sdk-status-message": "status-message-test",
-                        });
 
                     await sdk.establishSession("test-application-id", "test-contract-id");
+
+                    // TODO: Check this out
                     expect(spy).toHaveBeenCalledTimes(1);
                     expect(spy).toBeCalledWith(`[digime-js-sdk@${sdkVersion}][deprecated] status-message-test`);
+
                     spy.mockRestore();
+
                 });
             });
 
             // NOTE: Tests skipped as there is no runtime validation of the CA scope in the SDK yet
-            describe.skip("Throws ParameterValidationError when CA scope (third parameter) is", () => {
+            describe.skip("Throws TypeValidationError when CA scope (third parameter) is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (caScope: any) => {
                         nock.define(loadDefinitions("fixtures/network/establish-session/valid-session.json"));
                         const promise = sdk.establishSession("test-application-id", "test-contract-id", caScope);
-                        return expect(promise).rejects.toThrow(ParameterValidationError);
+                        return expect(promise).rejects.toThrow(TypeValidationError);
                     },
                 );
             });
@@ -285,7 +302,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 );
             });
 
-            describe("Throws ParameterValidationError when appId (first parameter) is", () => {
+            describe("Throws TypeValidationError when appId (first parameter) is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (appId: any) => {
@@ -299,12 +316,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             "https://callback.test?a=1&b=2#c",
                         );
 
-                        expect(fn).toThrow(ParameterValidationError);
+                        expect(fn).toThrow(TypeValidationError);
                     },
                 );
             });
 
-            describe("Throws ParameterValidationError when session (second parameter) is", () => {
+            describe("Throws TypeValidationError when session (second parameter) is", () => {
                 // tslint:disable-next-line:max-line-length
                 it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", (): null => null, Symbol("test")])(
                     "%p",
@@ -315,12 +332,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             "https://callback.test?a=1&b=2#c",
                         );
 
-                        expect(fn).toThrow(ParameterValidationError);
+                        expect(fn).toThrow(TypeValidationError);
                     },
                 );
             });
 
-            describe("Throws ParameterValidationError when callbackUrl (third parameter) is", () => {
+            describe("Throws TypeValidationError when callbackUrl (third parameter) is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (callbackUrl: any) => {
@@ -334,7 +351,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             callbackUrl,
                         );
 
-                        expect(fn).toThrow(ParameterValidationError);
+                        expect(fn).toThrow(TypeValidationError);
                     },
                 );
             });
@@ -363,7 +380,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 );
             });
 
-            describe("Throws ParameterValidationError when contractid (first parameter) is", () => {
+            describe("Throws TypeValidationError when contractid (first parameter) is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (contractid: any) => {
@@ -372,12 +389,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             "test-application-id",
                         );
 
-                        expect(fn).toThrow(ParameterValidationError);
+                        expect(fn).toThrow(TypeValidationError);
                     },
                 );
             });
 
-            describe("Throws ParameterValidationError when applicationId (second parameter) is", () => {
+            describe("Throws TypeValidationError when applicationId (second parameter) is", () => {
                 // tslint:disable-next-line:max-line-length
                 it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", (): null => null, Symbol("test")])(
                     "%p",
@@ -387,7 +404,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             applicationId,
                         );
 
-                        expect(fn).toThrow(ParameterValidationError);
+                        expect(fn).toThrow(TypeValidationError);
                     },
                 );
             });
@@ -428,7 +445,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 );
             });
 
-            describe("Throws ParameterValidationError when session (first parameter) is", () => {
+            describe("Throws TypeValidationError when session (first parameter) is", () => {
                 // tslint:disable-next-line:max-line-length
                 it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", (): null => null, Symbol("test")])(
                     "%p",
@@ -438,12 +455,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             "https://callback.test?a=1&b=2#c",
                         );
 
-                        expect(fn).toThrow(ParameterValidationError);
+                        expect(fn).toThrow(TypeValidationError);
                     },
                 );
             });
 
-            describe("Throws ParameterValidationError when callbackUrl (second parameter) is", () => {
+            describe("Throws TypeValidationError when callbackUrl (second parameter) is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (callbackUrl: any) => {
@@ -456,7 +473,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             callbackUrl,
                         );
 
-                        expect(fn).toThrow(ParameterValidationError);
+                        expect(fn).toThrow(TypeValidationError);
                     },
                 );
             });
@@ -491,13 +508,13 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 expect(result).toEqual(expected);
             });
 
-            describe("Throws ParameterValidationError when sessionKey (first parameter) is", () => {
+            describe("Throws TypeValidationError when sessionKey (first parameter) is", () => {
 
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (sessionKey: any) => {
                         // tslint:disable-next-line:max-line-length
-                        return expect(sdk.getSessionAccounts(sessionKey, testKeyPair.exportKey("pkcs1-private"))).rejects.toThrow(ParameterValidationError);
+                        return expect(sdk.getSessionAccounts(sessionKey, testKeyPair.exportKey("pkcs1-private"))).rejects.toThrow(TypeValidationError);
                     },
                 );
             });

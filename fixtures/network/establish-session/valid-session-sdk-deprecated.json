@@ -8,6 +8,10 @@
             "expiry": 0,
             "sessionKey": "test-session-key",
             "sessionExchangeToken": "test-session-exchange-token"
+        },
+        "rawHeaders": {
+            "x-digi-sdk-status": "deprecated",
+            "x-digi-sdk-status-message": "status-message-test"
         }
     },
 
@@ -20,6 +24,10 @@
             "expiry": 10000,
             "sessionKey": "test-session-key",
             "sessionExchangeToken": "test-session-exchange-token"
+        },
+        "rawHeaders": {
+            "x-digi-sdk-status": "deprecated",
+            "x-digi-sdk-status-message": "status-message-test"
         }
     }
 ]

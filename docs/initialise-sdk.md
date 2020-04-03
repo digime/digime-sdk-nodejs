@@ -53,7 +53,7 @@ The SDK object contains the following functions:
 Configuration that can be optionally passed in to override default SDK behaviours.
 
 #### Exceptions
-[ParameterValidationError](./handling-errors.md)
+[TypeValidationError](./handling-errors.md)
 
 ### DMESDKConfiguration
 Options you can configure when initialising the SDK:
