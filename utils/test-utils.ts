@@ -6,8 +6,10 @@ import crypto from "crypto";
 import { ReadStream } from "fs";
 import isPlainObject from "lodash.isplainobject";
 import nock from "nock";
+import type { Interceptor } from "nock";
 import NodeRSA from "node-rsa";
 import { gzipSync, brotliCompressSync } from "zlib";
+import type { ClientRequest } from "http";
 
 interface CreateCADataOptions {
     compression?: "no-compression" | "brotli" | "gzip";
@@ -67,35 +69,38 @@ const createCAData = (key: NodeRSA, inputData: string, options?: CreateCADataOpt
     return output;
 };
 
-// tslint:disable-next-line:interface-over-type-literal
-type NetworkRequestCallbackParameters = { request: unknown, interceptor: unknown, body: unknown };
+type RequestHandler = (
+    mockFn: ReturnType<typeof jest.fn>,
+    request: ClientRequest,
+    interceptor: Interceptor,
+    body: string,
+) => void
 
-// tslint:disable-next-line:interface-over-type-literal
-type NetworkRequestConfig = {
-    request: () => Promise<any>;
-    method?: "GET" | "POST" | "PUT" | "HEAD" | "PATH" | "MERGE" | "DELETE" | "OPTIONS"
-};
+interface SpyOnScopeRequestsOptions {
+    requestHandler?: RequestHandler;
+}
 
-// Attempts to capture the next network request and returns the mocked function that caught it
-const captureNetworkRequest = async ({
-    request,
-    method = "POST",
-}: NetworkRequestConfig) => {
-    const callback = jest.fn<void, [NetworkRequestCallbackParameters]>();
-    const scope = nock(/.*/).intercept(/.*/, method).reply(200);
+const spyOnScopeRequests = (
+    scope: nock.Scope | nock.Scope[],
+    options?: SpyOnScopeRequestsOptions,
+) => {
 
-    // Request event only fires when the scope target has been hit
-    scope.on("request", (req, interceptor, body) => callback({
-        request: req,
-        interceptor,
-        body: JSON.parse(body),
-    }));
+    const resolvedOptions: Required<SpyOnScopeRequestsOptions> = {
+        requestHandler: (mockFn, _r, _i, body) => { mockFn(JSON.parse(body)); },
+        ...options,
+    }
 
-    // Trigger request
-    await request();
+    const scopes = Array.isArray(scope) ? scope : [scope];
+    const requestSpy = jest.fn();
 
-    return callback;
-};
+    scopes.forEach((s) => {
+        s.on("request", (request: ClientRequest, interceptor: Interceptor, body: string) => {
+            resolvedOptions.requestHandler(requestSpy, request, interceptor, body);
+        });
+    });
+
+    return requestSpy;
+}
 
 // Wrapper around nock.loadDefs which creates definitions which ignore request bodies
 const loadDefinitions = (path: string): nock.Definition[] => (
@@ -168,7 +173,7 @@ const fileContentToCAFormat = (
 export {
     loadDefinitions,
     loadScopeDefinitions,
-    captureNetworkRequest,
     createCAData,
     fileContentToCAFormat,
+    spyOnScopeRequests,
 };

@@ -7,17 +7,18 @@ import { sign } from "jsonwebtoken";
 import nock from "nock";
 import NodeRSA from "node-rsa";
 import { URL } from "url";
-import * as SDK from ".";
+import * as SDK from "./";
 import { AuthorizeOngoingAccessResponse } from "./cyclic-ca";
-import { JWTVerificationError, ParameterValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
+import { JWTVerificationError, TypeValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import { UserAccessToken } from "./types";
+
+jest.mock("./sleep");
 
 const customSDK = SDK.init({
     baseUrl: "https://api.digi.test/v7",
 });
 
 const testKeyPair: NodeRSA = new NodeRSA({ b: 2048 });
-jest.mock("./utils");
 
 beforeEach(() => {
     nock.cleanAll();
@@ -31,7 +32,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
     (_title, sdk, baseUrl) => {
 
         describe(`AuthorizeOngoingAccess throws errors `, () => {
-            describe("Throws ParameterValidationError when applicationId is ", () => {
+            describe("Throws TypeValidationError when applicationId is ", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     async (applicationId: any) => {
@@ -49,12 +50,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             },
                         );
 
-                        return expect(promise).rejects.toThrowError(ParameterValidationError);
+                        return expect(promise).rejects.toThrowError(TypeValidationError);
                     },
                 );
             });
 
-            describe("Throws ParameterValidationError when contractId is ", () => {
+            describe("Throws TypeValidationError when contractId is ", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     async (contractId: any) => {
@@ -72,12 +73,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             },
                         );
 
-                        return expect(promise).rejects.toThrowError(ParameterValidationError);
+                        return expect(promise).rejects.toThrowError(TypeValidationError);
                     },
                 );
             });
 
-            describe("Throws ParameterValidationError when redirectUri is ", () => {
+            describe("Throws TypeValidationError when redirectUri is ", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     async (redirectUri: any) => {
@@ -95,7 +96,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             },
                         );
 
-                        return expect(promise).rejects.toThrowError(ParameterValidationError);
+                        return expect(promise).rejects.toThrowError(TypeValidationError);
                     },
                 );
             });
@@ -498,7 +499,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         });
 
         describe(`exchangeCodeForToken throws errors `, () => {
-            describe("Throws ParameterValidationError when applicationId is ", () => {
+            describe("Throws TypeValidationError when applicationId is ", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     async (applicationId: any) => {
@@ -513,11 +514,11 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             "test-token",
                         );
 
-                        return expect(promise).rejects.toThrowError(ParameterValidationError);
+                        return expect(promise).rejects.toThrowError(TypeValidationError);
                     },
                 );
             });
-            describe("Throws ParameterValidationError when contractId is ", () => {
+            describe("Throws TypeValidationError when contractId is ", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     async (contractId: any) => {
@@ -532,11 +533,11 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             "test-token",
                         );
 
-                        return expect(promise).rejects.toThrowError(ParameterValidationError);
+                        return expect(promise).rejects.toThrowError(TypeValidationError);
                     },
                 );
             });
-            describe("Throws ParameterValidationError when redirectUri is ", () => {
+            describe("Throws TypeValidationError when redirectUri is ", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     async (redirectUri: any) => {
@@ -551,11 +552,11 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             "test-token",
                         );
 
-                        return expect(promise).rejects.toThrowError(ParameterValidationError);
+                        return expect(promise).rejects.toThrowError(TypeValidationError);
                     },
                 );
             });
-            describe("Throws ParameterValidationError when code verifier is ", () => {
+            describe("Throws TypeValidationError when code verifier is ", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     async (codeVerifier: any) => {
@@ -570,12 +571,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             "test-token",
                         );
 
-                        return expect(promise).rejects.toThrowError(ParameterValidationError);
+                        return expect(promise).rejects.toThrowError(TypeValidationError);
                     },
                 );
             });
 
-            describe("Throws ParameterValidationError when code verifier is ", () => {
+            describe("Throws TypeValidationError when code verifier is ", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     async (token: any) => {
@@ -590,7 +591,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             token,
                         );
 
-                        return expect(promise).rejects.toThrowError(ParameterValidationError);
+                        return expect(promise).rejects.toThrowError(TypeValidationError);
                     },
                 );
             });

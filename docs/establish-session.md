@@ -48,7 +48,7 @@ The ID of the contract which you want to make with the user. You can request thi
 Optional parameter to only return a subset of data the contract asks for. Default: {}
 
 #### Exceptions
-[ParameterValidationError](./handling-errors.md)
+[TypeValidationError](./handling-errors.md)
 
 [SDKInvalid](./handling-errors.md)
 

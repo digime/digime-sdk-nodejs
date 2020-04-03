@@ -8,19 +8,16 @@ import NodeRSA from "node-rsa";
 import { basename } from "path";
 import { URL } from "url";
 import * as SDK from ".";
-import {
-    fileContentToCAFormat,
-    loadScopeDefinitions,
-} from "../utils/test-utils";
-import { ParameterValidationError } from "./errors";
+import { fileContentToCAFormat, loadScopeDefinitions } from "../utils/test-utils";
+import { TypeValidationError } from "./errors";
+
+jest.mock("./sleep");
 
 const customSDK = SDK.init({
     baseUrl: "https://api.digi.test/v7",
 });
 
 const testKeyPair: NodeRSA = new NodeRSA({ b: 2048 });
-
-jest.mock("./utils");
 
 beforeEach(() => {
     nock.cleanAll();
@@ -123,10 +120,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         `${new URL(baseUrl).origin}`,
                     );
 
-                    const caFormatted = await fileContentToCAFormat(
-                        fileDefs,
-                        testKeyPair,
-                    );
+                    const caFormatted = fileContentToCAFormat(fileDefs, testKeyPair);
 
                     nock.define(caFormatted);
                     const successCallback = jest.fn();
@@ -143,11 +137,19 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     expect(successCallback).toHaveBeenCalledTimes(fileDefs.length);
 
                     fileDefs.forEach((fileDef) => {
+
+                        const mimetype = (fileDef.response as Dictionary<any>).fileMetadata.mimetype;
+                        let expectedData = (fileDef.response as Dictionary<any>).fileContent;
+
+                        if (mimetype) {
+                            expectedData = Buffer.from(expectedData).toString("base64");
+                        }
+
                         expect(successCallback).toHaveBeenCalledWith(expect.objectContaining({
-                            fileData: (fileDef.response as Dictionary<any>).fileContent,
+                            fileData: expectedData,
                             fileName: basename(fileDef.path),
                             fileList,
-                            fileDescriptor: (fileDef.response as Dictionary<any>).fileMetadata,
+                            fileMetadata: (fileDef.response as Dictionary<any>).fileMetadata,
                         }));
                     });
                 });
@@ -183,7 +185,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     `${new URL(baseUrl).origin}`,
                 );
 
-                const caFormatted = await fileContentToCAFormat(fileDefs, testKeyPair);
+                const caFormatted = fileContentToCAFormat(fileDefs, testKeyPair);
                 nock.define(caFormatted);
                 const onFileData = jest.fn();
 
@@ -245,7 +247,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     `${new URL(baseUrl).origin}`,
                 );
 
-                const caFormatted = await fileContentToCAFormat(fileDefs, testKeyPair);
+                const caFormatted = fileContentToCAFormat(fileDefs, testKeyPair);
                 const scopes = nock.define(caFormatted);
                 scopes.map((scope) => scope.persist(true));
                 const onFileData = jest.fn();
@@ -287,7 +289,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     `${new URL(baseUrl).origin}`,
                 );
 
-                const caFormatted = await fileContentToCAFormat(fileDefs, testKeyPair);
+                const caFormatted = fileContentToCAFormat(fileDefs, testKeyPair);
                 nock.define(caFormatted);
                 const onFileData = jest.fn();
 
@@ -305,7 +307,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 expect(onFileData).toHaveBeenCalledTimes(3);
             });
 
-            describe("Throws ParameterValidationError when sessionKey (first parameter) is", () => {
+            describe("Throws TypeValidationError when sessionKey (first parameter) is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (sessionKey: any) => {
@@ -314,7 +316,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             testKeyPair.exportKey("pkcs1-private-pem"),
                             () => null,
                             () => null,
-                        )).toThrow(ParameterValidationError);
+                        )).toThrow(TypeValidationError);
                     },
                 );
             });
@@ -363,7 +365,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             `${new URL(baseUrl).origin}`,
                         );
 
-                        const caFormatted = await fileContentToCAFormat(
+                        const caFormatted = fileContentToCAFormat(
                             fileDefs,
                             keyPair,
                             {

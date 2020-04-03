@@ -3,10 +3,11 @@
  */
 
 import { URL, URLSearchParams } from "url";
-import { ParameterValidationError } from "./errors";
+import { TypeValidationError } from "./errors";
 import { Session } from "./sdk";
 import sdkVersion from "./sdk-version";
-import { isSessionValid, isValidString } from "./utils";
+import { isValidString } from "./utils";
+import { assertIsSession } from "./types/api/session";
 
 const getAuthorizeUrl = (
     appId: string,
@@ -15,7 +16,7 @@ const getAuthorizeUrl = (
 ): string => {
 
     if (!isValidString(callbackUrl)) {
-        throw new ParameterValidationError("Parameter callbackUrl should be a non empty string");
+        throw new TypeValidationError("Parameter callbackUrl should be a non empty string");
     }
 
     return getClientPrivateShareDeepLink(appId, session, new URLSearchParams({ callbackUrl }));
@@ -26,14 +27,11 @@ const getClientPrivateShareDeepLink = (
     session: Session,
     options: URLSearchParams,
 ) => {
-    if (!isSessionValid(session)) {
-        throw new ParameterValidationError(
-            // tslint:disable-next-line: max-line-length
-            "Session should be an object that contains expiry as number, sessionKey and sessionExchangeToken property as string",
-        );
-    }
+
+    assertIsSession(session);
+
     if (!isValidString(appId)) {
-        throw new ParameterValidationError("Parameter appId should be a non empty string");
+        throw new TypeValidationError("Parameter appId should be a non empty string");
     }
 
     const query: URLSearchParams = options || new URLSearchParams();

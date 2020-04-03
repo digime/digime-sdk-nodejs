@@ -49,7 +49,7 @@ The link which the digi.me application will trigger once the postbox is created.
 *<CALLBACK_Url>?publicKey=<PUBLIC_KEY>&postboxId=<POSTBOX_ID>&result=SUCCESS*
 
 #### Exceptions
-[ParameterValidationError](./handling-errors.md)
+[TypeValidationError](./handling-errors.md)
 
 -----
 

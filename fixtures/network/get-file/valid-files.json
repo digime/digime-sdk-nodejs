@@ -102,14 +102,13 @@
                 "file2.json",
                 "file3.json"
             ],
-            "fileContent": {
-                "test-content": "api.digi.me-file3.json"
-            },
+            "fileContent": "test",
             "fileMetadata": {
                 "objectCount": 1,
                 "objectType": "media",
                 "serviceGroup": "social",
-                "serviceName": "instagram"
+                "serviceName": "instagram",
+                "mimetype": "text/plain"
             }
         }
     },
@@ -125,14 +124,13 @@
                 "file2.json",
                 "file3.json"
             ],
-            "fileContent": {
-                "test-content": "api.digi.test-file3.json"
-            },
+            "fileContent": "test",
             "fileMetadata": {
                 "objectCount": 1,
                 "objectType": "media",
                 "serviceGroup": "social",
-                "serviceName": "instagram"
+                "serviceName": "instagram",
+                "mimetype": "text/plain"
             }
         }
     }

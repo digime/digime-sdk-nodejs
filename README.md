@@ -23,12 +23,13 @@
 
 The digi.me private sharing platform empowers developers to make use of user data from thousands of sources in a way that fully respects a user's privacy, and whilst conforming to GDPR. Our consent driven solution allows you to define exactly what terms you want data by, and the user to see these completely transparently, allowing them to make an informed choice as to whether to grant consent or not.
 
-This SDK is a server side Node library that allows seamless authentication with the digi.me private sharing service written for JavaScript/TypeScript. 
+This SDK is a server side Node library that allows seamless authentication with the digi.me private sharing service written for JavaScript/TypeScript.
 
 ## Requirements
 
 ### Development
 - Node 10.16 or above
+- (Optional, if using TypeScript) TypeScript 3.8 or above
 
 ## Installation
 
@@ -51,61 +52,86 @@ This example will show you how to configure the SDK, and get you up and running 
 To access the digi.me platform, you need to obtain an `AppID` for your application. You can get yours by filling out the registration form [here](https://go.digi.me/developers/register).
 
 In a production environment, you will also be required to obtain your own `Contract ID` and `Private Key` from digi.me support. However, for demo purposes, we provide example values. You can find example keys in our [example application](https://github.com/digime/digime-js-sdk-example).
-	
-### 2. Configuring the SDK
-The SDK will initialise to point to our production environment, however you also have the ability to override the default behaviour and specify some options.
+
+### 2. Starting out
+
+By default, the SDK exports functions that have been pre-configured with out production environment. You can import them directly from the module:
 
 ```typescript
-const init = (sdkOptions?: Partial<DMESDKConfiguration>);
+import { establishSession } from "@digime/digime-js-sdk";
 ```
 
-See [Initialise SDK](/docs/initialise-sdk.md) for more details
+Should you need to alter the defaults, you can do so manually. See [Initialise SDK](/docs/initialise-sdk.md) for more details.
 
 ### 3. Establishing a session
-To start requesting or returning data to the user, you will need to first establish a session.
+To start requesting or pushing data, you will need to establish a session:
 
-Initialise a session with digi.me API which returns a session object.
 ```typescript
-const establishSession = async (
-    appId: string,
-    contractId: string,
-    scope: CAScope
-): Promise<Session>;
+import { establishSession } from "@digime/digime-js-sdk";
+
+const session = establishSession("YOUR_APP_ID", "YOUR_CONTRACT_ID");
 ```
 See [Establish Session](/docs/establish-session.md) for more details on configuration options available when establishing a session.
 
 ### 4. Requesting Consent
+
 In digi.me we provide two different ways to prompt user for consent
-1. Existing users who already have the digi.me application installed - Use the `getAuthorizeUrl` method to get a Url which can be used to trigger the digi.me client to open on their desktop, Android or iOS devices. The callbackUrl you pass in will be the Url the digi.me client will call once the user has given consent. Given the session id, the client will know the details of the contract and ask for the user's permission on only the data the contract needs.
+
+1. **Existing users who already have the digi.me application installed**
+
+    Use the `getAuthorizeUrl` function to get a URL which can be used to trigger the digi.me client to open on their desktop, Android or iOS devices.
+
     ```typescript
-    const getAuthorizeUrl = (
-        appId: string,
-        session: Session,
-        callbackUrl: string
-    ): string;
+
+    import { establishSession, getAuthorizeUrl } from "@digime/digime-js-sdk";
+
+    const session = establishSession("YOUR_APP_ID", "YOUR_CONTRACT_ID");
+    const redirectUrl = getAuthorizeUrl("YOUR_APP_ID", session, "YOUR_CALLBACK_URL");
+
     ```
 
-2. Guest consent - This is a demo feature which allows the user to consent and onboard to digi.me using the browser. To trigger this onboard mode, you can call the `getGuestAuthorizeUrl` method to get a Url which when opened will ask user for consent.
+    With the provided session, the client will know the details of the contract and ask for the user's permission on only the data the contract needs.
+
+    The `callbackUrl` you pass in will be the URL the digi.me client will call once the user has given consent.
+
+2. **Guest consent**
+
+    This is a demo feature which allows the user to consent and onboard to digi.me using the browser. To trigger this onboard mode, you can call the `getGuestAuthorizeUrl` method to get a URL which when opened will ask user for consent.
+
     ```typescript
-    const getGuestAuthorizeUrl = (
-        session: Session,
-        callbackUrl: string
-    ): string;
+     import { establishSession, getGuestAuthorizeUrl } from "@digime/digime-js-sdk";
+
+    const session = establishSession("YOUR_APP_ID", "YOUR_CONTRACT_ID");
+    const redirectUrl = getGuestAuthorizeUrl(session, "YOUR_CALLBACK_URL");
     ```
 
-Regardless of which mode above you trigger, the callbackUrl will be triggered once the user has authorised the consent. The callbackUrl will be triggered with a new param `result` where the value will either be `SUCCESS`, `ERROR` or `CANCEL`.
+Regardless of which mode above you trigger, the `callbackUrl` will be triggered once the user has authorised the consent. The callbackUrl will be triggered with a new param `result` where the value will either be `SUCCESS`, `ERROR` or `CANCEL`.
 
 ### 5. Fetching Data
-Upon user consent you can now request user's files. To fetch all available data for your contract you can call `getSessionData` to start your data fetch. You'll need to provide us with a private key with which we will try and decrypt user data. The private key is linked to the contract which you would have received when you obtained the contract ID. In addition you can pass callbacks `onFileData` and `onFileError` which will be triggered whenever a user data file is processed or if the fetch errored out.
+Upon user consent you can now request user's files. To fetch all available data for your contract you can call `getSessionData` to start your data fetch. You'll need to provide us with a private key with which the SDK will try and decrypt user data. The private key is linked to the contract which you would have received when you obtained the contract ID. In addition you can pass callbacks `onFileData` and `onFileError` which will be triggered whenever a user data file is processed or if the fetch errored out.
 
-This function will return a promise and which will resolve when all the files are fetched and a function which you can trigger to stop the data fetch process. 
+This function will return an object containing a promise and which will resolve when all the files are fetched and a function which you can trigger to stop the data fetch process.
 ```typescript
-const getSessionData = (
-    sessionId: string,
-    privateKey: NodeRSA.Key,
-    onFileData: FileSuccessHandler,
-    onFileError: FileErrorHandler
-): GetSessionDataResponse;
+import { getSessionData } from "@digime/digime-js-sdk";
+
+// Triggered when an individual file is retrieved
+const fileReceivedHandler = () => console.log("File received");
+
+// Triggered on file error
+const fileErrorHandler = () => console.log("File error");
+
+// Start fetching data
+const getSessionDataObject = getSessionData(
+    SESSION_ID, // Session ID for your transaction
+    YOUR_PRIVATE_KEY, // Private key for your contract
+    fileReceivedHandler,
+    fileErrorHandler
+);
+
+// No more data to process
+getSessionDataObject.filePromise.then(() => {
+    console.log("Data complete");
+});
 ```
 
 See [here](/docs/session-data.md) for more details

@@ -29,7 +29,7 @@ These errors with be thrown if there is an error during SDK execution.
 
 `HTTPError` - This is the default type of error we throw when we receive a server side error.
 
-`ParameterValidationError` - Thrown if the parameters that have been passed to a function is invalid.
+`TypeValidationError` - Thrown if the function parameters or a value are not of the expected type.
 
 `SDKVersionInvalidError` - Thrown if the current version of the SDK is disabled.
 
@@ -44,11 +44,11 @@ These errors with be thrown if there is an error during SDK execution.
 `Receiving a 404 HTTPError when trying to establish a session`
 
 This normally happens when either the application and/or contract ID is incorrect. You may get a `InvalidContractId` or `InvalidConsentAccessApplication` message in the code property of the error.
-Make sure that they have not been swapped around. Also check that the contract Id is used in the correct environment. 
+Make sure that they have not been swapped around. Also check that the contract Id is used in the correct environment.
 
 `Receiving onFileError callbacks when calling getSessionData`
 
-This can happen when the private key that you're using to decrypt user data is incorrect or not in the correct format. Make sure that the private key is in the PKCS1 format. 
+This can happen when the private key that you're using to decrypt user data is incorrect or not in the correct format. Make sure that the private key is in the PKCS1 format.
 
 
 ## Further Issues

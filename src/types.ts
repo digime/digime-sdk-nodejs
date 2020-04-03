@@ -2,19 +2,7 @@
  * Copyright (c) 2009-2020 digi.me Limited. All rights reserved.
  */
 
-import { RetryOptions } from "got";
 import NodeRSA from "node-rsa";
-
-export interface DMESDKConfiguration {
-    baseUrl: string;
-    retryOptions?: RetryOptions;
-}
-
-export interface Session {
-    expiry: number;
-    sessionKey: string;
-    sessionExchangeToken: string;
-}
 
 export interface PrivateShareConfiguration {
     applicationId: string;
@@ -59,7 +47,7 @@ export interface ServiceObject {
 export interface FileMeta {
     fileData: any;
     fileName: string;
-    fileDescriptor: {
+    fileMetadata: {
         objectCount: number;
         objectType: string;
         serviceGroup: string;
