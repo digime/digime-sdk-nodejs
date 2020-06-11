@@ -144,8 +144,8 @@ const preauthorize = async (
 
 const exchangeCodeForToken = async (
     config: OngoingAccessConfiguration,
-    codeVerifier: string,
     authorizationCode: string,
+    codeVerifier: string | undefined,
     options: DMESDKConfiguration,
 ): Promise<UserAccessToken> => {
 
@@ -163,9 +163,13 @@ const exchangeCodeForToken = async (
         throw new TypeValidationError("Details should be a plain object that contains the properties applicationId, contractId, privateKey and redirectUri");
     }
 
-    if (!isValidString(codeVerifier) || !isValidString(authorizationCode)) {
+    if (typeof codeVerifier !== 'undefined' && !isValidString(codeVerifier)) {
+        throw new TypeValidationError("Code verifier must be empty or a string");
+    }
+
+    if (!isValidString(authorizationCode)) {
         // tslint:disable-next-line:max-line-length
-        throw new TypeValidationError("Code verifier and authorization code cannot be empty");
+        throw new TypeValidationError("Authorization code cannot be empty");
     }
 
     const jwt: string = sign(
