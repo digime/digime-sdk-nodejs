@@ -110,7 +110,7 @@ Regardless of which mode above you trigger, the `callbackUrl` will be triggered 
 ### 5. Fetching Data
 Upon user consent you can now request user's files. To fetch all available data for your contract you can call `getSessionData` to start your data fetch. You'll need to provide us with a private key with which the SDK will try and decrypt user data. The private key is linked to the contract which you would have received when you obtained the contract ID. In addition you can pass callbacks `onFileData` and `onFileError` which will be triggered whenever a user data file is processed or if the fetch errored out.
 
-This function will return an object containing a promise and which will resolve when all the files are fetched and a function which you can trigger to stop the data fetch process.
+This function will return an object containing a promise which will resolve when all the files are fetched and a function which you can trigger to stop the data fetch process.
 ```typescript
 import { getSessionData } from "@digime/digime-js-sdk";
 

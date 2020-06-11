@@ -348,10 +348,10 @@ const init = (sdkOptions?: Partial<DMESDKConfiguration>) => {
             ),
         exchangeCodeForToken: (
             details: OngoingAccessConfiguration,
-            codeVerifier: string,
             authorizationCode: string,
+            codeVerifier?: string,
         ) => (
-                exchangeCodeForToken(details, codeVerifier, authorizationCode, options)
+                exchangeCodeForToken(details, authorizationCode, codeVerifier, options)
             ),
         getSessionAccounts: (
             sessionKey: string,

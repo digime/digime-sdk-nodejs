@@ -50,7 +50,7 @@ Once you call the deep link provided in step 2, the digi.me application will ope
 `state`: Any value you used in Step 1 is now passed back to you should you need to identify the user.
 
 ### Step 4 - Exchange for a user access token
-Once we've received a code from the user consent, we can call `exchangeCodeForToken()` to exchange this with an access token. To do this, we will also need the code verifier which we received in Step 1. The access token can be persisted for future use if we want to access data for this user again in the future. The access token will expire however, in which case, the user will need to consent the request using the digi.me application again.
+Once we've received a code from the user consent, we can call `exchangeCodeForToken()` to exchange this with an access token. To do this, we will also need the code verifier which we received in Step 1. If you don't have the code verifier, you can leave this out. The access token can be persisted for future use if we want to access data for this user again in the future. The access token will expire however, in which case, the user will need to consent the request using the digi.me application again.
 
 ### Subsequent requests
 If we already have an access token for the user, we can start at step 1 again, but passing the user token into the [authorizeOngoingAccess()](#AuthorizeOngoingAccess) method. If the request is successful, you can go directly to [fetch user data](./session-data.md)

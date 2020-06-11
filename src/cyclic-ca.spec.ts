@@ -510,8 +510,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                                 privateKey: testKeyPair.exportKey("pkcs1-private-pem"),
                                 redirectUri: "test-redirect-uri",
                             } as any,
-                            "test-code-verifier",
                             "test-token",
+                            "test-code-verifier",
                         );
 
                         return expect(promise).rejects.toThrowError(TypeValidationError);
@@ -529,8 +529,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                                 privateKey: testKeyPair.exportKey("pkcs1-private-pem"),
                                 redirectUri: "test-redirect-uri",
                             } as any,
-                            "test-code-verifier",
                             "test-token",
+                            "test-code-verifier",
                         );
 
                         return expect(promise).rejects.toThrowError(TypeValidationError);
@@ -548,8 +548,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                                 privateKey: testKeyPair.exportKey("pkcs1-private-pem"),
                                 redirectUri,
                             } as any,
-                            "test-code-verifier",
                             "test-token",
+                            "test-code-verifier",
                         );
 
                         return expect(promise).rejects.toThrowError(TypeValidationError);
@@ -557,7 +557,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 );
             });
             describe("Throws TypeValidationError when code verifier is ", () => {
-                it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+                it.each([true, false, null, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     async (codeVerifier: any) => {
                         const promise = sdk.exchangeCodeForToken(
@@ -567,8 +567,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                                 privateKey: testKeyPair.exportKey("pkcs1-private-pem"),
                                 redirectUri: "test-redirect-uri",
                             } as any,
-                            codeVerifier,
                             "test-token",
+                            codeVerifier,
                         );
 
                         return expect(promise).rejects.toThrowError(TypeValidationError);
@@ -576,7 +576,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 );
             });
 
-            describe("Throws TypeValidationError when code verifier is ", () => {
+            describe("Throws TypeValidationError when token is ", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     async (token: any) => {
@@ -587,8 +587,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                                 privateKey: testKeyPair.exportKey("pkcs1-private-pem"),
                                 redirectUri: "test-redirect-uri",
                             } as any,
-                            "test-code-verifier",
                             token,
+                            "test-code-verifier",
                         );
 
                         return expect(promise).rejects.toThrowError(TypeValidationError);
@@ -597,67 +597,75 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             });
         });
 
-        describe(`exchangeCodeForToken returns successfully`, () => {
-            let token: UserAccessToken;
+        describe.each<[string, string | undefined]>([
+            ["When code verifier passed in", "test-code-verifier"],
+            ["When no code verifier is passed in", undefined],
+        ])(
+            "%s",
+            (_description, codeVerifier) => {
 
-            beforeAll(async () => {
-                const jwt: string = sign(
-                    {
-                        access_token: `test-access-token`,
-                        refresh_token: `test-refresh-token`,
-                        expires_on: 1000000, // Test expiry timestamp
-                    },
-                    testKeyPair.exportKey("pkcs1-private-pem"),
-                    {
-                        algorithm: "PS512",
-                        noTimestamp: true,
-                        header: {
-                            jku: `${baseUrl}/test-jku-url`,
-                            kid: "test-kid",
+            describe(`exchangeCodeForToken returns successfully`, () => {
+                let token: UserAccessToken;
+
+                beforeAll(async () => {
+                    const jwt: string = sign(
+                        {
+                            access_token: `test-access-token`,
+                            refresh_token: `test-refresh-token`,
+                            expires_on: 1000000, // Test expiry timestamp
                         },
-                    },
-                );
+                        testKeyPair.exportKey("pkcs1-private-pem"),
+                        {
+                            algorithm: "PS512",
+                            noTimestamp: true,
+                            header: {
+                                jku: `${baseUrl}/test-jku-url`,
+                                kid: "test-kid",
+                            },
+                        },
+                    );
 
-                nock(`${new URL(baseUrl).origin}`)
-                    .post(`${new URL(baseUrl).pathname}/oauth/token`)
-                    .reply(201, {
-                        token: jwt,
-                    })
-                    .get(`${new URL(baseUrl).pathname}/test-jku-url`)
-                    .reply(201, {
-                        keys: [{
-                            kid: "test-kid",
-                            pem: testKeyPair.exportKey("pkcs1-public"),
-                        }],
-                    });
+                    nock(`${new URL(baseUrl).origin}`)
+                        .post(`${new URL(baseUrl).pathname}/oauth/token`)
+                        .reply(201, {
+                            token: jwt,
+                        })
+                        .get(`${new URL(baseUrl).pathname}/test-jku-url`)
+                        .reply(201, {
+                            keys: [{
+                                kid: "test-kid",
+                                pem: testKeyPair.exportKey("pkcs1-public"),
+                            }],
+                        });
 
-                token = await sdk.exchangeCodeForToken(
-                    {
-                        applicationId: "test-application-id",
-                        contractId: "test-contract-id",
-                        privateKey: testKeyPair.exportKey("pkcs1-private-pem"),
-                        redirectUri: "test-redirect-uri",
-                    } as any,
-                    "test-code-verifier",
-                    "token",
-                );
+                    token = await sdk.exchangeCodeForToken(
+                        {
+                            applicationId: "test-application-id",
+                            contractId: "test-contract-id",
+                            privateKey: testKeyPair.exportKey("pkcs1-private-pem"),
+                            redirectUri: "test-redirect-uri",
+                        } as any,
+                        "token",
+                        codeVerifier,
+                    );
+                });
+
+                it("returns an object with the correct accessToken", () => {
+                    expect(token.accessToken).toBeDefined();
+                    expect(token.accessToken).toBe("test-access-token");
+                });
+
+                it("returns an object with the correct refreshToken", () => {
+                    expect(token.refreshToken).toBeDefined();
+                    expect(token.refreshToken).toBe("test-refresh-token");
+                });
+
+                it("returns an object with the correct expiry", () => {
+                    expect(token.expiry).toBeDefined();
+                    expect(token.expiry).toBe(1000000);
+                });
             });
 
-            it("returns an object with the correct accessToken", () => {
-                expect(token.accessToken).toBeDefined();
-                expect(token.accessToken).toBe("test-access-token");
-            });
-
-            it("returns an object with the correct refreshToken", () => {
-                expect(token.refreshToken).toBeDefined();
-                expect(token.refreshToken).toBe("test-refresh-token");
-            });
-
-            it("returns an object with the correct expiry", () => {
-                expect(token.expiry).toBeDefined();
-                expect(token.expiry).toBe(1000000);
-            });
         });
-
     },
 );
