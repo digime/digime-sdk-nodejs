@@ -27,7 +27,7 @@ import { assertIsSession, Session } from "./types/api/session";
 import { sleep } from "./sleep";
 import { DMESDKConfiguration, assertIsDMESDKConfiguration } from "./types/dme-sdk-configuration";
 import { CAFileListResponse, assertIsCAFileListResponse } from "./types/api/ca-file-list-response";
-import { assertIsCAFileResponse, CAFileResponse } from "./types/api/ca-file-response";
+import { assertIsCAFileResponse, CAFileResponse, isRawFileMetadata } from "./types/api/ca-file-response";
 import isString from "lodash.isstring";
 import { assertIsCAAccountsResponse, CAAccountsResponse } from "./types/api/ca-accounts-response";
 
@@ -131,7 +131,6 @@ const _getFile = async (
 ): Promise<FileMeta> => {
     const response = await _fetchFile(sessionKey, fileName, options);
     const { compression, fileContent, fileMetadata } = response;
-    const { mimetype } = fileMetadata;
     const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
     let data: Buffer = decryptData(key, fileContent);
 
@@ -142,10 +141,10 @@ const _getFile = async (
     }
 
     let fileData: any = data;
-    if (!mimetype) {
-        fileData = JSON.parse(data.toString("utf8"));
-    } else {
+    if (isRawFileMetadata(fileMetadata) && fileMetadata.mimetype) {
         fileData = data.toString("base64");
+    } else {
+        fileData = JSON.parse(data.toString("utf8"));
     }
 
     return {

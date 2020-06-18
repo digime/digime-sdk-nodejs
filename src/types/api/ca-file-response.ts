@@ -5,41 +5,90 @@
 import * as t from "io-ts";
 import { codecAssertion, CodecAssertion } from "../../codec-assertion";
 
-interface FileMetadata {
+export interface MappedFileMetadata {
     objectCount: number;
     objectType: string;
     serviceGroup: string;
     serviceName: string;
-    mimetype?: string;
 }
 
-const FileMetadataCodec: t.Type<FileMetadata> = t.intersection([
+export interface RawFileMetadata {
+    mimetype: string;
+    accounts: {
+        accountid: string,
+    }[];
+    appid?: string;
+    created?: number;
+    contractid?: string;
+    objecttypes?: {
+        name: string;
+        references?: string[];
+    }[];
+    partnerid?: string;
+    reference?: string[];
+    servicegroups?: number[];
+    tags?: string[];
+    [key: string]: unknown;
+}
+
+const MappedFileMetadataCodec: t.Type<MappedFileMetadata> = t.type({
+    objectCount: t.number,
+    objectType: t.string,
+    serviceGroup: t.string,
+    serviceName: t.string,
+});
+
+const RawFileMetadataCodec: t.Type<RawFileMetadata> = t.intersection([
     t.type({
-        objectCount: t.number,
-        objectType: t.string,
-        serviceGroup: t.string,
-        serviceName: t.string,
+        accounts: t.array(t.type({
+            accountid: t.string,
+        })),
+        mimetype: t.string,
     }),
     t.partial({
-        mimetype: t.string,
+        appid: t.string,
+        created: t.number,
+        contractid: t.string,
+        objecttypes: t.array(
+            t.intersection([
+                t.type({
+                    name: t.string,
+                }),
+                t.partial({
+                    references: t.array(t.string),
+                }),
+            ]),
+        ),
+        partnerid: t.string,
+        reference: t.array(t.string),
+        servicegroups: t.array(t.number),
+        tags: t.array(t.string),
     }),
 ]);
 
 export interface CAFileResponse {
     fileContent: string;
-    fileMetadata: FileMetadata;
+    fileMetadata: MappedFileMetadata | RawFileMetadata;
     compression?: string;
 };
 
 const CAFileResponseCodec: t.Type<CAFileResponse> = t.intersection([
     t.type({
         fileContent: t.string,
-        fileMetadata: FileMetadataCodec,
+        fileMetadata: t.union([MappedFileMetadataCodec, RawFileMetadataCodec]),
     }),
     t.partial({
         compression: t.string,
     }),
 ]);
+
+export const isMappedFileMetadata = MappedFileMetadataCodec.is;
+
+export const assertIsMappedFileMetadata: CodecAssertion<MappedFileMetadata> = codecAssertion(MappedFileMetadataCodec);
+
+export const isRawFileMetadata = RawFileMetadataCodec.is;
+
+export const assertIsRawFileMetadata: CodecAssertion<RawFileMetadata> = codecAssertion(RawFileMetadataCodec);
 
 export const isCAFileResponse = CAFileResponseCodec.is;
 
