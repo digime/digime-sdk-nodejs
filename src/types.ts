@@ -3,6 +3,7 @@
  */
 
 import NodeRSA from "node-rsa";
+import { MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
 
 export interface PrivateShareConfiguration {
     applicationId: string;
@@ -47,12 +48,7 @@ export interface ServiceObject {
 export interface FileMeta {
     fileData: any;
     fileName: string;
-    fileMetadata: {
-        objectCount: number;
-        objectType: string;
-        serviceGroup: string;
-        serviceName: string;
-    };
+    fileMetadata: MappedFileMetadata | RawFileMetadata;
 }
 
 export interface PushedFileMeta {

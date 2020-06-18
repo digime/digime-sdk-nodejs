@@ -173,7 +173,6 @@ describe("isCAFileResponse", () => {
                 const actual = isCAFileResponse({
                     fileContent: "test",
                     fileMetadata: {
-                        ...validFileMetadata,
                         mimetype: value,
                     },
                 });
@@ -341,8 +340,22 @@ describe("assertIsCAFileResponse", () => {
                 const actual = () => assertIsCAFileResponse({
                     fileContent: "test",
                     fileMetadata: {
-                        ...validFileMetadata,
                         mimetype: value,
+                    },
+                });
+                expect(actual).toThrow(TypeValidationError);
+            },
+        );
+    });
+
+    describe("Throws TypeValidationError when the accounts property of the fileMetadata object is present but not an array", () => {
+        it.each([true, false, null, "Test string", 0, NaN, {}, () => null, Symbol("test")])(
+            "%p",
+            (value: any) => {
+                const actual = () => assertIsCAFileResponse({
+                    fileContent: "test",
+                    fileMetadata: {
+                        accounts: value,
                     },
                 });
                 expect(actual).toThrow(TypeValidationError);
@@ -361,5 +374,4 @@ describe("assertIsCAFileResponse", () => {
         expect(actual).toThrow(TypeValidationError);
         expect(actual).toThrow(/^Test start ([\s\S]*)? test end$/);
     });
-
 });

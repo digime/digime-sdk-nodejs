@@ -104,11 +104,11 @@
             ],
             "fileContent": "test",
             "fileMetadata": {
-                "objectCount": 1,
-                "objectType": "media",
-                "serviceGroup": "social",
-                "serviceName": "instagram",
-                "mimetype": "text/plain"
+                "mimetype": "text/plain",
+                "accounts": [
+                    { "accountid": "test-account-1" },
+                    { "accountid": "test-account-2" }
+                ]
             }
         }
     },
@@ -126,11 +126,11 @@
             ],
             "fileContent": "test",
             "fileMetadata": {
-                "objectCount": 1,
-                "objectType": "media",
-                "serviceGroup": "social",
-                "serviceName": "instagram",
-                "mimetype": "text/plain"
+                "mimetype": "text/plain",
+                "accounts": [
+                    { "accountid": "test-account-1" },
+                    { "accountid": "test-account-2" }
+                ]
             }
         }
     }
