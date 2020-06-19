@@ -1,6 +1,6 @@
 {
   "name": "@digime/digime-js-sdk",
-  "version": "2.0.2",
+  "version": "3.0.0",
   "description": "digime-js-sdk",
   "main": "dist/main/index.js",
   "types": "dist/main/index.d.ts",
