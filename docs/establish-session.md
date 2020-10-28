@@ -89,7 +89,7 @@ interface CAScope {
 
 Having timeRanges set will allow you to retrieve only a subset of data that the contract has asked for. This might come in handy if you already have data from the existing user and you might only want to retrieve any new data that might have been added to the user's library in the last x months.
 
-`serviceGroups`: [TimeRange](#TimeRange)[]
+`serviceGroups`: [ServiceGroup](#ServiceGroup)[]
 To filter user data based on the service group, service or object type, you can set this object. This object is made up of service groups on the top level, followed by service and then the service object. *NOTE*: At the moment, every level must be explicity set in order for the scoping to take effect.
 
 For more information on how they are related and what services are on offer, please checkout the developer documentation here: https://developers.digi.me/reference-objects
