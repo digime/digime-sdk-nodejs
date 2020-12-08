@@ -1,0 +1,2 @@
+#!/usr/bin/env groovy
+nodeJsLibrary(node_version: "12.13.1", skip_publish: true)
