@@ -96,6 +96,10 @@ export const handleInvalidatedSdkResponse = (error: Error): void => {
 
     let body: unknown = error.response.body;
 
+    if (Buffer.isBuffer(body)) {
+        body = body.toString("utf8");
+    }
+
     // Attempt to parse body in case it's a string
     if (isString(body)) {
         try {

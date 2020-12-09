@@ -3,13 +3,14 @@
  */
 
 import crypto from "crypto";
-import { ReadStream } from "fs";
 import isPlainObject from "lodash.isplainobject";
+import get from "lodash.get";
 import nock from "nock";
-import type { Interceptor } from "nock";
+import type { Interceptor, ReplyHeaders } from "nock";
 import NodeRSA from "node-rsa";
 import { gzipSync, brotliCompressSync } from "zlib";
 import type { ClientRequest } from "http";
+import base64url from "base64url";
 
 interface CreateCADataOptions {
     compression?: "no-compression" | "brotli" | "gzip";
@@ -18,7 +19,7 @@ interface CreateCADataOptions {
 }
 
 // Creates CA-like data string
-const createCAData = (key: NodeRSA, inputData: string, options?: CreateCADataOptions): string => {
+const createCAData = (key: NodeRSA, inputData: string, options?: CreateCADataOptions): Buffer => {
 
     const {
         compression,
@@ -59,11 +60,11 @@ const createCAData = (key: NodeRSA, inputData: string, options?: CreateCADataOpt
     const cipher: crypto.Cipher = crypto.createCipheriv("aes-256-cbc", dsk, div);
     const encryptedHashAndData: Buffer = Buffer.concat([cipher.update(hashAndData), cipher.final()]);
 
-    const output: string = Buffer.concat([key.encrypt(dsk), div, encryptedHashAndData]).toString("base64");
+    const output: Buffer = Buffer.concat([key.encrypt(dsk), div, encryptedHashAndData]);
 
     // Appending some data to corrupt the output
     if (corruptLength) {
-        return `${output}_test`;
+        return Buffer.concat([output, Buffer.from("extra")]);
     }
 
     return output;
@@ -102,8 +103,12 @@ const spyOnScopeRequests = (
     return requestSpy;
 }
 
+interface NockDefinitionWithHeader extends nock.Definition {
+    rawHeaders?: ReplyHeaders;
+}
+
 // Wrapper around nock.loadDefs which creates definitions which ignore request bodies
-const loadDefinitions = (path: string): nock.Definition[] => (
+const loadDefinitions = (path: string): NockDefinitionWithHeader[] => (
     nock.loadDefs(path).map((definition) => ({
         ...definition,
 
@@ -113,7 +118,7 @@ const loadDefinitions = (path: string): nock.Definition[] => (
 );
 
 // Same as above, but with added scope filtering
-const loadScopeDefinitions = (path: string, scope: string): nock.Definition[] => (
+const loadScopeDefinitions = (path: string, scope: string): NockDefinitionWithHeader[] => (
     loadDefinitions(path).filter((definition) => definition.scope === scope)
 );
 
@@ -123,52 +128,51 @@ interface FileContentToCAFormatOptions {
     overrideCompression?: "no-compression" | "brotli" | "gzip";
 }
 
-const isResponsePlainObject = (value: unknown): value is Record<string, any> => (
-    !(value instanceof Buffer) && !(value instanceof ReadStream) && isPlainObject(value)
-);
-
 // Takes definitions of CA file responses and converts fileContent properties to the CA format
 const fileContentToCAFormat = (
-    definitions: nock.Definition[],
+    definitions: NockDefinitionWithHeader[],
     key: NodeRSA,
     {
         corruptHash = false,
         corruptLength = false,
         overrideCompression,
     }: FileContentToCAFormatOptions = {},
-): nock.Definition[] => (
+): NockDefinitionWithHeader[] => (
     definitions.reduce((acc, definition) => {
 
         const response: unknown = definition.response;
 
-        if (!isResponsePlainObject(response)) {
-            return acc;
-        }
-
-        let fileContent: any = response.fileContent;
+        let fileContent: any = response;
 
         if (isPlainObject(fileContent)) {
             fileContent = JSON.stringify(fileContent);
         }
 
-        const def: nock.Definition = {
+        const headers = definition.rawHeaders;
+        const compression = get(headers, ["x-metadata", "compression"]);
+
+        const def = {
             ...definition,
-            response: {
-                ...response,
-                fileContent: createCAData(
-                    key,
-                    fileContent,
-                    {
-                        compression: overrideCompression || response.compression,
-                        corruptHash,
-                        corruptLength,
-                    },
-                ),
-            },
+            response: createCAData(
+                key,
+                fileContent,
+                {
+                    compression: overrideCompression || compression,
+                    corruptHash,
+                    corruptLength,
+                },
+            ),
+            rawHeaders: {
+                "x-metadata": parseMetaToHeader(get(headers, ["x-metadata"]))
+            }
         };
         return [...acc, def];
-    }, [] as nock.Definition[])
+    }, [] as NockDefinitionWithHeader[])
 );
+
+const parseMetaToHeader = (meta: object): string => {
+    return base64url.encode(JSON.stringify(meta));
+}
 
 export {
     loadDefinitions,
@@ -176,4 +180,5 @@ export {
     createCAData,
     fileContentToCAFormat,
     spyOnScopeRequests,
+    parseMetaToHeader,
 };

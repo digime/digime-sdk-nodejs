@@ -5,7 +5,9 @@
 import isPlainObjectLodash from "lodash.isplainobject";
 import isString from "lodash.isstring";
 
-export const isValidString = (o: unknown): o is string => isString(o) && o.length > 0;
+export const isNonEmptyString = (o: unknown): o is string => isString(o) && o.length > 0;
+
+export const areNonEmptyStrings = (o: unknown[]): o is string[] => o.every(value => isNonEmptyString(value));
 
 export const isNumber = (o: unknown): o is number => typeof o === "number";
 

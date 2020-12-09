@@ -2,8 +2,11 @@
     {
         "scope": "https://api.digi.me",
         "method": "GET",
-        "path": "/v1.4/permission-access/query/test-session-key/accounts.json",
+        "path": "/v1.5/permission-access/query/test-session-key/accounts.json",
         "status": 403,
+        "reqheaders": {
+            "accept": "application/octet-stream"
+        },
         "response": {
             "error": {
                 "code": "SDKVersionInvalid",
@@ -18,6 +21,9 @@
         "method": "GET",
         "path": "/v7/permission-access/query/test-session-key/accounts.json",
         "status": 403,
+        "reqheaders": {
+            "accept": "application/octet-stream"
+        },
         "response": {
             "error": {
                 "code": "SDKVersionInvalid",

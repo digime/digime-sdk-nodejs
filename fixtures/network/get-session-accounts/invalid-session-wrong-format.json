@@ -1,8 +1,11 @@
 [
     {
         "scope": "https://api.digi.me",
-        "path": "/v1.4/permission-access/query/test-session-key/accounts.json",
+        "path": "/v1.5/permission-access/query/test-session-key/accounts.json",
         "method": "GET",
+        "reqheaders": {
+            "accept": "application/octet-stream"
+        },
         "status": 200,
         "response": {
             "expiry": "0",
@@ -14,6 +17,9 @@
         "scope": "https://api.digi.test",
         "path": "/v7/permission-access/query/test-session-key/accounts.json",
         "method": "GET",
+        "reqheaders": {
+            "accept": "application/octet-stream"
+        },
         "status": 200,
         "response": {
             "expiry": "1",
