@@ -3,21 +3,17 @@
  */
 
 import NodeRSA from "node-rsa";
+import { Session } from "./sdk";
 import { MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
+import { PushDataToPostboxAPIResponse } from "./types/api/postbox-response";
 
-export interface PrivateShareConfiguration {
-    applicationId: string;
-    contractId: string;
-    privateKey: NodeRSA.Key;
+export interface AuthorizeResponse {
+    codeVerifier: string;
+    preauthorizationCode: string;
 }
 
-export interface OngoingAccessConfiguration extends PrivateShareConfiguration {
-    redirectUri: string;
-}
-
-export interface OngoingAccessAuthorization extends OngoingAccessConfiguration {
-    accessToken?: UserAccessToken;
-    state?: string;
+export interface AuthorizeOptions extends BasicOAuthOptions {
+    state?: any;
 }
 
 export interface CAScope {
@@ -46,13 +42,13 @@ export interface ServiceObject {
 }
 
 export interface FileMeta {
-    fileData: any;
+    fileData: Buffer;
     fileName: string;
     fileMetadata: MappedFileMetadata | RawFileMetadata;
 }
 
 export interface PushedFileMeta {
-    fileData: any;
+    fileData: Buffer;
     fileName: string;
     fileDescriptor: {
         mimeType: string;
@@ -74,3 +70,95 @@ export interface UserAccessToken {
     refreshToken: string;
     expiry: number;
 }
+
+export interface BasicOAuthOptions {
+    applicationId: string;
+    contractId: string;
+    privateKey: NodeRSA.Key;
+    redirectUri: string;
+}
+
+export interface EstablishSessionOptions {
+    applicationId: string;
+    contractId: string;
+    scope?: CAScope;
+}
+
+export interface GetReceiptOptions {
+    applicationId: string;
+    contractId: string;
+}
+
+export interface PushDataToPostboxOptions extends BasicOAuthOptions {
+    userAccessToken?: UserAccessToken;
+    data: PushedFileMeta;
+    publicKey: NodeRSA.Key;
+    postboxId: string;
+    sessionKey: string;
+}
+
+export interface ExchangeCodeForTokenOptions extends BasicOAuthOptions {
+    codeVerifier?: string;
+    authorizationCode: string,
+}
+
+export interface RefreshTokenOptions extends BasicOAuthOptions {
+    userAccessToken: UserAccessToken;
+}
+
+export interface UserLibraryAccessResponse {
+    success: boolean;
+    updatedAccessToken?: UserAccessToken;
+}
+
+export interface PushDataToPostboxResponse extends PushDataToPostboxAPIResponse {
+    updatedAccessToken?: UserAccessToken;
+}
+
+export interface ConsentOngoingAccessOptions extends BasicOAuthOptions {
+    state?: any;
+    session: Session;
+}
+
+export interface ConsentOnceOptions {
+    callbackUrl?: any;
+    session: Session;
+    applicationId: string;
+}
+
+export interface GuestConsentProps extends Omit<ConsentOnceOptions, "applicationId"> {}
+
+export interface PrepareFilesUsingAccessTokenOptions extends BasicOAuthOptions {
+    userAccessToken: UserAccessToken;
+    session: Session;
+}
+
+export interface GetAuthorizationUrlResponse {
+    url: string;
+    codeVerifier: string;
+}
+
+export interface UserDataAccessOptions {
+    sessionKey: string;
+    privateKey: NodeRSA.Key;
+}
+
+export interface GetFileOptions extends UserDataAccessOptions {
+    fileName: string;
+}
+
+export interface GetFileListOptions {
+    sessionKey: string;
+}
+
+export interface GetSessionDataOptions {
+    sessionKey: string,
+    privateKey: NodeRSA.Key,
+    onFileData: FileSuccessHandler,
+    onFileError: FileErrorHandler,
+}
+
+type FileSuccessResult = { data: any } & FileMeta;
+type FileErrorResult = { error: Error } & FileMeta;
+type FileSuccessHandler = (response: FileSuccessResult) => void;
+type FileErrorHandler = (response: FileErrorResult) => void;

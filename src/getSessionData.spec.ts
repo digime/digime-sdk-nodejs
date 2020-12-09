@@ -2,7 +2,8 @@
  * Copyright (c) 2009-2020 digi.me Limited. All rights reserved.
  */
 
-import { Dictionary } from "lodash";
+import get from "lodash.get";
+import { isPlainObject } from "./utils";
 import nock from "nock";
 import NodeRSA from "node-rsa";
 import { basename } from "path";
@@ -21,10 +22,11 @@ const testKeyPair: NodeRSA = new NodeRSA({ b: 2048 });
 
 beforeEach(() => {
     nock.cleanAll();
+    nock.disableNetConnect();
 });
 
 describe.each<[string, ReturnType<typeof SDK.init>, string]>([
-    ["Default exported SDK", SDK, "https://api.digi.me/v1.4"],
+    ["Default exported SDK", SDK, "https://api.digi.me/v1.5"],
     ["Custom SDK", customSDK, "https://api.digi.test/v7"],
 ])(
     "%s",
@@ -40,14 +42,15 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         },
                     });
 
-                const {stopPolling, filePromise} = sdk.getSessionData(
-                    "test-session-key",
-                    testKeyPair.exportKey("pkcs1-private-pem"),
-                    () => null,
-                    () => null,
-                );
+                const {stopPolling, filePromise} = sdk.pull.getSessionData({
+                    sessionKey: "test-session-key",
+                    privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                    onFileData: () => null,
+                    onFileError: () => null,
+                });
 
                 await filePromise;
+
                 expect(stopPolling).toBeInstanceOf(Function);
                 expect(filePromise).toBeInstanceOf(Promise);
             });
@@ -68,12 +71,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         scope.on("request", listCallback);
                     });
 
-                    const { filePromise } = sdk.getSessionData(
-                        "test-session-key",
-                        testKeyPair.exportKey("pkcs1-private-pem"),
-                        () => null,
-                        () => null,
-                    );
+                    const { filePromise } = sdk.pull.getSessionData({
+                        sessionKey: "test-session-key",
+                        privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                        onFileData: () => null,
+                        onFileError: () => null,
+                    });
 
                     await filePromise;
                     expect.assertions(1);
@@ -99,23 +102,21 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 const listCallback = jest.fn();
                 scope.on("request", listCallback);
 
-                const { filePromise } = sdk.getSessionData(
-                    "test-session-key",
-                    testKeyPair.exportKey("pkcs1-private-pem"),
-                    () => null,
-                    () => null,
-                );
+                const { filePromise } = sdk.pull.getSessionData({
+                    sessionKey: "test-session-key",
+                    privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                    onFileData:  () => null,
+                    onFileError: () => null,
+                });
 
                 await filePromise;
                 expect.assertions(1);
                 expect(listCallback).toHaveBeenCalledTimes(2);
             })
 
-            describe("Triggers onFileData (third parameter) with the correct data when it", () => {
+            describe("Triggers onFileData with the correct data when it", () => {
                 it.each<[string, string]>([
                     ["uncompressed", "valid-files.json"],
-                    ["brotlified", "valid-files-compression-brotli.json"],
-                    ["gzipped", "valid-files-compression-gzip.json"],
                 ])("retrieves encrypted and %s files",
                 async (_label, file) => {
                     const fileList = [
@@ -154,12 +155,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     nock.define(caFormatted);
                     const successCallback = jest.fn();
 
-                    const { filePromise } =  sdk.getSessionData(
-                        "test-session-key",
-                        testKeyPair.exportKey("pkcs1-private-pem"),
-                        successCallback,
-                        () => null,
-                    );
+                    const { filePromise } = sdk.pull.getSessionData({
+                        sessionKey: "test-session-key",
+                        privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                        onFileData: successCallback,
+                        onFileError: () => null,
+                    });
 
                     await filePromise;
 
@@ -167,18 +168,17 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
                     fileDefs.forEach((fileDef) => {
 
-                        const mimetype = (fileDef.response as Dictionary<any>).fileMetadata.mimetype;
-                        let expectedData = (fileDef.response as Dictionary<any>).fileContent;
-
-                        if (mimetype) {
-                            expectedData = Buffer.from(expectedData).toString("base64");
-                        }
+                        const xMetaData = get(fileDef, ["rawHeaders", "x-metadata"])
+                        const {metadata} = xMetaData
+                        const response: any = isPlainObject(fileDef.response)
+                            ? JSON.stringify(fileDef.response)
+                            : fileDef.response;
 
                         expect(successCallback).toHaveBeenCalledWith(expect.objectContaining({
-                            fileData: expectedData,
+                            fileData: Buffer.from(response),
                             fileName: basename(fileDef.path),
                             fileList,
-                            fileMetadata: (fileDef.response as Dictionary<any>).fileMetadata,
+                            fileMetadata: metadata,
                         }));
                     });
                 });
@@ -218,12 +218,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 nock.define(caFormatted);
                 const onFileData = jest.fn();
 
-                const { filePromise } = sdk.getSessionData(
-                    "test-session-key",
-                    testKeyPair.exportKey("pkcs1-private-pem"),
+                const { filePromise } = sdk.pull.getSessionData({
+                    sessionKey: "test-session-key",
+                    privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
                     onFileData,
-                    () => null,
-                );
+                    onFileError: () => null,
+                });
 
                 await filePromise;
                 expect.assertions(1);
@@ -281,12 +281,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 scopes.map((scope) => scope.persist(true));
                 const onFileData = jest.fn();
 
-                const { filePromise } = sdk.getSessionData(
-                    "test-session-key",
-                    testKeyPair.exportKey("pkcs1-private-pem"),
+                const { filePromise } = sdk.pull.getSessionData({
+                    sessionKey: "test-session-key",
+                    privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
                     onFileData,
-                    () => null,
-                );
+                    onFileError: () => null,
+                });
 
                 await filePromise;
                 expect.assertions(1);
@@ -322,12 +322,12 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 nock.define(caFormatted);
                 const onFileData = jest.fn();
 
-                const { filePromise, stopPolling } = sdk.getSessionData(
-                    "test-session-key",
-                    testKeyPair.exportKey("pkcs1-private-pem"),
+                const { filePromise, stopPolling } = sdk.pull.getSessionData({
+                    sessionKey: "test-session-key",
+                    privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
                     onFileData,
-                    () => null,
-                );
+                    onFileError: () => null,
+                });
 
                 stopPolling();
                 expect.assertions(1);
@@ -340,20 +340,19 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (sessionKey: any) => {
-                        expect(() => sdk.getSessionData(
+                        expect(() => sdk.pull.getSessionData({
                             sessionKey,
-                            testKeyPair.exportKey("pkcs1-private-pem"),
-                            () => null,
-                            () => null,
-                        )).toThrow(TypeValidationError);
+                            privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                            onFileData: () => null,
+                            onFileError: () => null,
+                        })).toThrow(TypeValidationError);
                     },
                 );
             });
 
-            describe("Triggers onFileError (fourth parameter) correctly", () => {
+            describe("Triggers onFileError correctly", () => {
                 it.each<[string, string, string, NodeRSA, boolean, boolean]>([
                     // tslint:disable:max-line-length
-                    ["SyntaxError", "it receives invalid JSON", "invalid-json-in-file-content.json", testKeyPair, false, false],
                     ["Error", "brotli decompression fails", "valid-files-compression-brotli.json", testKeyPair, false, false],
                     ["Error", "gzip decompression fails", "valid-files-compression-gzip.json", testKeyPair, false, false],
                     ["Error", "decryption fails due to wrong key", "valid-files.json", new NodeRSA({ b: 2048 }), false, false],
@@ -406,21 +405,21 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
                         nock.define(caFormatted);
 
-                        const failureCallback = jest.fn();
+                        const onFileError = jest.fn();
 
-                        const { filePromise } = sdk.getSessionData(
-                            "test-session-key",
-                            testKeyPair.exportKey("pkcs1-private-pem"),
-                            () => null,
-                            failureCallback,
-                        );
+                        const { filePromise } = sdk.pull.getSessionData({
+                            sessionKey: "test-session-key",
+                            privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                            onFileData: () => null,
+                            onFileError,
+                        });
 
                         await filePromise;
 
-                        expect(failureCallback).toHaveBeenCalledTimes(fileList.length);
+                        expect(onFileError).toHaveBeenCalledTimes(fileList.length);
 
                         fileList.forEach((fileListFile) => {
-                            expect(failureCallback).toHaveBeenCalledWith(expect.objectContaining({
+                            expect(onFileError).toHaveBeenCalledWith(expect.objectContaining({
                                 // Comparing names as apparently Error is not an instance of Error in some cases?
                                 error: expect.objectContaining({ name: errorName }),
                                 fileName: fileListFile.name,

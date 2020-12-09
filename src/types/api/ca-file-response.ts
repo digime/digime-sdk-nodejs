@@ -66,22 +66,6 @@ const RawFileMetadataCodec: t.Type<RawFileMetadata> = t.intersection([
     }),
 ]);
 
-export interface CAFileResponse {
-    fileContent: string;
-    fileMetadata: MappedFileMetadata | RawFileMetadata;
-    compression?: string;
-};
-
-const CAFileResponseCodec: t.Type<CAFileResponse> = t.intersection([
-    t.type({
-        fileContent: t.string,
-        fileMetadata: t.union([MappedFileMetadataCodec, RawFileMetadataCodec]),
-    }),
-    t.partial({
-        compression: t.string,
-    }),
-]);
-
 export const isMappedFileMetadata = MappedFileMetadataCodec.is;
 
 export const assertIsMappedFileMetadata: CodecAssertion<MappedFileMetadata> = codecAssertion(MappedFileMetadataCodec);
@@ -90,6 +74,28 @@ export const isRawFileMetadata = RawFileMetadataCodec.is;
 
 export const assertIsRawFileMetadata: CodecAssertion<RawFileMetadata> = codecAssertion(RawFileMetadataCodec);
 
-export const isCAFileResponse = CAFileResponseCodec.is;
+export interface CAFileHeaderResponse {
+    "x-metadata": string;
+};
 
-export const assertIsCAFileResponse: CodecAssertion<CAFileResponse> = codecAssertion(CAFileResponseCodec);
+const FileHeaderCodec: t.Type<CAFileHeaderResponse> = t.type({
+    "x-metadata": t.string,
+});
+
+export const assertIsCAFileHeaderResponse: CodecAssertion<CAFileHeaderResponse> = codecAssertion(FileHeaderCodec);
+
+export interface DecodedCAFileHeaderResponse {
+    fileMetadata: MappedFileMetadata | RawFileMetadata;
+    compression?: string;
+};
+
+const DecodedCAFileHeaderResponseCodec: t.Type<DecodedCAFileHeaderResponse> = t.intersection([
+    t.type({
+        fileMetadata: t.union([MappedFileMetadataCodec, RawFileMetadataCodec]),
+    }),
+    t.partial({
+        compression: t.string,
+    }),
+]);
+
+ export const isDecodedCAFileHeaderResponse = DecodedCAFileHeaderResponseCodec.is;

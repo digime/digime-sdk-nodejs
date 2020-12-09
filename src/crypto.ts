@@ -3,7 +3,6 @@
  */
 
 import crypto from "crypto";
-import isString from "lodash.isstring";
 import NodeRSA from "node-rsa";
 import { FileDecryptionError } from "./errors";
 
@@ -20,21 +19,17 @@ const ALPHA_UPPER: string = ALPHA_LOWER.toUpperCase();
 const NUMERIC: string = `0123456789`;
 const ALPHA_NUMERIC: string = `${ALPHA_LOWER}${ALPHA_UPPER}${NUMERIC}`;
 
-const isValidSize = (data: string): boolean => {
-    const bytes = Buffer.byteLength(data, "base64");
+const isValidSize = (data: Buffer): boolean => {
+    const bytes = data.length;
     return bytes >= 352 && bytes % 16 === 0;
 };
 
-const decryptData = (key: NodeRSA, fileData: string): Buffer => {
-    if (!isString(fileData)) {
-        throw new FileDecryptionError(`File data is not a string, received: "${fileData}"`);
-    }
+const decryptData = (key: NodeRSA, file: Buffer): Buffer => {
+
     // Verify file data is of correct length
-    if (!isValidSize(fileData)) {
+    if (!isValidSize(file)) {
         throw new FileDecryptionError("File size not valid");
     }
-
-    const file: Buffer = Buffer.from(fileData, "base64");
 
     // Recover DSK and DIV
     const dsk: Buffer = key.decrypt(file.slice(...BYTES.DSK));
