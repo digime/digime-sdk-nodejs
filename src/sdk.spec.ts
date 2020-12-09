@@ -10,6 +10,7 @@ import { createCAData, loadDefinitions, loadScopeDefinitions, spyOnScopeRequests
 import * as SDK from "./";
 import { TypeValidationError, SDKInvalidError, SDKVersionInvalidError } from "./errors";
 import sdkVersion from "./sdk-version";
+import base64url from "base64url";
 
 const customSDK = SDK.init({
     baseUrl: "https://api.digi.test/v7",
@@ -24,17 +25,20 @@ beforeEach(() => {
 describe("init", () => {
 
     describe("Returns an object containing", () => {
-
         it.each([
             "establishSession",
-            "getAuthorizeUrl",
-            "getGuestAuthorizeUrl",
             "getReceiptUrl",
-            "getSessionData",
         ])("%s function", (property) => {
             expect(customSDK).toHaveProperty(property, expect.any(Function));
         });
 
+        it.each([
+            "authorize",
+            "pull",
+            "push",
+        ])("%s objects", (property) => {
+            expect(customSDK).toHaveProperty(property, expect.any(Object));
+        });
     });
 
     describe("Throws TypeValidationError when options (first parameter) is", () => {
@@ -50,7 +54,7 @@ describe("init", () => {
 });
 
 describe.each<[string, ReturnType<typeof SDK.init>, string]>([
-    ["Default exported SDK", SDK, "https://api.digi.me/v1.4"],
+    ["Default exported SDK", SDK, "https://api.digi.me/v1.5"],
     ["Custom SDK", customSDK, "https://api.digi.test/v7"],
 ])(
     "%s",
@@ -67,7 +71,10 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
                 const requestSpy = spyOnScopeRequests(nock.define(defs));
 
-                await sdk.establishSession("test-application-id", "test-contract-id");
+                await sdk.establishSession({
+                    applicationId: "test-application-id",
+                    contractId: "test-contract-id",
+                });
 
                 expect(requestSpy).toHaveBeenCalledTimes(1);
             });
@@ -81,7 +88,10 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
                 const requestSpy = spyOnScopeRequests(nock.define(defs));
 
-                await sdk.establishSession("test-application-id", "test-contract-id");
+                await sdk.establishSession({
+                    applicationId: "test-application-id",
+                    contractId: "test-contract-id",
+                });
 
                 expect(requestSpy).toHaveBeenCalledTimes(1);
                 expect(requestSpy).toHaveBeenCalledWith(
@@ -106,7 +116,10 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
                 const requestSpy = spyOnScopeRequests(nock.define(defs));
 
-                await sdk.establishSession("test-application-id", "test-contract-id");
+                await sdk.establishSession({
+                    applicationId: "test-application-id",
+                    contractId: "test-contract-id",
+                });
 
                 expect(requestSpy).toHaveBeenCalledTimes(1);
                 expect(requestSpy).toHaveBeenCalledWith(
@@ -125,7 +138,10 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
                 const requestSpy = spyOnScopeRequests(nock.define(defs));
 
-                await sdk.establishSession("test-application-id", "test-contract-id");
+                await sdk.establishSession({
+                    applicationId: "test-application-id",
+                    contractId: "test-contract-id",
+                });
 
                 expect(requestSpy).toHaveBeenCalledTimes(1);
                 expect(requestSpy).toHaveBeenCalledWith(
@@ -144,11 +160,11 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
                 const requestSpy = spyOnScopeRequests(nock.define(defs));
 
-                await sdk.establishSession(
-                    "test-application-id",
-                    "test-contract-id",
-                    { timeRanges: [{ last: "1Y" }] },
-                );
+                await sdk.establishSession({
+                    applicationId: "test-application-id",
+                    contractId: "test-contract-id",
+                    scope: { timeRanges: [{ last: "1Y" }] },
+                });
 
                 expect(requestSpy).toHaveBeenCalledTimes(1);
                 expect(requestSpy).toHaveBeenCalledWith(
@@ -168,7 +184,10 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
                 nock.define(defs);
 
-                const promise = sdk.establishSession("test-application-id", "test-contract-id");
+                const promise = sdk.establishSession({
+                    applicationId: "test-application-id",
+                    contractId: "test-contract-id",
+                });
                 return expect(promise).resolves.toEqual(defs[0].response);
             });
 
@@ -180,42 +199,60 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
                 nock.define(defs);
 
-                const promise = sdk.establishSession("test-application-id", "test-contract-id");
+                const promise = sdk.establishSession({
+                    applicationId: "test-application-id",
+                    contractId: "test-contract-id",
+                });
                 return expect(promise).rejects.toThrowError(TypeValidationError);
             });
 
             it("Re-throws HTTPErrors if it encounters one", () => {
                 nock.define(loadDefinitions("fixtures/network/establish-session/bad-request.json"));
-                const promise = sdk.establishSession("test-application-id", "test-contract-id");
+                const promise = sdk.establishSession({
+                    applicationId: "test-application-id",
+                    contractId: "test-contract-id",
+                });
                 return expect(promise).rejects.toThrowError(HTTPError);
             });
 
             it("Throws SDKInvalidError if the API responds with SDKInvalid in error.code", () => {
                 nock.define(loadDefinitions("fixtures/network/establish-session/invalid-sdk.json"));
-                const promise = sdk.establishSession("test-application-id", "test-contract-id");
+                const promise = sdk.establishSession({
+                    applicationId: "test-application-id",
+                    contractId: "test-contract-id",
+                });
                 return expect(promise).rejects.toThrowError(SDKInvalidError);
             });
 
             it("Throws SDKVersionInvalidError if the API responds with SDKVersionInvalid in error.code", () => {
                 nock.define(loadDefinitions("fixtures/network/establish-session/invalid-sdk-version.json"));
 
-                const promise = sdk.establishSession("test-application-id", "test-contract-id");
+                const promise = sdk.establishSession({
+                    applicationId: "test-application-id",
+                    contractId: "test-contract-id",
+                });
                 return expect(promise).rejects.toThrowError(SDKVersionInvalidError);
             });
 
             it("Re-throws any other uncaught errors", () => {
                 // Nock throws a generic error when no matching routes have been defined
                 nock(/.*/).delete("/not-matching").reply(200);
-                const promise = sdk.establishSession("test-application-id", "test-contract-id");
+                const promise = sdk.establishSession({
+                    applicationId: "test-application-id",
+                    contractId: "test-contract-id",
+                });
                 return expect(promise).rejects.toThrowError();
             });
 
             describe("Throws TypeValidationError when appId (first parameter) is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
-                    (appId: any) => {
+                    (applicationId: any) => {
                         nock.define(loadDefinitions("fixtures/network/establish-session/valid-session.json"));
-                        const promise = sdk.establishSession(appId, "test-contract-id");
+                        const promise = sdk.establishSession({
+                            applicationId,
+                            contractId: "test-contract-id",
+                        });
                         return expect(promise).rejects.toThrow(TypeValidationError);
                     },
                 );
@@ -226,7 +263,10 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     "%p",
                     (contractId: any) => {
                         nock.define(loadDefinitions("fixtures/network/establish-session/valid-session.json"));
-                        const promise = sdk.establishSession("test-application-id", contractId);
+                        const promise = sdk.establishSession({
+                            applicationId: "test-application-id",
+                            contractId,
+                        });
                         return expect(promise).rejects.toThrow(TypeValidationError);
                     },
                 );
@@ -244,7 +284,10 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
                     const spy: jest.SpyInstance = jest.spyOn(console, "warn").mockImplementation();
 
-                    await sdk.establishSession("test-application-id", "test-contract-id");
+                    await sdk.establishSession({
+                        applicationId: "test-application-id",
+                        contractId: "test-contract-id",
+                    });
 
                     // TODO: Check this out
                     expect(spy).toHaveBeenCalledTimes(1);
@@ -259,9 +302,13 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             describe.skip("Throws TypeValidationError when CA scope (third parameter) is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
-                    (caScope: any) => {
+                    (scope: any) => {
                         nock.define(loadDefinitions("fixtures/network/establish-session/valid-session.json"));
-                        const promise = sdk.establishSession("test-application-id", "test-contract-id", caScope);
+                        const promise = sdk.establishSession({
+                            applicationId: "test-application-id",
+                            contractId: "test-contract-id",
+                            scope,
+                        });
                         return expect(promise).rejects.toThrow(TypeValidationError);
                     },
                 );
@@ -276,7 +323,6 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     ["Query \"sessionKey\"", "test-session-key", (url) => url.searchParams.get("sessionKey")],
                     ["Query \"appId\"", "test-application-id", (url) => url.searchParams.get("appId")],
                     ["Query \"sdkVersion\"", sdkVersion, (url) => url.searchParams.get("sdkVersion")],
-                    ["Query \"resultVersion\"", "2", (url) => url.searchParams.get("resultVersion")],
                     [
                         "Query \"callbackUrl\"",
                         "https://callback.test?a=1&b=2#c",
@@ -286,15 +332,15 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     "%s is %p",
                     (_label, expected, getter) => {
 
-                        const appUrl = sdk.getAuthorizeUrl(
-                            "test-application-id",
-                            {
+                        const appUrl = sdk.authorize.once.getPrivateShareConsentUrl({
+                            applicationId: "test-application-id",
+                            session: {
                                 expiry: 0,
                                 sessionKey: "test-session-key",
                                 sessionExchangeToken: "test-session-exchange-token",
                             },
-                            "https://callback.test?a=1&b=2#c",
-                        );
+                            callbackUrl: "https://callback.test?a=1&b=2#c",
+                        });
 
                         const actual = getter(new URL(appUrl));
                         expect(actual).toBe(expected);
@@ -302,54 +348,54 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 );
             });
 
-            describe("Throws TypeValidationError when appId (first parameter) is", () => {
+            describe("Throws TypeValidationError when applicationId is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
-                    (appId: any) => {
-                        const fn = () => sdk.getAuthorizeUrl(
-                            appId,
-                            {
+                    (applicationId: any) => {
+                        const fn = () => sdk.authorize.once.getPrivateShareConsentUrl({
+                            applicationId,
+                            session: {
                                 expiry: 0,
                                 sessionKey: "test-session-key",
                                 sessionExchangeToken: "test-session-exchange-token",
                             },
-                            "https://callback.test?a=1&b=2#c",
-                        );
+                            callbackUrl: "https://callback.test?a=1&b=2#c",
+                        });
 
                         expect(fn).toThrow(TypeValidationError);
                     },
                 );
             });
 
-            describe("Throws TypeValidationError when session (second parameter) is", () => {
+            describe("Throws TypeValidationError when session is", () => {
                 // tslint:disable-next-line:max-line-length
                 it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", (): null => null, Symbol("test")])(
                     "%p",
                     (session: any) => {
-                        const fn = () => sdk.getAuthorizeUrl(
-                            "test-application-id",
+                        const fn = () => sdk.authorize.once.getPrivateShareConsentUrl({
+                            applicationId: "test-application-id",
                             session,
-                            "https://callback.test?a=1&b=2#c",
-                        );
+                            callbackUrl: "https://callback.test?a=1&b=2#c",
+                        });
 
                         expect(fn).toThrow(TypeValidationError);
                     },
                 );
             });
 
-            describe("Throws TypeValidationError when callbackUrl (third parameter) is", () => {
+            describe("Throws TypeValidationError when callbackUrl is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (callbackUrl: any) => {
-                        const fn = () => sdk.getAuthorizeUrl(
-                            "test-application-id",
-                            {
+                        const fn = () => sdk.authorize.once.getPrivateShareConsentUrl({
+                            applicationId: "test-application-id",
+                            session: {
                                 expiry: 0,
                                 sessionKey: "test-session-key",
                                 sessionExchangeToken: "test-session-exchange-token",
                             },
                             callbackUrl,
-                        );
+                        });
 
                         expect(fn).toThrow(TypeValidationError);
                     },
@@ -369,10 +415,10 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     "%s is %p",
                     (_label, expected, getter) => {
 
-                        const receiptUrl = sdk.getReceiptUrl(
-                            "test-contract-id",
-                            "test-application-id",
-                        );
+                        const receiptUrl = sdk.getReceiptUrl({
+                            contractId: "test-contract-id",
+                            applicationId: "test-application-id",
+                        });
 
                         const actual = getter(new URL(receiptUrl));
                         expect(actual).toBe(expected);
@@ -383,11 +429,11 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             describe("Throws TypeValidationError when contractid (first parameter) is", () => {
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
-                    (contractid: any) => {
-                        const fn = () => sdk.getReceiptUrl(
-                            contractid,
-                            "test-application-id",
-                        );
+                    (contractId: any) => {
+                        const fn = () => sdk.getReceiptUrl({
+                            contractId,
+                            applicationId: "test-application-id",
+                        });
 
                         expect(fn).toThrow(TypeValidationError);
                     },
@@ -399,10 +445,10 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", (): null => null, Symbol("test")])(
                     "%p",
                     (applicationId: any) => {
-                        const fn = () => sdk.getReceiptUrl(
-                            "test-contract-id",
+                        const fn = () => sdk.getReceiptUrl({
+                            contractId: "test-contract-id",
                             applicationId,
-                        );
+                        });
 
                         expect(fn).toThrow(TypeValidationError);
                     },
@@ -430,14 +476,14 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     "%s is %p",
                     (_label, expected, getter) => {
 
-                        const appUrl = sdk.getGuestAuthorizeUrl(
-                            {
+                        const appUrl = sdk.authorize.once.getPrivateShareAsGuestUrl({
+                            session: {
                                 expiry: 0,
                                 sessionKey: "test-session-key",
                                 sessionExchangeToken: "test-session-exchange-token",
                             },
-                            "https://callback.test?a=1&b=2#c",
-                        );
+                            callbackUrl: "https://callback.test?a=1&b=2#c",
+                        });
 
                         const actual = getter(new URL(appUrl));
                         expect(actual).toBe(expected);
@@ -450,10 +496,10 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 it.each([true, false, null, undefined, {}, { expiry: "0", sessionKey: 1 }, [], 0, NaN, "", (): null => null, Symbol("test")])(
                     "%p",
                     (session: any) => {
-                        const fn = () => sdk.getGuestAuthorizeUrl(
+                        const fn = () => sdk.authorize.once.getPrivateShareAsGuestUrl({
                             session,
-                            "https://callback.test?a=1&b=2#c",
-                        );
+                            callbackUrl: "https://callback.test?a=1&b=2#c",
+                        });
 
                         expect(fn).toThrow(TypeValidationError);
                     },
@@ -464,14 +510,15 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (callbackUrl: any) => {
-                        const fn = () => sdk.getGuestAuthorizeUrl(
-                            {
+
+                        const fn = () => sdk.authorize.once.getPrivateShareAsGuestUrl({
+                            session: {
                                 expiry: 0,
                                 sessionKey: "test-session-key",
                                 sessionExchangeToken: "test-session-exchange-token",
                             },
                             callbackUrl,
-                        );
+                        });
 
                         expect(fn).toThrow(TypeValidationError);
                     },
@@ -483,38 +530,41 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         describe("getSessionAccounts", () => {
 
             it(`Retrieves data correctly`, async () => {
-
                 const expected = {
-                    accounts: [{
+                    accounts: {
                         id: "4_123456789",
                         name: "test",
                         service: {
                             logo: "https://domain.test/test.png",
                             name: "Instagram",
                         },
-                    }],
+                    },
                 };
 
-                const encryptedData = createCAData(testKeyPair, JSON.stringify(expected));
+                const encryptedData = createCAData(testKeyPair, JSON.stringify(expected.accounts));
 
                 nock(`${new URL(baseUrl).origin}`)
                     .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key/accounts.json`)
-                    .reply(200, {
-                        fileContent: encryptedData,
-                    });
+                    .reply(200, encryptedData, { 'x-metadata': base64url.encode(JSON.stringify({}))});
 
-                const result = await sdk.getSessionAccounts("test-session-key", testKeyPair.exportKey("pkcs1-private"));
+                const result = await sdk.pull.getSessionAccounts({
+                    sessionKey: "test-session-key",
+                    privateKey: testKeyPair.exportKey("pkcs1-private"),
+                });
 
                 expect(result).toEqual(expected);
             });
 
-            describe("Throws TypeValidationError when sessionKey (first parameter) is", () => {
+            describe("Throws TypeValidationError when sessionKey is", () => {
 
                 it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                     "%p",
                     (sessionKey: any) => {
                         // tslint:disable-next-line:max-line-length
-                        return expect(sdk.getSessionAccounts(sessionKey, testKeyPair.exportKey("pkcs1-private"))).rejects.toThrow(TypeValidationError);
+                        return expect(sdk.pull.getSessionAccounts({
+                            sessionKey,
+                            privateKey: testKeyPair.exportKey("pkcs1-private"),
+                        })).rejects.toThrow(TypeValidationError);
                     },
                 );
             });
@@ -522,19 +572,28 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             describe("Throws appropriate exceptions when argon returns errors", () => {
                 it("Re-throws HTTPErrors if it encounters one", () => {
                     nock.define(loadDefinitions("fixtures/network/get-session-accounts/bad-request.json"));
-                    const promise = sdk.getSessionAccounts("test-session-key", testKeyPair.exportKey("pkcs1-private"));
+                    const promise = sdk.pull.getSessionAccounts({
+                        sessionKey: "test-session-key",
+                        privateKey: testKeyPair.exportKey("pkcs1-private"),
+                    });
                     return expect(promise).rejects.toThrowError(HTTPError);
                 });
 
                 it("Throws SDKInvalidError if the API responds with SDKInvalid in error.code", () => {
                     nock.define(loadDefinitions("fixtures/network/get-session-accounts/invalid-sdk.json"));
-                    const promise = sdk.getSessionAccounts("test-session-key", testKeyPair.exportKey("pkcs1-private"));
+                    const promise = sdk.pull.getSessionAccounts({
+                        sessionKey: "test-session-key",
+                        privateKey: testKeyPair.exportKey("pkcs1-private"),
+                    });
                     return expect(promise).rejects.toThrowError(SDKInvalidError);
                 });
 
                 it("Throws SDKVersionInvalidError if the API responds with SDKVersionInvalid in error.code", () => {
                     nock.define(loadDefinitions("fixtures/network/get-session-accounts/invalid-sdk-version.json"));
-                    const promise = sdk.getSessionAccounts("test-session-key", testKeyPair.exportKey("pkcs1-private"));
+                    const promise = sdk.pull.getSessionAccounts({
+                        sessionKey: "test-session-key",
+                        privateKey: testKeyPair.exportKey("pkcs1-private"),
+                    });
                     return expect(promise).rejects.toThrowError(SDKVersionInvalidError);
                 });
             });
