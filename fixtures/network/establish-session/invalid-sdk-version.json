@@ -2,7 +2,7 @@
     {
         "scope": "https://api.digi.me",
         "method": "POST",
-        "path": "/v1.4/permission-access/session",
+        "path": "/v1.5/permission-access/session",
         "status": 403,
         "response": {
             "error": {

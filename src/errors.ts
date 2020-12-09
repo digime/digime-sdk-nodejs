@@ -40,7 +40,12 @@ class JWTVerificationError extends DigiMeSDKError {
     public name = "JWTVerificationError";
 }
 
+class AccessTokenExchangeError extends DigiMeSDKError {
+    public name = "AccessTokenExchangeError";
+}
+
 export {
+    AccessTokenExchangeError,
     DigiMeSDKError,
     SDKInvalidError,
     SDKVersionInvalidError,

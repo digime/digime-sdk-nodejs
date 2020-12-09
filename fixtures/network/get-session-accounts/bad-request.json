@@ -2,7 +2,10 @@
     {
         "scope": "https://api.digi.me",
         "method": "GET",
-        "path": "/v1.4/permission-access/query/test-session-key/accounts.json",
+        "path": "/v1.5/permission-access/query/test-session-key/accounts.json",
+        "reqheaders": {
+            "accept": "application/octet-stream"
+        },
         "status": 400,
         "response": {
             "error": {
@@ -17,6 +20,9 @@
         "scope": "https://api.digi.test",
         "method": "GET",
         "path": "/v7/permission-access/query/test-session-key/accounts.json",
+        "reqheaders": {
+            "accept": "application/octet-stream"
+        },
         "status": 400,
         "response": {
             "error": {

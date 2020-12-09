@@ -9,16 +9,8 @@ export * from "./errors";
 
 export const {
     establishSession,
-    exchangeCodeForToken,
-    authorizeOngoingAccess,
-    getSessionAccounts,
-    getSessionData,
-    getGuestAuthorizeUrl,
-    getAuthorizeUrl,
-    getPostboxImportUrl,
+    authorize,
+    pull,
+    push,
     getReceiptUrl,
-    getCreatePostboxUrl,
-    pushDataToPostbox,
-    getFile,
-    getFileList,
 } = init();
