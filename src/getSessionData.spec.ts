@@ -36,7 +36,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
                     .reply(200, {
                         status: {
-                            state: "pending",
+                            state: "completed",
                         },
                     });
 
@@ -54,7 +54,6 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
             describe(`Stops polling when the state is`, () => {
                 it.each<[string, string]>([
-                    ["pending", "fixtures/network/get-file-list/file-list-pending.json"],
                     ["partial", "fixtures/network/get-file-list/file-list-partial.json"],
                     ["completed", "fixtures/network/get-file-list/file-list-completed.json"],
                 ])("%s", async (_state, fixturePath) => {
@@ -81,6 +80,36 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     expect(listCallback).toHaveBeenCalledTimes(1);
                 });
             });
+
+            it("Continues polling if the status returned is pending", async () => {
+                const scope = nock(`${new URL(baseUrl).origin}`)
+                    .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
+                    .reply(200, {
+                        status: {
+                            state: "pending",
+                        },
+                    })
+                    .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
+                    .reply(200, {
+                        status: {
+                            state: "completed",
+                        },
+                    });
+
+                const listCallback = jest.fn();
+                scope.on("request", listCallback);
+
+                const { filePromise } = sdk.getSessionData(
+                    "test-session-key",
+                    testKeyPair.exportKey("pkcs1-private-pem"),
+                    () => null,
+                    () => null,
+                );
+
+                await filePromise;
+                expect.assertions(1);
+                expect(listCallback).toHaveBeenCalledTimes(2);
+            })
 
             describe("Triggers onFileData (third parameter) with the correct data when it", () => {
                 it.each<[string, string]>([
