@@ -200,7 +200,8 @@ const _getSessionData = (
             state = status.state;
 
             if (state === "pending") {
-                break;
+                await sleep(3000);
+                continue;
             }
 
             const newFiles: string[] = (fileList || []).reduce((accumulator: string[], file) => {
