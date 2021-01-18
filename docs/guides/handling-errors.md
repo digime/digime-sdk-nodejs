@@ -57,4 +57,4 @@ If, after reading this section, your issue persists, please contact digi.me deve
 
 -----
 
-[Back to Index](./README.md)
+[Back to Index](../README.md)
