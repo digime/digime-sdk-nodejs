@@ -69,9 +69,12 @@ To start requesting or pushing data, you will need to establish a session:
 ```typescript
 import { establishSession } from "@digime/digime-js-sdk";
 
-const session = establishSession("YOUR_APP_ID", "YOUR_CONTRACT_ID");
+const session = establishSession({
+    "applicationId": "YOUR_APP_ID", 
+    "contractId": "YOUR_CONTRACT_ID"
+});
 ```
-See [Establish Session](/docs/establish-session.md) for more details on configuration options available when establishing a session.
+See [Establish Session](/docs/functions/establish-session.md) for more details on configuration options available when establishing a session.
 
 ### 4. Requesting Consent
 
@@ -79,15 +82,21 @@ In digi.me we provide two different ways to prompt user for consent
 
 1. **Existing users who already have the digi.me application installed**
 
-    Use the `getAuthorizeUrl` function to get a URL which can be used to trigger the digi.me client to open on their desktop, Android or iOS devices.
+    Use the `authorize.once.getPrivateShareConsentUrl` function to get a URL which can be used to trigger the digi.me client to open on their desktop, Android or iOS devices.
 
     ```typescript
 
-    import { establishSession, getAuthorizeUrl } from "@digime/digime-js-sdk";
+    import { establishSession, authorize } from "@digime/digime-js-sdk";
 
-    const session = establishSession("YOUR_APP_ID", "YOUR_CONTRACT_ID");
-    const redirectUrl = getAuthorizeUrl("YOUR_APP_ID", session, "YOUR_CALLBACK_URL");
-
+    const session = establishSession({
+        "applicationId": "YOUR_APP_ID", 
+        "contractId": "YOUR_CONTRACT_ID"
+    });
+    const redirectUrl = authorize.once.getPrivateShareConsentUrl({
+        "applicationId": "YOUR_APP_ID", 
+        "session": session,
+        "callbackUrl": "YOUR_CALLBACK_URL"
+    });
     ```
 
     With the provided session, the client will know the details of the contract and ask for the user's permission on only the data the contract needs.
@@ -99,10 +108,16 @@ In digi.me we provide two different ways to prompt user for consent
     This is a demo feature which allows the user to consent and onboard to digi.me using the browser. To trigger this onboard mode, you can call the `getGuestAuthorizeUrl` method to get a URL which when opened will ask user for consent.
 
     ```typescript
-     import { establishSession, getGuestAuthorizeUrl } from "@digime/digime-js-sdk";
+     import { establishSession, authorize } from "@digime/digime-js-sdk";
 
-    const session = establishSession("YOUR_APP_ID", "YOUR_CONTRACT_ID");
-    const redirectUrl = getGuestAuthorizeUrl(session, "YOUR_CALLBACK_URL");
+    const session = establishSession({
+        "applicationId": "YOUR_APP_ID", 
+        "contractId": "YOUR_CONTRACT_ID"
+    });
+    const redirectUrl = authorize.once.getPrivateShareAsGuestUrl({
+        "session": session,
+        "callbackUrl": "YOUR_CALLBACK_URL"
+    });
     ```
 
 Regardless of which mode above you trigger, the `callbackUrl` will be triggered once the user has authorised the consent. The callbackUrl will be triggered with a new param `result` where the value will either be `SUCCESS`, `ERROR` or `CANCEL`.
@@ -112,7 +127,7 @@ Upon user consent you can now request user's files. To fetch all available data 
 
 This function will return an object containing a promise which will resolve when all the files are fetched and a function which you can trigger to stop the data fetch process.
 ```typescript
-import { getSessionData } from "@digime/digime-js-sdk";
+import { pull } from "@digime/digime-js-sdk";
 
 // Triggered when an individual file is retrieved
 const fileReceivedHandler = () => console.log("File received");
@@ -121,11 +136,11 @@ const fileReceivedHandler = () => console.log("File received");
 const fileErrorHandler = () => console.log("File error");
 
 // Start fetching data
-const getSessionDataObject = getSessionData(
-    SESSION_ID, // Session ID for your transaction
-    YOUR_PRIVATE_KEY, // Private key for your contract
-    fileReceivedHandler,
-    fileErrorHandler
+const getSessionDataObject = pull.getSessionData(
+    sessionKey: SESSION_ID, // Session ID for your transaction
+    privateKey: YOUR_PRIVATE_KEY, // Private key for your contract
+    onFileData: fileReceivedHandler,
+    onFileError: fileErrorHandler
 );
 
 // No more data to process
@@ -134,7 +149,7 @@ getSessionDataObject.filePromise.then(() => {
 });
 ```
 
-See [here](/docs/session-data.md) for more details
+See [here](/docs/guides/session-data.md) for more details
 
 ## Contributions
 
