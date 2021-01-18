@@ -1,6 +1,6 @@
 {
   "name": "@digime/digime-js-sdk",
-  "version": "3.0.1",
+  "version": "4.0.0-cyclic-postbox.1",
   "description": "digime-js-sdk",
   "main": "dist/main/index.js",
   "types": "dist/main/index.d.ts",
