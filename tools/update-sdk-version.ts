@@ -1,11 +1,11 @@
 /*!
- * Copyright (c) 2009-2020 digi.me Limited. All rights reserved.
+ * Copyright (c) 2009-2021 digi.me Limited. All rights reserved.
  */
 
 import fs from "fs";
 
 const fileContent = `/*!
-* Copyright (c) 2009-2020 digi.me Limited. All rights reserved.
+* Copyright (c) 2009-2021 digi.me Limited. All rights reserved.
 */
 
 export default "${process.env.npm_package_version}";
