@@ -19,16 +19,22 @@
 
 <br>
 
-# Pushing data into Postbox
+# Returning data to user Overview
 
-Once we have the [postbox created](./create-postbox.md), we are ready to push data to the user! Regardless of whether you went through the one off or ongoing push, the function to call is the same.
+In digi.me, we allow you to push data to end users using Postbox. A postbox is a temporary secure storage that only you and your user can access.
 
-Check out [push.pushDataToPostbox()](../functions/push.md#push-pushDataToPostbox) for details.
+To create a postbox, the user needs to have the native digi.me application installed. 
 
-If no access token was provided, the data pushed will be imported to the user's digi.me next time they open digi.me. You can also trigger this manually by redirecting to the url returned in [push.getPostboxImportUrl()](../functions/push.md#push-getPostboxImportUrl).
+You can follow the below steps to start the process.
 
-If you have an access token, you can provide this when pushing data, which would import the data to their digi.me straight away.
+1. [Create a session with digi.me](./establish-session.md)
+
+2. [Create a Postbox](./create-postbox.md)
+
+3. [Push data](./push-data.md)
+
+4. [Import data (Optional)](./import-data.md)
 
 -----
 
-[Back to Index](../README.md)
+[Back to Index](./README.md)

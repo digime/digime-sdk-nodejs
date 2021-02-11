@@ -23,36 +23,22 @@
 
 The SDK provides a handy utility function that returns a deeplink to the native digi.me application to display share or push receipts related to your application and contract.
 
-#### Arguments
-> [GetReceiptOptions](#GetReceiptOptions)
-
-#### Returns
-> string: Deeplink to show receipt inside digi.me.
-
-#### Example
 ```typescript
-import { getReceipt } from "@digime/digime-js-sdk";
-
-const result = await getReceipt({
-  applicationId: "test-application-id",
-  contractId: "test-contract-id"
-});
-
-// => result = digime://receipt?contractId=test-contract-id&appId=test-application-id`
+const getReceiptUrl: (
+    contractId: string,
+    appId: string,
+): string;
 ```
+> Returns a string
 
-## GetReceiptOptions
-```typescript
-interface GetReceiptOptions {
-    applicationId: string;
-    contractId: string;
-}
-```
-| Parameter | Required | Description | Type |
-|-|-|-|-|
-| `applicationId` | Yes | The ID of your application as provided from digi.me. | string |
-| `contractId` | Yes | The ID of your contract as provided from digi.me. | string |
+`appId`: string
+
+Your application ID. You can request this from digi.me.
+
+`contractId`: string
+
+The ID of the contract which you want to show receipts of.
 
 -----
 
-[Back to Index](../README.md)
+[Back to Index](./README.md)
