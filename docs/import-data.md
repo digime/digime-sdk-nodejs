@@ -19,16 +19,17 @@
 
 <br>
 
-## Getting Started
-Before diving into our full documentation stack, we recommend you read our [Getting Started guide](../README.md), as this details the most common use cases in 5 easy to follow steps.
+# Importing data into user's digi.me library
 
-## Full Documentation
+This is an optional step. Once the data is in the user postbox, it will be imported to their digi.me next time the application starts up or triggers a sync.
 
-  * [Initialising the SDK](./initialise-sdk.md)
-  * [Requesting user data](./pull-data-overview.md)
-  * [Returning user data](./push-data-overview.md)
-  * [Requesting user account details](./session-accounts.md)
-  * [Showing a push or pull receipt](./share-receipts.md)
-  * [Handling errors](./handling-errors.md)
-  * [Example applications](./example-apps.md)
-  * [v1.0 migration guide](./migration-guide.md)
+We have a handy util function which you can also use to instantly trigger digi.me to import data from their postbox.
+
+```typescript
+const getPostboxImportUrl = (): string;
+```
+> Returns a URL which triggers a postbox import on native digi.me application.
+
+-----
+
+[Back to Index](./README.md)

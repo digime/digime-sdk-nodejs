@@ -19,16 +19,11 @@
 
 <br>
 
-## Getting Started
-Before diving into our full documentation stack, we recommend you read our [Getting Started guide](../README.md), as this details the most common use cases in 5 easy to follow steps.
+# Example Application
 
-## Full Documentation
+You can find our official example application [here](https://github.com/digime/digime-js-sdk-example). 
 
-  * [Initialising the SDK](./initialise-sdk.md)
-  * [Requesting user data](./pull-data-overview.md)
-  * [Returning user data](./push-data-overview.md)
-  * [Requesting user account details](./session-accounts.md)
-  * [Showing a push or pull receipt](./share-receipts.md)
-  * [Handling errors](./handling-errors.md)
-  * [Example applications](./example-apps.md)
-  * [v1.0 migration guide](./migration-guide.md)
+This application aims to walk you through how to create an application using this SDK. 
+
+-----
+[Back to Index](./README.md)
