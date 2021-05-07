@@ -9,7 +9,8 @@ import { PushDataToPostboxAPIResponse } from "./types/api/postbox-response";
 
 export interface AuthorizeResponse {
     codeVerifier: string;
-    preauthorizationCode: string;
+    code: string;
+    session: Session;
 }
 
 export interface AuthorizeOptions extends BasicOAuthOptions {
@@ -115,6 +116,10 @@ export interface PushDataToPostboxResponse extends PushDataToPostboxAPIResponse 
     updatedAccessToken?: UserAccessToken;
 }
 
+export interface SaasOptions extends BasicOAuthOptions {
+    state?: any;
+}
+
 export interface ConsentOngoingAccessOptions extends BasicOAuthOptions {
     state?: any;
     session: Session;
@@ -133,9 +138,14 @@ export interface PrepareFilesUsingAccessTokenOptions extends BasicOAuthOptions {
     session: Session;
 }
 
+export interface ExchangeAccessTokenForReferenceOptions extends BasicOAuthOptions {
+    userAccessToken: UserAccessToken;
+}
+
 export interface GetAuthorizationUrlResponse {
     url: string;
     codeVerifier: string;
+    session: Session;
 }
 
 export interface UserDataAccessOptions {

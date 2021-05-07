@@ -3,11 +3,11 @@
  */
 
 import { TypeValidationError, DigiMeSDKError } from "./errors";
-import { ConsentOnceOptions, ConsentOngoingAccessOptions, GetAuthorizationUrlResponse, GetFileListOptions, GetFileOptions, GetSessionDataOptions, GetSessionDataResponse, PrepareFilesUsingAccessTokenOptions, UserAccessToken, UserDataAccessOptions, UserLibraryAccessResponse} from "./types";
+import { ConsentOnceOptions, ConsentOngoingAccessOptions, GetAuthorizationUrlResponse, GetFileListOptions, GetFileOptions, GetSessionDataOptions, GetSessionDataResponse, PrepareFilesUsingAccessTokenOptions, UserAccessToken, UserDataAccessOptions, UserLibraryAccessResponse, ExchangeAccessTokenForReferenceOptions, SaasOptions} from "./types";
 import { isNonEmptyString } from "./utils";
 import { getFormattedDeepLink, DigimePaths } from "./paths";
-import { URLSearchParams } from "url";
-import { authorize, refreshToken } from "./authorisation";
+import { URL, URLSearchParams } from "url";
+import { authorize, getVerifiedJWTPayload, refreshToken } from "./authorisation";
 import { handleInvalidatedSdkResponse, net } from "./net";
 import { sign } from "jsonwebtoken";
 import { decryptData, getRandomAlphaNumeric } from "./crypto";
@@ -33,12 +33,14 @@ const getConsentUrl = ({
         throw new TypeValidationError("Parameter callbackUrl should be a non empty string");
     }
 
-    return getFormattedDeepLink(DigimePaths.PRIVATE_SHARE, applicationId, session, new URLSearchParams({ callbackUrl }));
+    return getFormattedDeepLink(DigimePaths.PRIVATE_SHARE, applicationId, new URLSearchParams({
+        callbackUrl,
+        session: session.sessionKey,
+    }));
 };
 
 const getConsentWithAccessTokenUrl  = async ({
     redirectUri,
-    session,
     state,
     applicationId,
     contractId,
@@ -53,7 +55,7 @@ const getConsentWithAccessTokenUrl  = async ({
         throw new TypeValidationError("Details should be a plain object that contains the properties applicationId, contractId, privateKey and redirectUri");
     }
 
-    const {preauthorizationCode, codeVerifier} = await authorize({
+    const {code, codeVerifier, session} = await authorize({
         applicationId,
         contractId,
         privateKey,
@@ -66,13 +68,13 @@ const getConsentWithAccessTokenUrl  = async ({
         url: getFormattedDeepLink(
             DigimePaths.PRIVATE_SHARE,
             applicationId,
-            session,
             new URLSearchParams({
-                preauthorizationCode,
+                preauthorizationCode: code,
                 callbackUrl: redirectUri,
             }),
         ),
         codeVerifier,
+        session,
     };
 };
 
@@ -359,12 +361,94 @@ const getSessionAccounts = async ({
     }
 };
 
+const getSaasUrl  = async ({
+    redirectUri,
+    state,
+    applicationId,
+    contractId,
+    privateKey,
+    sdkOptions,
+}: SaasOptions & InternalProps): Promise<GetAuthorizationUrlResponse> => {
+
+    if (!isNonEmptyString(applicationId) || !isNonEmptyString(contractId) ||
+        !isNonEmptyString(redirectUri) || !privateKey
+    ) {
+        // tslint:disable-next-line:max-line-length
+        throw new TypeValidationError("Details should be a plain object that contains the properties applicationId, contractId, privateKey and redirectUri");
+    }
+
+    const {
+        code,
+        codeVerifier,
+        session,
+    } = await authorize({
+        applicationId,
+        contractId,
+        privateKey,
+        redirectUri,
+        state,
+        sdkOptions,
+    });
+
+    const result: URL = new URL(`http://localhost:3000`);
+    result.search = new URLSearchParams({
+        code,
+        callback: redirectUri,
+    }).toString();
+
+    return {
+        url: result.toString(),
+        codeVerifier,
+        session,
+    };
+};
+
+const exchangeAccessTokenForReference = async ({
+    applicationId,
+    contractId,
+    redirectUri,
+    privateKey,
+    userAccessToken,
+    sdkOptions,
+}: ExchangeAccessTokenForReferenceOptions & InternalProps): Promise<string> => {
+    const jwt: string = sign(
+        {
+            access_token: userAccessToken.accessToken,
+            client_id: `${applicationId}_${contractId}`,
+            nonce: getRandomAlphaNumeric(32),
+            redirect_uri: redirectUri,
+            timestamp: new Date().getTime(),
+        },
+        privateKey.toString(),
+        {
+            algorithm: "PS512",
+            noTimestamp: true,
+        },
+    );
+
+    const url = `${sdkOptions.baseUrl}/oauth/token/reference`;
+
+    const response = await net.post(url, {
+        headers: {
+            Authorization: `Bearer ${jwt}`,
+            "Content-Type": "application/json", // NOTE: we might not need this
+        },
+        responseType: "json",
+    });
+
+    const payload = await getVerifiedJWTPayload(get(response.body, "token"), sdkOptions);
+
+    return payload.reference_code;
+}
+
 export {
+    exchangeAccessTokenForReference,
     prepareFilesUsingAccessToken,
     getConsentUrl,
     getConsentWithAccessTokenUrl,
     getFile,
     getFileList,
+    getSaasUrl,
     getSessionAccounts,
     getSessionData,
 };

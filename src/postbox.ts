@@ -36,7 +36,6 @@ const getCreatePostboxUrl = ({
     return getFormattedDeepLink(
         DigimePaths.CREATE_POSTBOX,
         applicationId,
-        session,
         new URLSearchParams({ callbackUrl }),
     );
 };
@@ -45,7 +44,6 @@ const getPostboxImportUrl = () => "digime://postbox/import";
 
 const getCreatePostboxWithAccessTokenUrl  = async ({
     redirectUri,
-    session,
     state,
     applicationId,
     contractId,
@@ -58,9 +56,7 @@ const getCreatePostboxWithAccessTokenUrl  = async ({
         throw new TypeValidationError("Details should be a plain object that contains the properties applicationId, contractId, privateKey and redirectUri");
     }
 
-    assertIsSession(session);
-
-    const {preauthorizationCode, codeVerifier} = await authorize({
+    const {code, codeVerifier, session} = await authorize({
         applicationId,
         contractId,
         privateKey,
@@ -73,13 +69,13 @@ const getCreatePostboxWithAccessTokenUrl  = async ({
         url: getFormattedDeepLink(
             DigimePaths.CREATE_POSTBOX,
             applicationId,
-            session,
             new URLSearchParams({
-                preauthorizationCode,
+                code,
                 callbackUrl: redirectUri,
             }),
         ),
         codeVerifier,
+        session,
     };
 };
 

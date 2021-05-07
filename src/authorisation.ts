@@ -44,7 +44,7 @@ const authorize = async ({
     );
 
     try {
-        const response = await net.post(`${sdkOptions.baseUrl}/oauth/authorize`, {
+        const {body} = await net.post(`${sdkOptions.baseUrl}/oauth/authorize`, {
             headers: {
                 Authorization: `Bearer ${jwt}`,
             },
@@ -52,10 +52,11 @@ const authorize = async ({
             retry: sdkOptions.retryOptions,
         });
 
-        const payload = await getVerifiedJWTPayload(get(response.body, "token"), sdkOptions);
+        const payload = await getVerifiedJWTPayload(get(body, "token"), sdkOptions);
         return {
             codeVerifier,
-            preauthorizationCode: `${payload.preauthorization_code}`,
+            code: `${payload.preauthorization_code}`,
+            session: get(body, "session"),
         };
     } catch (error) {
         handleInvalidatedSdkResponse(error);

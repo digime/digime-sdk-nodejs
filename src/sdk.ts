@@ -22,12 +22,14 @@ import type {
     GetFileListOptions,
     GetSessionDataOptions,
     GetReceiptOptions,
+    ExchangeAccessTokenForReferenceOptions,
+    SaasOptions,
 } from "./types";
 import { isPlainObject, isNonEmptyString } from "./utils";
 import { assertIsSession, Session } from "./types/api/session";
 import { DMESDKConfiguration, assertIsDMESDKConfiguration } from "./types/dme-sdk-configuration";
 import { exchangeCodeForToken } from "./authorisation";
-import { prepareFilesUsingAccessToken, getConsentUrl, getConsentWithAccessTokenUrl, getFileList, getSessionAccounts, getSessionData, getFile } from "./private-share";
+import { prepareFilesUsingAccessToken, getConsentUrl, getConsentWithAccessTokenUrl, getFileList, getSessionAccounts, getSessionData, getSaasUrl, getFile, exchangeAccessTokenForReference } from "./private-share";
 
 const _establishSession = async ({
     applicationId,
@@ -134,6 +136,9 @@ const init = (options?: Partial<DMESDKConfiguration>) => {
         getReceiptUrl: (props: GetReceiptOptions) => (
             _getReceiptUrl(props)
         ),
+        exchangeAccessTokenForReference: (props: ExchangeAccessTokenForReferenceOptions) => (
+            exchangeAccessTokenForReference({...props, sdkOptions})
+        ),
         authorize: {
             ongoing: {
                 getCreatePostboxUrl: (props: ConsentOngoingAccessOptions) => (
@@ -141,6 +146,9 @@ const init = (options?: Partial<DMESDKConfiguration>) => {
                 ),
                 getPrivateShareConsentUrl: (props: ConsentOngoingAccessOptions) => (
                     getConsentWithAccessTokenUrl({...props, sdkOptions})
+                ),
+                getSaasUrl: (props: SaasOptions) => (
+                    getSaasUrl({...props, sdkOptions})
                 ),
             },
             once: {
