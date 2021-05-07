@@ -3,7 +3,7 @@
  */
 
 import * as t from "io-ts";
-import { codecAssertion, CodecAssertion } from "../../codec-assertion";
+import { codecAssertion, CodecAssertion } from "../../utils/codec-assertion";
 
 export interface MappedFileMetadata {
     objectCount: number;

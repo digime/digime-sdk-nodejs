@@ -4,7 +4,7 @@
 
 import * as t from "io-ts";
 import type { RetryFunction, RetryOptions as GotRetryOptions } from "got";
-import { codecAssertion, CodecAssertion } from "../codec-assertion";
+import { codecAssertion, CodecAssertion } from "../utils/codec-assertion";
 
 // tslint:disable-next-line: no-empty-interface
 export interface RetryOptions extends GotRetryOptions{};
