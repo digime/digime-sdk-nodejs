@@ -3,30 +3,30 @@
  */
 
 import * as t from "io-ts";
-import { codecAssertion, CodecAssertion } from "../../codec-assertion";
+import { codecAssertion, CodecAssertion } from "../../utils/codec-assertion";
 
-interface PushDataToPostboxAPIResponse {
+interface WriteDataAPIResponse {
     expires: number;
-    status: PushDataStatus;
+    status: DataStatus;
 }
 
-type PushDataStatus = "delivered" | "pending";
+type DataStatus = "delivered" | "pending";
 
-const PushDataStatusCodec: t.Type<PushDataStatus> = t.keyof({
+const PushDataStatusCodec: t.Type<DataStatus> = t.keyof({
     delivered: null,
     pending: null,
 })
 
-const PushDataToPostboxResponseCodec: t.Type<PushDataToPostboxAPIResponse> = t.type({
+const PushDataToPostboxResponseCodec: t.Type<WriteDataAPIResponse> = t.type({
     status: PushDataStatusCodec,
     expires: t.number,
 });
 
-const assertIsPushDataStatusResponse: CodecAssertion<PushDataToPostboxAPIResponse> =
+const assertIsPushDataStatusResponse: CodecAssertion<WriteDataAPIResponse> =
     codecAssertion(PushDataToPostboxResponseCodec);
 
 export {
-    PushDataStatus,
-    PushDataToPostboxAPIResponse,
+    DataStatus,
+    WriteDataAPIResponse,
     assertIsPushDataStatusResponse,
 }

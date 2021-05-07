@@ -3,7 +3,7 @@
  */
 
 import get from "lodash.get";
-import { isPlainObject } from "./utils";
+import { isPlainObject } from "./utils/basic-utils";
 import nock from "nock";
 import NodeRSA from "node-rsa";
 import { basename } from "path";

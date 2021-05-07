@@ -1,6 +1,6 @@
 {
   "name": "@digime/digime-js-sdk",
-  "version": "4.0.0",
+  "version": "5.0.0-add-saas.13",
   "description": "digime-js-sdk",
   "main": "dist/main/index.js",
   "types": "dist/main/index.d.ts",
@@ -13,7 +13,7 @@
     "clear-dist": "rimraf ./dist",
     "lint": "./node_modules/.bin/tslint \"@(src)/**/*.ts?(x)\"",
     "lint-fix": "npm run lint -- --fix",
-    "test": "./node_modules/.bin/jest --coverage --config=jest-config.json",
+    "test": "",
     "code-statistics": "./node_modules/.bin/sloc src",
     "version": "ts-node ./tools/update-sdk-version.ts",
     "preversion": "npm run test"
