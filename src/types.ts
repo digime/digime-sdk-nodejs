@@ -13,6 +13,11 @@ export interface AuthorizeResponse {
     session: Session;
 }
 
+export interface ExchangeCodeResponse {
+    code: string;
+    session: Session;
+}
+
 export interface AuthorizeOptions extends BasicOAuthOptions {
     state?: any;
 }

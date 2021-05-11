@@ -7,14 +7,12 @@ import { codecAssertion, CodecAssertion } from "../../codec-assertion";
 
 export interface Session {
     expiry: number,
-    sessionKey: string,
-    sessionExchangeToken: string,
+    key: string,
 }
 
 export const SessionCodec: t.Type<Session> = t.type({
     expiry: t.number,
-    sessionKey: t.string,
-    sessionExchangeToken: t.string,
+    key: t.string,
 });
 
 export const isSession = SessionCodec.is;

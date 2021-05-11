@@ -96,7 +96,7 @@ const _getGuestUrl = ({
         throw new TypeValidationError("Parameter callbackUrl should be a non empty string");
     }
     // tslint:disable-next-line:max-line-length
-    return `${new URL(sdkOptions.baseUrl).origin}/apps/quark/v1/direct-onboarding?sessionExchangeToken=${session.sessionExchangeToken}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
+    return `${new URL(sdkOptions.baseUrl).origin}/apps/quark/v1/direct-onboarding?&callbackUrl=${encodeURIComponent(callbackUrl)}`;
 };
 
 const _getReceiptUrl = ({contractId, applicationId}: GetReceiptOptions) => {

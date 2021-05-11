@@ -3,7 +3,7 @@
  */
 
 import { TypeValidationError, DigiMeSDKError } from "./errors";
-import { ConsentOnceOptions, ConsentOngoingAccessOptions, GetAuthorizationUrlResponse, GetFileListOptions, GetFileOptions, GetSessionDataOptions, GetSessionDataResponse, PrepareFilesUsingAccessTokenOptions, UserAccessToken, UserDataAccessOptions, UserLibraryAccessResponse, ExchangeAccessTokenForReferenceOptions, SaasOptions} from "./types";
+import { ConsentOnceOptions, ConsentOngoingAccessOptions, GetAuthorizationUrlResponse, GetFileListOptions, GetFileOptions, GetSessionDataOptions, GetSessionDataResponse, PrepareFilesUsingAccessTokenOptions, UserAccessToken, UserDataAccessOptions, UserLibraryAccessResponse, ExchangeAccessTokenForReferenceOptions, SaasOptions, ExchangeCodeResponse} from "./types";
 import { isNonEmptyString } from "./utils";
 import { getFormattedDeepLink, DigimePaths } from "./paths";
 import { URL, URLSearchParams } from "url";
@@ -35,7 +35,7 @@ const getConsentUrl = ({
 
     return getFormattedDeepLink(DigimePaths.PRIVATE_SHARE, applicationId, new URLSearchParams({
         callbackUrl,
-        session: session.sessionKey,
+        session: session.key,
     }));
 };
 
@@ -152,7 +152,7 @@ const triggerDataQuery = async ({
             client_id: `${applicationId}_${contractId}`,
             nonce: getRandomAlphaNumeric(32),
             redirect_uri: redirectUri,
-            session_key: session.sessionKey,
+            session_key: session.key,
             timestamp: new Date().getTime(),
         },
         privateKey.toString(),
@@ -410,7 +410,7 @@ const exchangeAccessTokenForReference = async ({
     privateKey,
     userAccessToken,
     sdkOptions,
-}: ExchangeAccessTokenForReferenceOptions & InternalProps): Promise<string> => {
+}: ExchangeAccessTokenForReferenceOptions & InternalProps): Promise<ExchangeCodeResponse> => {
     const jwt: string = sign(
         {
             access_token: userAccessToken.accessToken,
@@ -438,7 +438,10 @@ const exchangeAccessTokenForReference = async ({
 
     const payload = await getVerifiedJWTPayload(get(response.body, "token"), sdkOptions);
 
-    return payload.reference_code;
+    return {
+        code: payload.reference_code,
+        session: get(response.body, "session"),
+    }
 }
 
 export {
