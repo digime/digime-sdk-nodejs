@@ -11,7 +11,7 @@ import { authorize, getVerifiedJWTPayload, refreshToken } from "./authorisation"
 import { handleInvalidatedSdkResponse, net } from "./net";
 import { sign } from "jsonwebtoken";
 import { decryptData, getRandomAlphaNumeric } from "./crypto";
-import { FileMeta, InternalProps } from "./sdk";
+import { FileMeta, InternalProps, Session } from "./sdk";
 import { assertIsCAFileListResponse, CAFileListResponse } from "./types/api/ca-file-list-response";
 import { CAAccountsResponse } from "./types/api/ca-accounts-response";
 import { Response } from "got/dist/source";
@@ -22,6 +22,7 @@ import { sleep } from "./sleep";
 import { isDecodedCAFileHeaderResponse, MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
 import * as zlib from "zlib";
 import base64url from "base64url";
+import { assertIsSession } from "./types/api/session";
 
 const getConsentUrl = ({
     applicationId,
@@ -84,53 +85,46 @@ const prepareFilesUsingAccessToken = async ({
     redirectUri,
     privateKey,
     userAccessToken,
-    session,
     sdkOptions,
 }: PrepareFilesUsingAccessTokenOptions & InternalProps): Promise<UserLibraryAccessResponse> => {
 
+    let session: Session;
+
     // 1. We have an access token, try and trigger a data request
     try {
-        await triggerDataQuery({
+        session = await triggerDataQuery({
             applicationId,
             contractId,
             redirectUri,
             privateKey,
             accessToken: userAccessToken.accessToken,
-            session,
             sdkOptions,
         });
-        return { success: true };
+        return { session };
     } catch (error) { /* Invalid tokens */ }
 
-    // 2. Wasn't successful, try refreshing the token
-    try {
-        const newTokens: UserAccessToken = await refreshToken({
-            applicationId,
-            contractId,
-            redirectUri,
-            privateKey,
-            userAccessToken,
-            sdkOptions,
-        });
+    const newTokens: UserAccessToken = await refreshToken({
+        applicationId,
+        contractId,
+        redirectUri,
+        privateKey,
+        userAccessToken,
+        sdkOptions,
+    });
 
-        await triggerDataQuery({
-            applicationId,
-            contractId,
-            redirectUri,
-            privateKey,
-            accessToken: newTokens.accessToken,
-            session,
-            sdkOptions,
-        });
+    session = await triggerDataQuery({
+        applicationId,
+        contractId,
+        redirectUri,
+        privateKey,
+        accessToken: newTokens.accessToken,
+        sdkOptions,
+    });
 
-        return {
-            success: true,
-            updatedAccessToken: newTokens,
-        };
-    } catch (error) { /* Refresh unsuccessful */ }
-
-    // Invalid access token and refresh unsuccessful.
-    return { success: false }
+    return {
+        session,
+        updatedAccessToken: newTokens,
+    };
 };
 
 interface TriggerDataQueryProps extends Omit<PrepareFilesUsingAccessTokenOptions, "userAccessToken"> {
@@ -143,16 +137,14 @@ const triggerDataQuery = async ({
     redirectUri,
     privateKey,
     accessToken,
-    session,
     sdkOptions,
-}: TriggerDataQueryProps & InternalProps): Promise<void> => {
+}: TriggerDataQueryProps & InternalProps): Promise<Session> => {
     const jwt: string = sign(
         {
             access_token: accessToken,
             client_id: `${applicationId}_${contractId}`,
             nonce: getRandomAlphaNumeric(32),
             redirect_uri: redirectUri,
-            session_key: session.key,
             timestamp: new Date().getTime(),
         },
         privateKey.toString(),
@@ -164,13 +156,18 @@ const triggerDataQuery = async ({
 
     const url = `${sdkOptions.baseUrl}/permission-access/trigger`;
 
-    await net.post(url, {
+    const response = await net.post(url, {
         headers: {
             Authorization: `Bearer ${jwt}`,
             "Content-Type": "application/json", // NOTE: we might not need this
         },
         responseType: "json",
     });
+
+    const session: unknown = get(response, "body.session");
+    assertIsSession(session);
+
+    return session;
 };
 
 const getFileList = async ({

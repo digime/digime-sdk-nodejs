@@ -113,7 +113,7 @@ export interface RefreshTokenOptions extends BasicOAuthOptions {
 }
 
 export interface UserLibraryAccessResponse {
-    success: boolean;
+    session: Session;
     updatedAccessToken?: UserAccessToken;
 }
 
@@ -140,7 +140,6 @@ export interface GuestConsentProps extends Omit<ConsentOnceOptions, "application
 
 export interface PrepareFilesUsingAccessTokenOptions extends BasicOAuthOptions {
     userAccessToken: UserAccessToken;
-    session: Session;
 }
 
 export interface ExchangeAccessTokenForReferenceOptions extends BasicOAuthOptions {
