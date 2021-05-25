@@ -29,7 +29,7 @@ import { isPlainObject, isNonEmptyString } from "./utils";
 import { assertIsSession, Session } from "./types/api/session";
 import { DMESDKConfiguration, assertIsDMESDKConfiguration } from "./types/dme-sdk-configuration";
 import { exchangeCodeForToken } from "./authorisation";
-import { prepareFilesUsingAccessToken, getConsentUrl, getConsentWithAccessTokenUrl, getFileList, getSessionAccounts, getSessionData, getSaasUrl, getFile, exchangeAccessTokenForReference } from "./private-share";
+import { prepareFilesUsingAccessToken, getFileList, getSessionAccounts, getSessionData, getSaasUrl, getFile, exchangeAccessTokenForReference } from "./private-share";
 
 const _establishSession = async ({
     applicationId,
@@ -144,9 +144,6 @@ const init = (options?: Partial<DMESDKConfiguration>) => {
                 getCreatePostboxUrl: (props: ConsentOngoingAccessOptions) => (
                     getCreatePostboxWithAccessTokenUrl({...props, sdkOptions})
                 ),
-                getPrivateShareConsentUrl: (props: ConsentOngoingAccessOptions) => (
-                    getConsentWithAccessTokenUrl({...props, sdkOptions})
-                ),
                 getSaasUrl: (props: SaasOptions) => (
                     getSaasUrl({...props, sdkOptions})
                 ),
@@ -154,9 +151,6 @@ const init = (options?: Partial<DMESDKConfiguration>) => {
             once: {
                 getCreatePostboxUrl: (props: ConsentOnceOptions) => (
                     getCreatePostboxUrl(props)
-                ),
-                getPrivateShareConsentUrl: (props: ConsentOnceOptions) => (
-                    getConsentUrl(props)
                 ),
                 getPrivateShareAsGuestUrl: (props: GuestConsentProps) => (
                     _getGuestUrl({...props, sdkOptions})

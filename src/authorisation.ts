@@ -21,11 +21,13 @@ const authorize = async ({
     privateKey,
     redirectUri,
     state,
+    userAccessToken,
     sdkOptions,
 }: AuthorizeOptions & InternalProps): Promise<AuthorizeResponse> => {
     const codeVerifier: string = base64url(getRandomAlphaNumeric(32));
     const jwt: string = sign(
         {
+            access_token: userAccessToken?.accessToken,
             client_id: `${applicationId}_${contractId}`,
             code_challenge: base64url(hashSha256(codeVerifier)),
             code_challenge_method: "S256",

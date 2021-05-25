@@ -3,9 +3,8 @@
  */
 
 import { TypeValidationError, DigiMeSDKError } from "./errors";
-import { ConsentOnceOptions, ConsentOngoingAccessOptions, GetAuthorizationUrlResponse, GetFileListOptions, GetFileOptions, GetSessionDataOptions, GetSessionDataResponse, PrepareFilesUsingAccessTokenOptions, UserAccessToken, UserDataAccessOptions, UserLibraryAccessResponse, ExchangeAccessTokenForReferenceOptions, SaasOptions, ExchangeCodeResponse} from "./types";
+import { GetAuthorizationUrlResponse, GetFileListOptions, GetFileOptions, GetSessionDataOptions, GetSessionDataResponse, PrepareFilesUsingAccessTokenOptions, UserAccessToken, UserDataAccessOptions, UserLibraryAccessResponse, ExchangeAccessTokenForReferenceOptions, SaasOptions, ExchangeCodeResponse} from "./types";
 import { isNonEmptyString } from "./utils";
-import { getFormattedDeepLink, DigimePaths } from "./paths";
 import { URL, URLSearchParams } from "url";
 import { authorize, getVerifiedJWTPayload, refreshToken } from "./authorisation";
 import { handleInvalidatedSdkResponse, net } from "./net";
@@ -23,61 +22,6 @@ import { isDecodedCAFileHeaderResponse, MappedFileMetadata, RawFileMetadata } fr
 import * as zlib from "zlib";
 import base64url from "base64url";
 import { assertIsSession } from "./types/api/session";
-
-const getConsentUrl = ({
-    applicationId,
-    session,
-    callbackUrl,
-}: ConsentOnceOptions): string => {
-
-    if (!isNonEmptyString(callbackUrl)) {
-        throw new TypeValidationError("Parameter callbackUrl should be a non empty string");
-    }
-
-    return getFormattedDeepLink(DigimePaths.PRIVATE_SHARE, applicationId, new URLSearchParams({
-        callbackUrl,
-        session: session.key,
-    }));
-};
-
-const getConsentWithAccessTokenUrl  = async ({
-    redirectUri,
-    state,
-    applicationId,
-    contractId,
-    privateKey,
-    sdkOptions,
-}: ConsentOngoingAccessOptions & InternalProps): Promise<GetAuthorizationUrlResponse> => {
-
-    if (!isNonEmptyString(applicationId) || !isNonEmptyString(contractId) ||
-        !isNonEmptyString(redirectUri) || !privateKey
-    ) {
-        // tslint:disable-next-line:max-line-length
-        throw new TypeValidationError("Details should be a plain object that contains the properties applicationId, contractId, privateKey and redirectUri");
-    }
-
-    const {code, codeVerifier, session} = await authorize({
-        applicationId,
-        contractId,
-        privateKey,
-        redirectUri,
-        state,
-        sdkOptions,
-    });
-
-    return {
-        url: getFormattedDeepLink(
-            DigimePaths.PRIVATE_SHARE,
-            applicationId,
-            new URLSearchParams({
-                preauthorizationCode: code,
-                callbackUrl: redirectUri,
-            }),
-        ),
-        codeVerifier,
-        session,
-    };
-};
 
 const prepareFilesUsingAccessToken = async ({
     applicationId,
@@ -364,6 +308,7 @@ const getSaasUrl  = async ({
     applicationId,
     contractId,
     privateKey,
+    userAccessToken,
     sdkOptions,
 }: SaasOptions & InternalProps): Promise<GetAuthorizationUrlResponse> => {
 
@@ -385,6 +330,7 @@ const getSaasUrl  = async ({
         redirectUri,
         state,
         sdkOptions,
+        userAccessToken,
     });
 
     const result: URL = new URL(`http://localhost:3000`);
@@ -444,8 +390,6 @@ const exchangeAccessTokenForReference = async ({
 export {
     exchangeAccessTokenForReference,
     prepareFilesUsingAccessToken,
-    getConsentUrl,
-    getConsentWithAccessTokenUrl,
     getFile,
     getFileList,
     getSaasUrl,

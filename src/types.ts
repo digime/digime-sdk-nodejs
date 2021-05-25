@@ -19,6 +19,7 @@ export interface ExchangeCodeResponse {
 }
 
 export interface AuthorizeOptions extends BasicOAuthOptions {
+    userAccessToken?: UserAccessToken;
     state?: any;
 }
 
@@ -122,6 +123,7 @@ export interface PushDataToPostboxResponse extends PushDataToPostboxAPIResponse 
 }
 
 export interface SaasOptions extends BasicOAuthOptions {
+    userAccessToken?: UserAccessToken;
     state?: any;
 }
 
