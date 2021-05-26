@@ -24,12 +24,14 @@ import type {
     GetReceiptOptions,
     ExchangeAccessTokenForReferenceOptions,
     SaasOptions,
+    DiscoveryApiServicesData,
 } from "./types";
 import { isPlainObject, isNonEmptyString } from "./utils";
 import { assertIsSession, Session } from "./types/api/session";
 import { DMESDKConfiguration, assertIsDMESDKConfiguration } from "./types/dme-sdk-configuration";
 import { exchangeCodeForToken } from "./authorisation";
 import { prepareFilesUsingAccessToken, getFileList, getSessionAccounts, getSessionData, getSaasUrl, getFile, exchangeAccessTokenForReference } from "./private-share";
+import { assertIsDiscoveryApiServicesData } from "./types/api/get-discovery-api-services";
 
 const _establishSession = async ({
     applicationId,
@@ -109,6 +111,18 @@ const _getReceiptUrl = ({contractId, applicationId}: GetReceiptOptions) => {
     return `digime://receipt?contractId=${contractId}&appId=${applicationId}`;
 };
 
+const _getDiscoveryApiServicesData = async (sdkOptions: DMESDKConfiguration, contractId?: string)
+    : Promise<DiscoveryApiServicesData> => {
+
+    const response = await net.get(`${sdkOptions.baseUrl}/discovery/services`, {
+        headers: { contractId },
+    }).json();
+
+    assertIsDiscoveryApiServicesData(response);
+
+    return response.data;
+}
+
 interface InternalProps {
     sdkOptions: DMESDKConfiguration
 }
@@ -138,6 +152,9 @@ const init = (options?: Partial<DMESDKConfiguration>) => {
         ),
         exchangeAccessTokenForReference: (props: ExchangeAccessTokenForReferenceOptions) => (
             exchangeAccessTokenForReference({...props, sdkOptions})
+        ),
+        getDiscoveryApiServicesData: (contractId?: string) => (
+            _getDiscoveryApiServicesData(sdkOptions, contractId)
         ),
         authorize: {
             ongoing: {

@@ -13,4 +13,5 @@ export const {
     pull,
     push,
     getReceiptUrl,
+    getDiscoveryApiServicesData,
 } = init();

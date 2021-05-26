@@ -346,7 +346,52 @@ const getSaasUrl  = async ({
     };
 };
 
-const exchangeAccessTokenForReference = async ({
+const exchangeAccessTokenForReference = async (
+    props: ExchangeAccessTokenForReferenceOptions & InternalProps,
+): Promise<ExchangeCodeResponse> => {
+
+    try {
+        return await _exchangeAccessTokenForReference(props);
+    } catch (error) {
+        if (error.response.statusCode !== 401) {
+            throw(error);
+        }
+    }
+
+    const {
+        applicationId,
+        contractId,
+        redirectUri,
+        privateKey,
+        userAccessToken,
+        sdkOptions,
+    } = props;
+
+    const newTokens: UserAccessToken = await refreshToken({
+        applicationId,
+        contractId,
+        redirectUri,
+        privateKey,
+        userAccessToken,
+        sdkOptions,
+    });
+
+    try {
+        const response = await _exchangeAccessTokenForReference({
+            ...props,
+            userAccessToken: newTokens,
+        });
+
+        return {
+            ...response,
+            updatedAccessToken: newTokens,
+        };
+    } catch (error) {
+        throw(error);
+    }
+}
+
+const _exchangeAccessTokenForReference = async ({
     applicationId,
     contractId,
     redirectUri,

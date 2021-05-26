@@ -16,6 +16,7 @@ export interface AuthorizeResponse {
 export interface ExchangeCodeResponse {
     code: string;
     session: Session;
+    updatedAccessToken?: UserAccessToken;
 }
 
 export interface AuthorizeOptions extends BasicOAuthOptions {
@@ -178,3 +179,27 @@ type FileSuccessResult = { data: any } & FileMeta;
 type FileErrorResult = { error: Error } & FileMeta;
 type FileSuccessHandler = (response: FileSuccessResult) => void;
 type FileErrorHandler = (response: FileErrorResult) => void;
+
+export interface DiscoveryService {
+    id: number;
+    name: string;
+    serviceGroups: Array<{ id: number }>;
+    serviceId: number;
+    platform: Record<
+        string,
+        {
+            availability: string;
+            currentStatus: string;
+        }
+    >;
+}
+
+export interface DiscoveryServiceGroup {
+    id: number;
+    name: string;
+}
+
+export interface DiscoveryApiServicesData {
+    serviceGroups: DiscoveryServiceGroup[];
+    services: DiscoveryService[];
+}
