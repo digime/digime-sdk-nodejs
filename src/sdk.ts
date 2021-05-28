@@ -21,22 +21,28 @@ import { prepareFilesUsingAccessToken, readFileList, readSessionAccounts, readSe
 import { getAvailableServices } from "./getAvailableServices";
 import { getAuthorizeUrl, GetAuthorizeUrlProps } from "./authorize";
 import { getOnboardServiceUrl, GetOnboardServiceUrlProps } from "./onboardService";
+import { addTrailingSlash } from "./utils";
 
 interface InternalProps {
     sdkConfig: DMESDKConfiguration
 }
 
 const init = (config: DMESDKConfiguration) => {
-
     assertIsDMESDKConfiguration(config);
 
+    const formatted = {
+        ...config,
+        baseUrl: addTrailingSlash(config.baseUrl),
+        onboardUrl: addTrailingSlash(config.onboardUrl),
+    }
+
     const sdkConfig: DMESDKConfiguration = {
-        baseUrl: "https://api.digi.me/v1.6",
-        onboardUrl: "https://api.digi.me/v1.6",
+        baseUrl:"https://api.digi.me/v1.6/",
+        onboardUrl: "https://api.digi.me/saas/",
         retryOptions: {
             retries: 5,
         },
-        ...config,
+        ...formatted,
     };
 
     return {
@@ -69,7 +75,7 @@ const init = (config: DMESDKConfiguration) => {
         ),
         readSessionAccounts: (props: UserDataAccessOptions) => (
             readSessionAccounts({...props, sdkConfig})
-        )
+        ),
     }
 };
 

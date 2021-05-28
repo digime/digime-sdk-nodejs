@@ -96,7 +96,7 @@ const triggerPush = async ({
         Buffer.from(key, "hex"),
         Buffer.from(JSON.stringify(data.fileDescriptor), "utf8"),
     );
-    const url: string = `${sdkConfig.baseUrl}/permission-access/postbox/${postboxId}`;
+    const url: string = `${sdkConfig.baseUrl}permission-access/postbox/${postboxId}`;
     const form: FormData = new FormData();
     form.append("file", encryptedData, data.fileName);
 

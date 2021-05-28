@@ -1,3 +1,7 @@
+/*!
+ * Copyright (c) 2009-2021 digi.me Limited. All rights reserved.
+ */
+
 import { refreshToken } from "../authorisation";
 import { InternalProps } from "../sdk";
 import { RefreshTokenOptions } from "../types";
@@ -5,7 +9,7 @@ import { UserAccessToken } from "../types/user-access-token";
 
 export const refreshTokenWrapper = async <Args extends RefreshTokenOptions & InternalProps, Return>(
     operation: (operationParameters: Args) => Return,
-    prop: Args
+    prop: Args,
 ): Promise<Return> => {
     try {
         return await operation(prop);
@@ -22,6 +26,6 @@ export const refreshTokenWrapper = async <Args extends RefreshTokenOptions & Int
 
     return await operation({
         ...prop,
-        userAccessToken: newTokens
+        userAccessToken: newTokens,
     });
 }

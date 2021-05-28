@@ -16,7 +16,7 @@ const getAvailableServices = async ({
     sdkConfig,
 }: Props & InternalProps): Promise<DiscoveryApiServicesData> => {
 
-    const response = await net.get(`${sdkConfig.baseUrl}/discovery/services`, {
+    const response = await net.get(`${sdkConfig.baseUrl}discovery/services`, {
         headers: { contractId },
     }).json();
 

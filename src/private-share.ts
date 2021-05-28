@@ -79,7 +79,7 @@ const triggerDataQuery = async ({
         },
     );
 
-    const url = `${sdkConfig.baseUrl}/permission-access/trigger`;
+    const url = `${sdkConfig.baseUrl}permission-access/trigger`;
 
     const response = await net.post(url, {
         headers: {
@@ -99,7 +99,7 @@ const readFileList = async ({
     sessionKey,
     sdkConfig,
 }: GetFileListOptions & InternalProps): Promise<CAFileListResponse> => {
-    const url = `${sdkConfig.baseUrl}/permission-access/query/${sessionKey}`;
+    const url = `${sdkConfig.baseUrl}permission-access/query/${sessionKey}`;
     const response = await net.get(url, {
         responseType: "json",
         retry: sdkConfig.retryOptions,
@@ -159,7 +159,7 @@ const fetchFile = async ({
     let response: Response<unknown>;
 
     try {
-        response = await net.get(`${sdkConfig.baseUrl}/permission-access/query/${sessionKey}/${fileName}`, {
+        response = await net.get(`${sdkConfig.baseUrl}permission-access/query/${sessionKey}/${fileName}`, {
             headers: {
                 accept: "application/octet-stream",
             },

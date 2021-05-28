@@ -25,8 +25,8 @@ export const GetAuthorizeUrlPropsCodec: t.Type<GetAuthorizeUrlProps> = t.interse
     t.partial({
         serviceId: t.number,
         userAccessToken: UserAccessTokenCodec,
-        state: t.string
-    })
+        state: t.string,
+    }),
 ]);
 
 
@@ -51,7 +51,7 @@ const getAuthorizeUrl = async ({
         sdkConfig,
     });
 
-    const result: URL = new URL("/authorize", `${sdkConfig.onboardUrl}`);
+    const result: URL = new URL(`${sdkConfig.onboardUrl}authorize`);
     result.search = new URLSearchParams({
         code,
         errorCallback: props.errorCallback,
@@ -68,5 +68,5 @@ const getAuthorizeUrl = async ({
 
 export {
     getAuthorizeUrl,
-    GetAuthorizeUrlProps
+    GetAuthorizeUrlProps,
 };

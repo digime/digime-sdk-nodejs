@@ -44,7 +44,7 @@ const authorize = async ({
     );
 
     try {
-        const {body} = await net.post(`${sdkConfig.baseUrl}/oauth/authorize`, {
+        const {body} = await net.post(`${sdkConfig.baseUrl}oauth/authorize`, {
             headers: {
                 Authorization: `Bearer ${jwt}`,
             },
@@ -98,7 +98,7 @@ const exchangeCodeForToken = async ({
     );
 
     try {
-        const response = await net.post(`${sdkConfig.baseUrl}/oauth/token`, {
+        const response = await net.post(`${sdkConfig.baseUrl}oauth/token`, {
             headers: {
                 Authorization: `Bearer ${jwt}`,
             },
@@ -139,7 +139,7 @@ const refreshToken = async ({
         },
     );
 
-    const url = `${sdkConfig.baseUrl}/oauth/token`;
+    const url = `${sdkConfig.baseUrl}oauth/token`;
 
     try {
         const response = await net.post(url, {

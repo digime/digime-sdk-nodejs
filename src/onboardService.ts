@@ -25,7 +25,7 @@ export const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlProps> = t.ty
     errorCallback: t.string,
     successCallback: t.string,
     userAccessToken: UserAccessTokenCodec,
-    serviceId: t.number
+    serviceId: t.number,
 });
 
 export interface GetOnboardServiceUrlResponse {
@@ -35,7 +35,7 @@ export interface GetOnboardServiceUrlResponse {
 }
 
 const _getOnboardServiceUrl = async (
-    {sdkConfig, ...props}: GetOnboardServiceUrlProps & InternalProps
+    {sdkConfig, ...props}: GetOnboardServiceUrlProps & InternalProps,
 ): Promise<GetOnboardServiceUrlResponse> => {
     if (!GetOnboardServiceUrlCodec.is(props)) {
         throw new Error("Error on getOnboardServiceUrl(). Incorrect parameters passed in.")
@@ -59,7 +59,7 @@ const _getOnboardServiceUrl = async (
         },
     );
 
-    const response = await net.post(`${sdkConfig.baseUrl}/oauth/token/reference`, {
+    const response = await net.post(`${sdkConfig.baseUrl}oauth/token/reference`, {
         headers: {
             Authorization: `Bearer ${jwt}`,
             "Content-Type": "application/json",
@@ -71,7 +71,7 @@ const _getOnboardServiceUrl = async (
     const code = payload.reference_code;
     const session = get(response.body, "session");
 
-    const result: URL = new URL("/onboard", `${sdkConfig.onboardUrl}`);
+    const result: URL = new URL(`${sdkConfig.onboardUrl}onboard`);
     result.search = new URLSearchParams({
         code,
         successCallback: props.successCallback,
