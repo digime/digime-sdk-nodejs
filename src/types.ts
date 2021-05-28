@@ -6,6 +6,7 @@ import NodeRSA from "node-rsa";
 import { Session } from "./sdk";
 import { MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
 import { PushDataToPostboxAPIResponse } from "./types/api/postbox-response";
+import { UserAccessToken } from "./types/user-access-token";
 
 export interface AuthorizeResponse {
     codeVerifier: string;
@@ -13,13 +14,7 @@ export interface AuthorizeResponse {
     session: Session;
 }
 
-export interface ExchangeCodeResponse {
-    code: string;
-    session: Session;
-    updatedAccessToken?: UserAccessToken;
-}
-
-export interface AuthorizeOptions extends BasicOAuthOptions {
+export interface AuthorizeOptions {
     userAccessToken?: UserAccessToken;
     state?: any;
 }
@@ -73,31 +68,12 @@ export interface GetSessionDataResponse {
     filePromise: Promise<any>;
 }
 
-export interface UserAccessToken {
-    accessToken: string;
-    refreshToken: string;
-    expiry: number;
-}
-
-export interface BasicOAuthOptions {
-    applicationId: string;
-    contractId: string;
-    privateKey: NodeRSA.Key;
-    redirectUri: string;
-}
-
-export interface EstablishSessionOptions {
-    applicationId: string;
-    contractId: string;
-    scope?: CAScope;
-}
-
 export interface GetReceiptOptions {
     applicationId: string;
     contractId: string;
 }
 
-export interface PushDataToPostboxOptions extends BasicOAuthOptions {
+export interface PushDataToPostboxOptions{
     userAccessToken?: UserAccessToken;
     data: PushedFileMeta;
     publicKey: NodeRSA.Key;
@@ -105,12 +81,12 @@ export interface PushDataToPostboxOptions extends BasicOAuthOptions {
     sessionKey: string;
 }
 
-export interface ExchangeCodeForTokenOptions extends BasicOAuthOptions {
+export interface ExchangeCodeForTokenOptions {
     codeVerifier?: string;
     authorizationCode: string,
 }
 
-export interface RefreshTokenOptions extends BasicOAuthOptions {
+export interface RefreshTokenOptions {
     userAccessToken: UserAccessToken;
 }
 
@@ -123,29 +99,7 @@ export interface PushDataToPostboxResponse extends PushDataToPostboxAPIResponse 
     updatedAccessToken?: UserAccessToken;
 }
 
-export interface SaasOptions extends BasicOAuthOptions {
-    userAccessToken?: UserAccessToken;
-    state?: any;
-}
-
-export interface ConsentOngoingAccessOptions extends BasicOAuthOptions {
-    state?: any;
-    session: Session;
-}
-
-export interface ConsentOnceOptions {
-    callbackUrl?: any;
-    session: Session;
-    applicationId: string;
-}
-
-export interface GuestConsentProps extends Omit<ConsentOnceOptions, "applicationId"> {}
-
-export interface PrepareFilesUsingAccessTokenOptions extends BasicOAuthOptions {
-    userAccessToken: UserAccessToken;
-}
-
-export interface ExchangeAccessTokenForReferenceOptions extends BasicOAuthOptions {
+export interface PrepareFilesUsingAccessTokenOptions {
     userAccessToken: UserAccessToken;
 }
 

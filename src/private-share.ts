@@ -3,10 +3,9 @@
  */
 
 import { TypeValidationError, DigiMeSDKError } from "./errors";
-import { GetAuthorizationUrlResponse, GetFileListOptions, GetFileOptions, GetSessionDataOptions, GetSessionDataResponse, PrepareFilesUsingAccessTokenOptions, UserAccessToken, UserDataAccessOptions, UserLibraryAccessResponse, ExchangeAccessTokenForReferenceOptions, SaasOptions, ExchangeCodeResponse} from "./types";
+import { GetFileListOptions, GetFileOptions, GetSessionDataOptions, GetSessionDataResponse, PrepareFilesUsingAccessTokenOptions, UserDataAccessOptions, UserLibraryAccessResponse} from "./types";
 import { isNonEmptyString } from "./utils";
-import { URL, URLSearchParams } from "url";
-import { authorize, getVerifiedJWTPayload, refreshToken } from "./authorisation";
+import { refreshToken } from "./authorisation";
 import { handleInvalidatedSdkResponse, net } from "./net";
 import { sign } from "jsonwebtoken";
 import { decryptData, getRandomAlphaNumeric } from "./crypto";
@@ -22,14 +21,11 @@ import { isDecodedCAFileHeaderResponse, MappedFileMetadata, RawFileMetadata } fr
 import * as zlib from "zlib";
 import base64url from "base64url";
 import { assertIsSession } from "./types/api/session";
+import { UserAccessToken } from "./types/user-access-token";
 
 const prepareFilesUsingAccessToken = async ({
-    applicationId,
-    contractId,
-    redirectUri,
-    privateKey,
     userAccessToken,
-    sdkOptions,
+    sdkConfig,
 }: PrepareFilesUsingAccessTokenOptions & InternalProps): Promise<UserLibraryAccessResponse> => {
 
     let session: Session;
@@ -37,32 +33,20 @@ const prepareFilesUsingAccessToken = async ({
     // 1. We have an access token, try and trigger a data request
     try {
         session = await triggerDataQuery({
-            applicationId,
-            contractId,
-            redirectUri,
-            privateKey,
             accessToken: userAccessToken.accessToken,
-            sdkOptions,
+            sdkConfig,
         });
         return { session };
     } catch (error) { /* Invalid tokens */ }
 
     const newTokens: UserAccessToken = await refreshToken({
-        applicationId,
-        contractId,
-        redirectUri,
-        privateKey,
         userAccessToken,
-        sdkOptions,
+        sdkConfig,
     });
 
     session = await triggerDataQuery({
-        applicationId,
-        contractId,
-        redirectUri,
-        privateKey,
         accessToken: newTokens.accessToken,
-        sdkOptions,
+        sdkConfig,
     });
 
     return {
@@ -76,13 +60,10 @@ interface TriggerDataQueryProps extends Omit<PrepareFilesUsingAccessTokenOptions
 }
 
 const triggerDataQuery = async ({
-    applicationId,
-    contractId,
-    redirectUri,
-    privateKey,
     accessToken,
-    sdkOptions,
+    sdkConfig,
 }: TriggerDataQueryProps & InternalProps): Promise<Session> => {
+    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authConfig;
     const jwt: string = sign(
         {
             access_token: accessToken,
@@ -98,7 +79,7 @@ const triggerDataQuery = async ({
         },
     );
 
-    const url = `${sdkOptions.baseUrl}/permission-access/trigger`;
+    const url = `${sdkConfig.baseUrl}/permission-access/trigger`;
 
     const response = await net.post(url, {
         headers: {
@@ -114,14 +95,14 @@ const triggerDataQuery = async ({
     return session;
 };
 
-const getFileList = async ({
+const readFileList = async ({
     sessionKey,
-    sdkOptions,
+    sdkConfig,
 }: GetFileListOptions & InternalProps): Promise<CAFileListResponse> => {
-    const url = `${sdkOptions.baseUrl}/permission-access/query/${sessionKey}`;
+    const url = `${sdkConfig.baseUrl}/permission-access/query/${sessionKey}`;
     const response = await net.get(url, {
         responseType: "json",
-        retry: sdkOptions.retryOptions,
+        retry: sdkConfig.retryOptions,
     });
 
     assertIsCAFileListResponse(response.body);
@@ -129,18 +110,18 @@ const getFileList = async ({
     return response.body;
 };
 
-const getFile = async ({
+const readFile = async ({
     sessionKey,
     fileName,
     privateKey,
-    sdkOptions,
+    sdkConfig,
 }: GetFileOptions & InternalProps ): Promise<FileMeta> => {
 
     if (!isNonEmptyString(sessionKey)) {
         throw new TypeValidationError("Parameter sessionKey should be a non empty string");
     }
 
-    const response = await fetchFile({sessionKey, fileName, sdkOptions});
+    const response = await fetchFile({sessionKey, fileName, sdkConfig});
     const { compression, fileContent, fileMetadata } = response;
     const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
     let data: Buffer = decryptData(key, fileContent);
@@ -172,13 +153,13 @@ interface FetchFileProps {
 const fetchFile = async ({
     sessionKey,
     fileName,
-    sdkOptions,
+    sdkConfig,
 }: FetchFileProps & InternalProps): Promise<FetchFileResponse> => {
 
     let response: Response<unknown>;
 
     try {
-        response = await net.get(`${sdkOptions.baseUrl}/permission-access/query/${sessionKey}/${fileName}`, {
+        response = await net.get(`${sdkConfig.baseUrl}/permission-access/query/${sessionKey}/${fileName}`, {
             headers: {
                 accept: "application/octet-stream",
             },
@@ -204,12 +185,12 @@ const fetchFile = async ({
     };
 };
 
-const getSessionData = ({
+const readSessionData = ({
     sessionKey,
     privateKey,
     onFileData,
     onFileError,
-    sdkOptions,
+    sdkConfig,
 }: GetSessionDataOptions & InternalProps ): GetSessionDataResponse => {
 
     if (!isNonEmptyString(sessionKey)) {
@@ -224,7 +205,7 @@ const getSessionData = ({
         let state: CAFileListResponse["status"]["state"] = "pending";
 
         while (allowPollingToContinue && state !== "partial" && state !== "completed") {
-            const { status, fileList }: CAFileListResponse = await getFileList({sessionKey, sdkOptions});
+            const { status, fileList }: CAFileListResponse = await readFileList({sessionKey, sdkConfig});
             state = status.state;
 
             if (state === "pending") {
@@ -244,7 +225,7 @@ const getSessionData = ({
             }, []);
 
             const newPromises = newFiles.map((fileName: string) => {
-                return getFile({sessionKey, fileName, privateKey, sdkOptions}).then((fileMeta) => {
+                return readFile({sessionKey, fileName, privateKey, sdkConfig}).then((fileMeta) => {
 
                     if (isFunction(onFileData)) {
                         onFileData({...fileMeta, fileList});
@@ -279,17 +260,17 @@ const getSessionData = ({
     });
 };
 
-const getSessionAccounts = async ({
+const readSessionAccounts = async ({
     sessionKey,
     privateKey,
-    sdkOptions,
+    sdkConfig,
 }: UserDataAccessOptions & InternalProps): Promise<Pick<CAAccountsResponse, "accounts">> => {
 
-    const {fileData} = await getFile({
+    const {fileData} = await readFile({
         sessionKey,
         fileName: "accounts.json",
         privateKey,
-        sdkOptions,
+        sdkConfig,
     });
 
     try {
@@ -302,142 +283,10 @@ const getSessionAccounts = async ({
     }
 };
 
-const getSaasUrl  = async ({
-    redirectUri,
-    state,
-    applicationId,
-    contractId,
-    privateKey,
-    userAccessToken,
-    sdkOptions,
-}: SaasOptions & InternalProps): Promise<GetAuthorizationUrlResponse> => {
-
-    if (!isNonEmptyString(applicationId) || !isNonEmptyString(contractId) ||
-        !isNonEmptyString(redirectUri) || !privateKey
-    ) {
-        // tslint:disable-next-line:max-line-length
-        throw new TypeValidationError("Details should be a plain object that contains the properties applicationId, contractId, privateKey and redirectUri");
-    }
-
-    const {
-        code,
-        codeVerifier,
-        session,
-    } = await authorize({
-        applicationId,
-        contractId,
-        privateKey,
-        redirectUri,
-        state,
-        sdkOptions,
-        userAccessToken,
-    });
-
-    const result: URL = new URL(`http://localhost:3000`);
-    result.search = new URLSearchParams({
-        code,
-        callback: redirectUri,
-    }).toString();
-
-    return {
-        url: result.toString(),
-        codeVerifier,
-        session,
-    };
-};
-
-const exchangeAccessTokenForReference = async (
-    props: ExchangeAccessTokenForReferenceOptions & InternalProps,
-): Promise<ExchangeCodeResponse> => {
-
-    try {
-        return await _exchangeAccessTokenForReference(props);
-    } catch (error) {
-        if (error.response.statusCode !== 401) {
-            throw(error);
-        }
-    }
-
-    const {
-        applicationId,
-        contractId,
-        redirectUri,
-        privateKey,
-        userAccessToken,
-        sdkOptions,
-    } = props;
-
-    const newTokens: UserAccessToken = await refreshToken({
-        applicationId,
-        contractId,
-        redirectUri,
-        privateKey,
-        userAccessToken,
-        sdkOptions,
-    });
-
-    try {
-        const response = await _exchangeAccessTokenForReference({
-            ...props,
-            userAccessToken: newTokens,
-        });
-
-        return {
-            ...response,
-            updatedAccessToken: newTokens,
-        };
-    } catch (error) {
-        throw(error);
-    }
-}
-
-const _exchangeAccessTokenForReference = async ({
-    applicationId,
-    contractId,
-    redirectUri,
-    privateKey,
-    userAccessToken,
-    sdkOptions,
-}: ExchangeAccessTokenForReferenceOptions & InternalProps): Promise<ExchangeCodeResponse> => {
-    const jwt: string = sign(
-        {
-            access_token: userAccessToken.accessToken,
-            client_id: `${applicationId}_${contractId}`,
-            nonce: getRandomAlphaNumeric(32),
-            redirect_uri: redirectUri,
-            timestamp: new Date().getTime(),
-        },
-        privateKey.toString(),
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        },
-    );
-
-    const url = `${sdkOptions.baseUrl}/oauth/token/reference`;
-
-    const response = await net.post(url, {
-        headers: {
-            Authorization: `Bearer ${jwt}`,
-            "Content-Type": "application/json", // NOTE: we might not need this
-        },
-        responseType: "json",
-    });
-
-    const payload = await getVerifiedJWTPayload(get(response.body, "token"), sdkOptions);
-
-    return {
-        code: payload.reference_code,
-        session: get(response.body, "session"),
-    }
-}
-
 export {
-    exchangeAccessTokenForReference,
     prepareFilesUsingAccessToken,
-    getFile,
-    getFileList,
-    getSaasUrl,
-    getSessionAccounts,
-    getSessionData,
+    readFile,
+    readFileList,
+    readSessionAccounts,
+    readSessionData,
 };

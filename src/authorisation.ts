@@ -5,7 +5,7 @@
 import { decode, sign, verify } from "jsonwebtoken";
 import { getRandomAlphaNumeric, hashSha256 } from "./crypto";
 import { AccessTokenExchangeError, JWTVerificationError, OAuthError, TypeValidationError } from "./errors";
-import { AuthorizeOptions, AuthorizeResponse, ExchangeCodeForTokenOptions, RefreshTokenOptions, UserAccessToken } from "./types";
+import { AuthorizeOptions, AuthorizeResponse, ExchangeCodeForTokenOptions, RefreshTokenOptions } from "./types";
 import { isPlainObject, isNonEmptyString } from "./utils";
 import { handleInvalidatedSdkResponse, net } from "./net";
 import { DMESDKConfiguration, InternalProps } from "./sdk";
@@ -14,16 +14,14 @@ import { isJWKS } from "./types/api/jwks";
 import get from "lodash.get";
 import base64url from "base64url";
 import { HTTPError } from "got/dist/source";
+import { UserAccessToken } from "./types/user-access-token";
 
 const authorize = async ({
-    applicationId,
-    contractId,
-    privateKey,
-    redirectUri,
     state,
     userAccessToken,
-    sdkOptions,
+    sdkConfig,
 }: AuthorizeOptions & InternalProps): Promise<AuthorizeResponse> => {
+    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authConfig;
     const codeVerifier: string = base64url(getRandomAlphaNumeric(32));
     const jwt: string = sign(
         {
@@ -46,15 +44,15 @@ const authorize = async ({
     );
 
     try {
-        const {body} = await net.post(`${sdkOptions.baseUrl}/oauth/authorize`, {
+        const {body} = await net.post(`${sdkConfig.baseUrl}/oauth/authorize`, {
             headers: {
                 Authorization: `Bearer ${jwt}`,
             },
             responseType: "json",
-            retry: sdkOptions.retryOptions,
+            retry: sdkConfig.retryOptions,
         });
 
-        const payload = await getVerifiedJWTPayload(get(body, "token"), sdkOptions);
+        const payload = await getVerifiedJWTPayload(get(body, "token"), sdkConfig);
         return {
             codeVerifier,
             code: `${payload.preauthorization_code}`,
@@ -67,21 +65,12 @@ const authorize = async ({
 };
 
 const exchangeCodeForToken = async ({
-    applicationId,
-    contractId,
-    privateKey,
-    redirectUri,
     authorizationCode,
     codeVerifier,
-    sdkOptions,
+    sdkConfig,
 }: ExchangeCodeForTokenOptions & InternalProps): Promise<UserAccessToken> => {
 
-    if (!isNonEmptyString(applicationId) || !isNonEmptyString(contractId) ||
-        !isNonEmptyString(redirectUri) || !isNonEmptyString(privateKey)
-    ) {
-        // tslint:disable-next-line:max-line-length
-        throw new TypeValidationError("Details should be a plain object that contains the properties applicationId, contractId, privateKey and redirectUri");
-    }
+    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authConfig;
 
     if (!isNonEmptyString(authorizationCode)) {
         throw new TypeValidationError("Authorization code cannot be empty");
@@ -109,15 +98,15 @@ const exchangeCodeForToken = async ({
     );
 
     try {
-        const response = await net.post(`${sdkOptions.baseUrl}/oauth/token`, {
+        const response = await net.post(`${sdkConfig.baseUrl}/oauth/token`, {
             headers: {
                 Authorization: `Bearer ${jwt}`,
             },
             responseType: "json",
-            retry: sdkOptions.retryOptions,
+            retry: sdkConfig.retryOptions,
         });
 
-        const payload = await getVerifiedJWTPayload(get(response.body, "token"), sdkOptions);
+        const payload = await getVerifiedJWTPayload(get(response.body, "token"), sdkConfig);
 
         return {
             accessToken: `${payload.access_token}`,
@@ -130,13 +119,10 @@ const exchangeCodeForToken = async ({
 };
 
 const refreshToken = async ({
-    applicationId,
-    contractId,
-    privateKey,
-    redirectUri,
     userAccessToken,
-    sdkOptions,
+    sdkConfig,
 }: RefreshTokenOptions & InternalProps): Promise<UserAccessToken> => {
+    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authConfig;
     const jwt: string = sign(
         {
             client_id: `${applicationId}_${contractId}`,
@@ -153,7 +139,7 @@ const refreshToken = async ({
         },
     );
 
-    const url = `${sdkOptions.baseUrl}/oauth/token`;
+    const url = `${sdkConfig.baseUrl}/oauth/token`;
 
     try {
         const response = await net.post(url, {
@@ -164,7 +150,7 @@ const refreshToken = async ({
             responseType: "json",
         });
 
-        const payload = await getVerifiedJWTPayload(get(response.body, "token"), sdkOptions);
+        const payload = await getVerifiedJWTPayload(get(response.body, "token"), sdkConfig);
         return {
             accessToken: `${payload.access_token}`,
             refreshToken: `${payload.refresh_token}`,
