@@ -41,7 +41,7 @@ const prepareFilesUsingAccessToken = async ({
             contractId,
             redirectUri,
             privateKey,
-            accessToken: userAccessToken.accessToken,
+            accessToken: userAccessToken.accessToken.value,
             sdkOptions,
         });
         return { session };
@@ -61,7 +61,7 @@ const prepareFilesUsingAccessToken = async ({
         contractId,
         redirectUri,
         privateKey,
-        accessToken: newTokens.accessToken,
+        accessToken: newTokens.accessToken.value,
         sdkOptions,
     });
 
@@ -401,7 +401,7 @@ const _exchangeAccessTokenForReference = async ({
 }: ExchangeAccessTokenForReferenceOptions & InternalProps): Promise<ExchangeCodeResponse> => {
     const jwt: string = sign(
         {
-            access_token: userAccessToken.accessToken,
+            access_token: userAccessToken.accessToken.value,
             client_id: `${applicationId}_${contractId}`,
             nonce: getRandomAlphaNumeric(32),
             redirect_uri: redirectUri,

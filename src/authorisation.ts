@@ -27,7 +27,7 @@ const authorize = async ({
     const codeVerifier: string = base64url(getRandomAlphaNumeric(32));
     const jwt: string = sign(
         {
-            access_token: userAccessToken?.accessToken,
+            access_token: userAccessToken?.accessToken.value,
             client_id: `${applicationId}_${contractId}`,
             code_challenge: base64url(hashSha256(codeVerifier)),
             code_challenge_method: "S256",
@@ -120,9 +120,14 @@ const exchangeCodeForToken = async ({
         const payload = await getVerifiedJWTPayload(get(response.body, "token"), sdkOptions);
 
         return {
-            accessToken: `${payload.access_token}`,
-            refreshToken: `${payload.refresh_token}`,
-            expiry: payload.expires_on,
+            accessToken: {
+                value: payload.access_token.value,
+                expiry: payload.access_token.expires_on
+            },
+            refreshToken: {
+                value: payload.refresh_token .value,
+                expiry: payload.refresh_token .expires_on
+            }
         };
     } catch (error) {
         throw new AccessTokenExchangeError("Failed to exchange authorization code to access token.");
@@ -166,9 +171,14 @@ const refreshToken = async ({
 
         const payload = await getVerifiedJWTPayload(get(response.body, "token"), sdkOptions);
         return {
-            accessToken: `${payload.access_token}`,
-            refreshToken: `${payload.refresh_token}`,
-            expiry: payload.expires_on,
+            accessToken: {
+                value: payload.access_token.value,
+                expiry: payload.access_token.expires_on
+            },
+            refreshToken: {
+                value: payload.refresh_token .value,
+                expiry: payload.refresh_token .expires_on
+            }
         };
 
     } catch (error) {

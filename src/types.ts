@@ -74,9 +74,8 @@ export interface GetSessionDataResponse {
 }
 
 export interface UserAccessToken {
-    accessToken: string;
-    refreshToken: string;
-    expiry: number;
+    accessToken: { expiry: number; value: string };
+    refreshToken: { expiry: number; value: string };
 }
 
 export interface BasicOAuthOptions {
