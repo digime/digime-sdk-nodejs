@@ -122,12 +122,12 @@ const exchangeCodeForToken = async ({
         return {
             accessToken: {
                 value: payload.access_token.value,
-                expiry: payload.access_token.expires_on
+                expiry: payload.access_token.expires_on,
             },
             refreshToken: {
                 value: payload.refresh_token .value,
-                expiry: payload.refresh_token .expires_on
-            }
+                expiry: payload.refresh_token .expires_on,
+            },
         };
     } catch (error) {
         throw new AccessTokenExchangeError("Failed to exchange authorization code to access token.");
@@ -173,12 +173,12 @@ const refreshToken = async ({
         return {
             accessToken: {
                 value: payload.access_token.value,
-                expiry: payload.access_token.expires_on
+                expiry: payload.access_token.expires_on,
             },
             refreshToken: {
                 value: payload.refresh_token .value,
-                expiry: payload.refresh_token .expires_on
-            }
+                expiry: payload.refresh_token .expires_on,
+            },
         };
 
     } catch (error) {
