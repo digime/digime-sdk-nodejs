@@ -92,7 +92,7 @@ const pushDataToPostbox = async ({
     sdkOptions,
 }: PushDataToPostboxOptions & InternalProps): Promise<PushDataToPostboxResponse> => {
 
-    if (!areNonEmptyStrings([applicationId, contractId, sessionKey, publicKey, redirectUri, privateKey, postboxId])) {
+    if (!areNonEmptyStrings([applicationId, contractId, publicKey, redirectUri, privateKey, postboxId])) {
         // tslint:disable-next-line:max-line-length
         throw new TypeValidationError("pushDataToPostbox requires the following properties to be set: applicationId, contractId, redirectUri, postboxId, publicKey, privateKey, sessionKey");
     }

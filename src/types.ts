@@ -97,11 +97,11 @@ export interface GetReceiptOptions {
 }
 
 export interface PushDataToPostboxOptions extends BasicOAuthOptions {
-    userAccessToken?: UserAccessToken;
     data: PushedFileMeta;
     publicKey: NodeRSA.Key;
     postboxId: string;
-    sessionKey: string;
+    userAccessToken: UserAccessToken;
+    sessionKey?: string;
 }
 
 export interface ExchangeCodeForTokenOptions extends BasicOAuthOptions {
