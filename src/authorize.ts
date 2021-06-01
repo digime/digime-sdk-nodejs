@@ -29,7 +29,6 @@ export const GetAuthorizeUrlPropsCodec: t.Type<GetAuthorizeUrlProps> = t.interse
     }),
 ]);
 
-
 export interface GetAuthorizationUrlResponse {
     url: string;
     codeVerifier: string;
@@ -56,7 +55,7 @@ const getAuthorizeUrl = async ({
         code,
         errorCallback: props.errorCallback,
         successCallback: sdkConfig.authConfig.redirectUri,
-        serviceId: props.serviceId?.toString(),
+        service: props.serviceId?.toString(),
     }).toString();
 
     return {
