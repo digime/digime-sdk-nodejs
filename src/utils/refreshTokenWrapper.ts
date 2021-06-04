@@ -3,11 +3,11 @@
  */
 
 import { refreshToken } from "../authorisation";
-import { InternalProps } from "../sdk";
+import { SDKConfigProps } from "../sdk";
 import { RefreshTokenOptions } from "../types";
 import { UserAccessToken } from "../types/user-access-token";
 
-export const refreshTokenWrapper = async <Args extends RefreshTokenOptions & InternalProps, Return>(
+export const refreshTokenWrapper = async <Args extends RefreshTokenOptions & SDKConfigProps, Return>(
     operation: (operationParameters: Args) => Return,
     prop: Args,
 ): Promise<Return> => {

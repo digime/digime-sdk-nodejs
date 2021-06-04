@@ -6,17 +6,17 @@ import NodeRSA from "node-rsa";
 import { Session } from "./sdk";
 import { MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
 import { PushDataToPostboxAPIResponse } from "./types/api/postbox-response";
+import { BasicOAuthOptions } from "./types/common";
 import { UserAccessToken } from "./types/user-access-token";
+
+export interface Authorization {
+    authorizationConfig: BasicOAuthOptions;
+}
 
 export interface AuthorizeResponse {
     codeVerifier: string;
     code: string;
     session: Session;
-}
-
-export interface AuthorizeOptions {
-    userAccessToken?: UserAccessToken;
-    state?: any;
 }
 
 export interface CAScope {
@@ -74,11 +74,11 @@ export interface GetReceiptOptions {
 }
 
 export interface PushDataToPostboxOptions{
-    userAccessToken?: UserAccessToken;
+    userAccessToken: UserAccessToken;
     data: PushedFileMeta;
     publicKey: NodeRSA.Key;
     postboxId: string;
-    sessionKey: string;
+    sessionKey?: string;
 }
 
 export interface ExchangeCodeForTokenOptions {
@@ -157,3 +157,5 @@ export interface DiscoveryApiServicesData {
     serviceGroups: DiscoveryServiceGroup[];
     services: DiscoveryService[];
 }
+
+export { UserAccessToken };

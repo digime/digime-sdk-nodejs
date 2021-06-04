@@ -4,16 +4,27 @@
 
 import * as t from "io-ts";
 
-export interface UserAccessToken {
-    accessToken: string;
-    refreshToken: string;
+interface Token {
     expiry: number;
+    value: string;
 }
 
-export const UserAccessTokenCodec: t.Type<UserAccessToken> = t.type({
-    accessToken: t.string,
-    refreshToken: t.string,
+interface UserAccessToken {
+    accessToken: Token;
+    refreshToken: Token;
+}
+
+const TokenCodec: t.Type<Token> = t.type({
     expiry: t.number,
+    value: t.string,
 });
 
+const UserAccessTokenCodec: t.Type<UserAccessToken> = t.type({
+    accessToken: TokenCodec,
+    refreshToken: TokenCodec,
+});
 
+export {
+    UserAccessToken,
+    UserAccessTokenCodec
+}

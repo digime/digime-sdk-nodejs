@@ -3,74 +3,25 @@
  */
 
 import { decode, sign, verify } from "jsonwebtoken";
-import { getRandomAlphaNumeric, hashSha256 } from "./crypto";
+import { getRandomAlphaNumeric } from "./crypto";
 import { AccessTokenExchangeError, JWTVerificationError, OAuthError, TypeValidationError } from "./errors";
-import { AuthorizeOptions, AuthorizeResponse, ExchangeCodeForTokenOptions, RefreshTokenOptions } from "./types";
+import { ExchangeCodeForTokenOptions, RefreshTokenOptions } from "./types";
 import { isPlainObject, isNonEmptyString } from "./utils";
-import { handleInvalidatedSdkResponse, net } from "./net";
-import { DMESDKConfiguration, InternalProps } from "./sdk";
+import { net } from "./net";
+import { DMESDKConfiguration, SDKConfigProps } from "./sdk";
 import isString from "lodash.isstring";
 import { isJWKS } from "./types/api/jwks";
 import get from "lodash.get";
-import base64url from "base64url";
 import { HTTPError } from "got/dist/source";
 import { UserAccessToken } from "./types/user-access-token";
-
-const authorize = async ({
-    state,
-    userAccessToken,
-    sdkConfig,
-}: AuthorizeOptions & InternalProps): Promise<AuthorizeResponse> => {
-    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authConfig;
-    const codeVerifier: string = base64url(getRandomAlphaNumeric(32));
-    const jwt: string = sign(
-        {
-            access_token: userAccessToken?.accessToken,
-            client_id: `${applicationId}_${contractId}`,
-            code_challenge: base64url(hashSha256(codeVerifier)),
-            code_challenge_method: "S256",
-            nonce: getRandomAlphaNumeric(32),
-            redirect_uri: redirectUri,
-            response_mode: "query",
-            response_type: "code",
-            state,
-            timestamp: new Date().getTime(),
-        },
-        privateKey.toString(),
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        },
-    );
-
-    try {
-        const {body} = await net.post(`${sdkConfig.baseUrl}oauth/authorize`, {
-            headers: {
-                Authorization: `Bearer ${jwt}`,
-            },
-            responseType: "json",
-            retry: sdkConfig.retryOptions,
-        });
-
-        const payload = await getVerifiedJWTPayload(get(body, "token"), sdkConfig);
-        return {
-            codeVerifier,
-            code: `${payload.preauthorization_code}`,
-            session: get(body, "session"),
-        };
-    } catch (error) {
-        handleInvalidatedSdkResponse(error);
-        throw error;
-    }
-};
 
 const exchangeCodeForToken = async ({
     authorizationCode,
     codeVerifier,
     sdkConfig,
-}: ExchangeCodeForTokenOptions & InternalProps): Promise<UserAccessToken> => {
+}: ExchangeCodeForTokenOptions & SDKConfigProps): Promise<UserAccessToken> => {
 
-    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authConfig;
+    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authorizationConfig;
 
     if (!isNonEmptyString(authorizationCode)) {
         throw new TypeValidationError("Authorization code cannot be empty");
@@ -109,9 +60,14 @@ const exchangeCodeForToken = async ({
         const payload = await getVerifiedJWTPayload(get(response.body, "token"), sdkConfig);
 
         return {
-            accessToken: `${payload.access_token}`,
-            refreshToken: `${payload.refresh_token}`,
-            expiry: payload.expires_on,
+            accessToken: {
+                value: payload.access_token.value,
+                expiry: payload.access_token.expires_on,
+            },
+            refreshToken: {
+                value: payload.refresh_token .value,
+                expiry: payload.refresh_token .expires_on,
+            },
         };
     } catch (error) {
         throw new AccessTokenExchangeError("Failed to exchange authorization code to access token.");
@@ -121,8 +77,8 @@ const exchangeCodeForToken = async ({
 const refreshToken = async ({
     userAccessToken,
     sdkConfig,
-}: RefreshTokenOptions & InternalProps): Promise<UserAccessToken> => {
-    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authConfig;
+}: RefreshTokenOptions & SDKConfigProps): Promise<UserAccessToken> => {
+    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authorizationConfig;
     const jwt: string = sign(
         {
             client_id: `${applicationId}_${contractId}`,
@@ -152,9 +108,14 @@ const refreshToken = async ({
 
         const payload = await getVerifiedJWTPayload(get(response.body, "token"), sdkConfig);
         return {
-            accessToken: `${payload.access_token}`,
-            refreshToken: `${payload.refresh_token}`,
-            expiry: payload.expires_on,
+            accessToken: {
+                value: payload.access_token.value,
+                expiry: payload.access_token.expires_on,
+            },
+            refreshToken: {
+                value: payload.refresh_token .value,
+                expiry: payload.refresh_token .expires_on,
+            },
         };
 
     } catch (error) {
@@ -209,7 +170,6 @@ const getVerifiedJWTPayload = async (token: string, options: DMESDKConfiguration
 };
 
 export {
-    authorize,
     exchangeCodeForToken,
     getVerifiedJWTPayload,
     refreshToken,

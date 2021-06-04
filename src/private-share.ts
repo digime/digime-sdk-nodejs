@@ -9,7 +9,7 @@ import { refreshToken } from "./authorisation";
 import { handleInvalidatedSdkResponse, net } from "./net";
 import { sign } from "jsonwebtoken";
 import { decryptData, getRandomAlphaNumeric } from "./crypto";
-import { FileMeta, InternalProps, Session } from "./sdk";
+import { FileMeta, InternalProps, SDKConfigProps, Session } from "./sdk";
 import { assertIsCAFileListResponse, CAFileListResponse } from "./types/api/ca-file-list-response";
 import { CAAccountsResponse } from "./types/api/ca-accounts-response";
 import { Response } from "got/dist/source";
@@ -26,14 +26,14 @@ import { UserAccessToken } from "./types/user-access-token";
 const prepareFilesUsingAccessToken = async ({
     userAccessToken,
     sdkConfig,
-}: PrepareFilesUsingAccessTokenOptions & InternalProps): Promise<UserLibraryAccessResponse> => {
+}: PrepareFilesUsingAccessTokenOptions & SDKConfigProps): Promise<UserLibraryAccessResponse> => {
 
     let session: Session;
 
     // 1. We have an access token, try and trigger a data request
     try {
         session = await triggerDataQuery({
-            accessToken: userAccessToken.accessToken,
+            accessToken: userAccessToken.accessToken.value,
             sdkConfig,
         });
         return { session };
@@ -45,7 +45,7 @@ const prepareFilesUsingAccessToken = async ({
     });
 
     session = await triggerDataQuery({
-        accessToken: newTokens.accessToken,
+        accessToken: newTokens.accessToken.value,
         sdkConfig,
     });
 
@@ -62,8 +62,8 @@ interface TriggerDataQueryProps extends Omit<PrepareFilesUsingAccessTokenOptions
 const triggerDataQuery = async ({
     accessToken,
     sdkConfig,
-}: TriggerDataQueryProps & InternalProps): Promise<Session> => {
-    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authConfig;
+}: TriggerDataQueryProps & SDKConfigProps): Promise<Session> => {
+    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authorizationConfig;
     const jwt: string = sign(
         {
             access_token: accessToken,

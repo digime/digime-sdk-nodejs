@@ -4,3 +4,5 @@
 
 export * from "./sdk";
 export * from "./errors";
+export * from "./codecs";
+export * from "./types";

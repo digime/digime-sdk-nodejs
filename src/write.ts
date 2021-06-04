@@ -12,7 +12,7 @@ import { PushDataToPostboxOptions, PushDataToPostboxResponse, PushedFileMeta } f
 import { areNonEmptyStrings } from "./utils";
 import { assertIsPushDataStatusResponse, PushDataToPostboxAPIResponse } from "./types/api/postbox-response";
 import { refreshToken } from "./authorisation";
-import { InternalProps } from "./sdk";
+import { SDKConfigProps } from "./sdk";
 import { assertIsPushedFileMeta } from "./types/postbox";
 import { UserAccessToken } from "./types/user-access-token";
 
@@ -21,11 +21,11 @@ const pushDataToPostbox = async ({
     data,
     publicKey,
     postboxId,
-    sessionKey,
     sdkConfig,
-}: PushDataToPostboxOptions & InternalProps): Promise<PushDataToPostboxResponse> => {
+    sessionKey,
+}: PushDataToPostboxOptions & SDKConfigProps): Promise<PushDataToPostboxResponse> => {
 
-    if (!areNonEmptyStrings([sessionKey, publicKey, postboxId])) {
+    if (!areNonEmptyStrings([publicKey, postboxId])) {
         // tslint:disable-next-line:max-line-length
         throw new TypeValidationError("pushDataToPostbox requires the following properties to be set: postboxId, publicKey, sessionKey");
     }
@@ -34,7 +34,7 @@ const pushDataToPostbox = async ({
 
     // We have an access token, try and trigger a push request
     const result = await triggerPush({
-        accessToken: userAccessToken?.accessToken,
+        accessToken: userAccessToken?.accessToken.value,
         data,
         publicKey,
         postboxId,
@@ -50,11 +50,10 @@ const pushDataToPostbox = async ({
         });
 
         const secondPushResult = await triggerPush({
-            accessToken: newTokens.accessToken,
+            accessToken: newTokens.accessToken.value,
             data,
             publicKey,
             postboxId,
-            sessionKey,
             sdkConfig,
         });
 
@@ -73,14 +72,14 @@ interface InternalTriggerPushProps extends Omit<PushDataToPostboxOptions, "userA
 
 const triggerPush = async ({
     accessToken,
-    sessionKey,
     postboxId,
     publicKey,
     data,
+    sessionKey,
     sdkConfig,
-}: InternalTriggerPushProps & InternalProps): Promise<PushDataToPostboxAPIResponse> => {
+}: InternalTriggerPushProps & SDKConfigProps): Promise<PushDataToPostboxAPIResponse> => {
 
-    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authConfig;
+    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authorizationConfig;
     const key: string = getRandomHex(64);
     const rsa: NodeRSA = new NodeRSA(publicKey, "pkcs1-public");
     const encryptedKey: Buffer = rsa.encrypt(Buffer.from(key, "hex"));

@@ -7,7 +7,7 @@ import { get } from "lodash";
 import { getVerifiedJWTPayload } from "./authorisation";
 import { getRandomAlphaNumeric } from "./crypto";
 import { net } from "./net";
-import { InternalProps } from "./sdk";
+import { SDKConfigProps } from "./sdk";
 import { Session } from "./types/api/session";
 import { UserAccessToken, UserAccessTokenCodec } from "./types/user-access-token";
 import { sign } from "jsonwebtoken";
@@ -35,18 +35,18 @@ export interface GetOnboardServiceUrlResponse {
 }
 
 const _getOnboardServiceUrl = async (
-    {sdkConfig, ...props}: GetOnboardServiceUrlProps & InternalProps,
+    {sdkConfig, ...props}: GetOnboardServiceUrlProps & SDKConfigProps,
 ): Promise<GetOnboardServiceUrlResponse> => {
     if (!GetOnboardServiceUrlCodec.is(props)) {
         throw new Error("Error on getOnboardServiceUrl(). Incorrect parameters passed in.")
     }
 
-    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authConfig;
+    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authorizationConfig;
     const { userAccessToken } = props;
 
     const jwt: string = sign(
         {
-            access_token: userAccessToken.accessToken,
+            access_token: userAccessToken.accessToken.value,
             client_id: `${applicationId}_${contractId}`,
             nonce: getRandomAlphaNumeric(32),
             redirect_uri: redirectUri,
@@ -86,7 +86,7 @@ const _getOnboardServiceUrl = async (
     };
 };
 
-export const getOnboardServiceUrl = async (props: GetOnboardServiceUrlProps & InternalProps)
+export const getOnboardServiceUrl = async (props: GetOnboardServiceUrlProps & SDKConfigProps)
 : Promise<GetOnboardServiceUrlResponse> => {
     return refreshTokenWrapper(_getOnboardServiceUrl, props);
 };
