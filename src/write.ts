@@ -8,22 +8,47 @@ import { encryptData, getRandomAlphaNumeric, getRandomHex } from "./crypto";
 import { sign } from "jsonwebtoken";
 import { TypeValidationError } from "./errors";
 import { net, handleInvalidatedSdkResponse } from "./net";
-import { PushDataToPostboxOptions, PushDataToPostboxResponse, PushedFileMeta } from "./types";
 import { areNonEmptyStrings } from "./utils";
 import { assertIsPushDataStatusResponse, PushDataToPostboxAPIResponse } from "./types/api/postbox-response";
-import { refreshToken } from "./authorisation";
-import { SDKConfigProps } from "./sdk";
 import { assertIsPushedFileMeta } from "./types/postbox";
 import { UserAccessToken } from "./types/user-access-token";
+import { refreshToken } from "./refresh-token";
+import { SDKConfiguration } from "./types/dme-sdk-configuration";
 
-const pushDataToPostbox = async ({
-    userAccessToken,
-    data,
-    publicKey,
-    postboxId,
-    sdkConfig,
-    sessionKey,
-}: PushDataToPostboxOptions & SDKConfigProps): Promise<PushDataToPostboxResponse> => {
+interface WriteOptions{
+    userAccessToken: UserAccessToken;
+    data: FileMeta;
+    publicKey: NodeRSA.Key;
+    postboxId: string;
+    sessionKey?: string;
+}
+
+interface FileMeta {
+    fileData: Buffer;
+    fileName: string;
+    fileDescriptor: {
+        mimeType: string;
+        accounts: Array<{
+            accountId: string;
+        }>;
+        reference?: string[];
+        tags?: string[];
+    };
+}
+
+interface WriteResponse extends PushDataToPostboxAPIResponse {
+    updatedAccessToken?: UserAccessToken;
+}
+
+const write = async (options: WriteOptions, sdkConfig: SDKConfiguration): Promise<WriteResponse> => {
+
+    const {
+        userAccessToken,
+        data,
+        publicKey,
+        postboxId,
+        sessionKey,
+    } = options;
 
     if (!areNonEmptyStrings([publicKey, postboxId])) {
         // tslint:disable-next-line:max-line-length
@@ -38,24 +63,18 @@ const pushDataToPostbox = async ({
         data,
         publicKey,
         postboxId,
-        sessionKey,
-        sdkConfig,
-    });
+        sessionKey
+    }, sdkConfig);
 
     // If an access token was provided and the status is pending, it means the access token may have expired.
     if (result.status === "pending" && userAccessToken) {
-        const newTokens: UserAccessToken = await refreshToken({
-            userAccessToken,
-            sdkConfig,
-        });
-
+        const newTokens: UserAccessToken = await refreshToken( {userAccessToken}, sdkConfig );
         const secondPushResult = await triggerPush({
             accessToken: newTokens.accessToken.value,
             data,
             publicKey,
             postboxId,
-            sdkConfig,
-        });
+        }, sdkConfig);
 
         return {
             ...secondPushResult,
@@ -66,20 +85,18 @@ const pushDataToPostbox = async ({
     return result;
 };
 
-interface InternalTriggerPushProps extends Omit<PushDataToPostboxOptions, "userAccessToken"> {
+interface TriggerPushProps extends Omit<WriteOptions, "userAccessToken"> {
     accessToken: string | undefined,
 }
 
-const triggerPush = async ({
-    accessToken,
-    postboxId,
-    publicKey,
-    data,
-    sessionKey,
-    sdkConfig,
-}: InternalTriggerPushProps & SDKConfigProps): Promise<PushDataToPostboxAPIResponse> => {
+const triggerPush = async (
+    options: TriggerPushProps,
+    sdkConfig: SDKConfiguration
+): Promise<PushDataToPostboxAPIResponse> => {
 
+    const { accessToken, postboxId, publicKey, data, sessionKey } = options;
     const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authorizationConfig;
+
     const key: string = getRandomHex(64);
     const rsa: NodeRSA = new NodeRSA(publicKey, "pkcs1-public");
     const encryptedKey: Buffer = rsa.encrypt(Buffer.from(key, "hex"));
@@ -140,6 +157,8 @@ const triggerPush = async ({
 }
 
 export {
-    pushDataToPostbox,
-    PushedFileMeta,
+    write,
+    WriteOptions,
+    WriteResponse,
+    FileMeta,
 };

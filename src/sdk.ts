@@ -2,36 +2,20 @@
  * Copyright (c) 2009-2021 digi.me Limited. All rights reserved.
  */
 
-import { pushDataToPostbox } from "./write";
-import type {
-    CAScope,
-    PrepareFilesUsingAccessTokenOptions,
-    ExchangeCodeForTokenOptions,
-    FileMeta,
-    PushDataToPostboxOptions,
-    UserDataAccessOptions,
-    GetFileOptions,
-    GetFileListOptions,
-    GetSessionDataOptions,
-} from "./types";
-import { Session } from "./types/api/session";
-import { BasicSDKConfiguration, DMESDKConfiguration, DMESDKConfigurationCodec } from "./types/dme-sdk-configuration";
-import { exchangeCodeForToken } from "./authorisation";
-import { prepareFilesUsingAccessToken, readFileList, readSessionAccounts, readSessionData, readFile } from "./private-share";
-import { getAvailableServices } from "./getAvailableServices";
-import { getAuthorizeUrl, GetAuthorizeUrlProps } from "./getAuthorizeUrl";
-import { getOnboardServiceUrl, GetOnboardServiceUrlProps } from "./onboardService";
+import { write, WriteOptions } from "./write";
+import { BasicSDKConfiguration, SDKConfiguration, SDKConfigurationCodec } from "./types/dme-sdk-configuration";
+import { getAvailableServices } from "./get-available-services";
+import { getAuthorizeUrl, GetAuthorizeUrlOptions } from "./get-authorize-url";
+import { getOnboardServiceUrl, GetOnboardServiceUrlOptions } from "./onboard-service";
 import { addTrailingSlash } from "./utils";
+import { exchangeCodeForToken, ExchangeCodeForTokenOptions } from "./exchange-code-for-token";
+import { readSession, ReadSessionOptions } from "./read-session";
+import { readFile, ReadFileOptions } from "./read-file";
+import { readFileList, ReadFileListOptions } from "./read-file-list";
+import { readAllFiles, ReadAllFilesOptions } from "./read-all-files";
+import { readAccounts, ReadAccountsOptions } from "./read-accounts";
 
-interface InternalProps {
-    sdkConfig: BasicSDKConfiguration
-}
-
-interface SDKConfigProps {
-    sdkConfig: DMESDKConfiguration
-}
-
-const init = (config?: Partial<DMESDKConfiguration>) => {
+const init = (config?: Partial<SDKConfiguration>) => {
     const formatted = {
         ...config,
         baseUrl: addTrailingSlash(config?.baseUrl),
@@ -49,22 +33,22 @@ const init = (config?: Partial<DMESDKConfiguration>) => {
 
     let sdk: any = {}
 
-    if (DMESDKConfigurationCodec.is(sdkConfig)) {
+    if (SDKConfigurationCodec.is(sdkConfig)) {
         sdk = {
-            authorize: (props: GetAuthorizeUrlProps) => (
-                getAuthorizeUrl({...props, sdkConfig})
+            authorize: (props: GetAuthorizeUrlOptions) => (
+                getAuthorizeUrl(props, sdkConfig)
             ),
-            onboardService: (props: GetOnboardServiceUrlProps ) => (
-                getOnboardServiceUrl({...props, sdkConfig})
+            onboardService: (props: GetOnboardServiceUrlOptions ) => (
+                getOnboardServiceUrl(props, sdkConfig)
             ),
             exchangeCodeForToken: (props: ExchangeCodeForTokenOptions) => (
-                exchangeCodeForToken({...props, sdkConfig})
+                exchangeCodeForToken(props, sdkConfig)
             ),
-            write: (props: PushDataToPostboxOptions) => (
-                pushDataToPostbox({...props, sdkConfig})
+            write: (props: WriteOptions) => (
+                write(props, sdkConfig)
             ),
-            readSession: (props: PrepareFilesUsingAccessTokenOptions) => (
-                prepareFilesUsingAccessToken({...props, sdkConfig})
+            readSession: (props: ReadSessionOptions) => (
+                readSession(props, sdkConfig)
             ),
         }
     }
@@ -72,19 +56,19 @@ const init = (config?: Partial<DMESDKConfiguration>) => {
     sdk = {
         ...sdk,
         getAvailableServices: (contractId?: string) => (
-            getAvailableServices({sdkConfig, contractId})
+            getAvailableServices(sdkConfig, contractId)
         ),
-        readFile: (props: GetFileOptions) => (
-            readFile({...props, sdkConfig})
+        readFile: (props: ReadFileOptions) => (
+            readFile(props, sdkConfig)
         ),
-        readFileList: (props: GetFileListOptions) => (
-            readFileList({...props, sdkConfig})
+        readFileList: (props: ReadFileListOptions) => (
+            readFileList(props, sdkConfig)
         ),
-        readSessionData: (props: GetSessionDataOptions) => (
-            readSessionData({...props, sdkConfig})
+        readAllFiles: (props: ReadAllFilesOptions) => (
+            readAllFiles(props, sdkConfig)
         ),
-        readSessionAccounts: (props: UserDataAccessOptions) => (
-            readSessionAccounts({...props, sdkConfig})
+        readAccounts: (props: ReadAccountsOptions) => (
+            readAccounts(props, sdkConfig)
         ),
     }
 
@@ -93,10 +77,4 @@ const init = (config?: Partial<DMESDKConfiguration>) => {
 
 export {
     init,
-    CAScope,
-    FileMeta,
-    Session,
-    DMESDKConfiguration,
-    InternalProps,
-    SDKConfigProps
 };

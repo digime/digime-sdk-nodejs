@@ -7,16 +7,18 @@ import { RetryOptionsCodec, RetryOptions } from "./retry-options";
 import { codecAssertion, CodecAssertion } from "../codec-assertion";
 import { BasicOAuthOptions, BasicOAuthOptionsCodec } from "./common";
 
-export interface DMESDKConfiguration {
+export interface SDKConfiguration {
     authorizationConfig: BasicOAuthOptions;
     baseUrl?: string;
     onboardUrl?: string;
     retryOptions?: RetryOptions,
 };
 
-export type BasicSDKConfiguration = Omit<DMESDKConfiguration, "authorizationConfig">
+export type BasicSDKConfiguration = Omit<SDKConfiguration, "authorizationConfig">
 
-export const DMESDKConfigurationCodec: t.Type<DMESDKConfiguration> = t.intersection([
+export type AcceptedSDKConfiguration = SDKConfiguration | BasicSDKConfiguration;
+
+export const SDKConfigurationCodec: t.Type<SDKConfiguration> = t.intersection([
     t.type({
         authorizationConfig: BasicOAuthOptionsCodec,
     }),
@@ -27,8 +29,8 @@ export const DMESDKConfigurationCodec: t.Type<DMESDKConfiguration> = t.intersect
     }),
 ]);
 
-export const isDMESDKConfiguration = DMESDKConfigurationCodec.is;
+export const isSDKConfiguration = SDKConfigurationCodec.is;
 
-export const assertIsDMESDKConfiguration: CodecAssertion<DMESDKConfiguration> = codecAssertion(DMESDKConfigurationCodec);
+export const assertIsSDKConfiguration: CodecAssertion<SDKConfiguration> = codecAssertion(SDKConfigurationCodec);
 
-export type MinDMESDKConfiguration = Omit<DMESDKConfiguration, "authorizationConfig">
+export type MinSDKConfiguration = Omit<SDKConfiguration, "authorizationConfig">

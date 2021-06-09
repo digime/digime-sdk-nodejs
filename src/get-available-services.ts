@@ -3,18 +3,14 @@
  */
 
 import { net } from "./net";
-import { InternalProps } from "./sdk";
 import { DiscoveryApiServicesData } from "./types";
 import { assertIsDiscoveryApiServicesData } from "./types/api/get-discovery-api-services";
+import { BasicSDKConfiguration } from "./types/dme-sdk-configuration";
 
-interface Props {
-    contractId?: string;
-}
-
-const getAvailableServices = async ({
-    contractId,
-    sdkConfig,
-}: Props & InternalProps): Promise<DiscoveryApiServicesData> => {
+const getAvailableServices = async (
+    sdkConfig: BasicSDKConfiguration,
+    contractId?: string,
+): Promise<DiscoveryApiServicesData> => {
 
     const response = await net.get(`${sdkConfig.baseUrl}discovery/services`, {
         headers: { contractId },

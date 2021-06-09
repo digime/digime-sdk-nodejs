@@ -4,38 +4,39 @@
 
 import * as t from "io-ts";
 import { get } from "lodash";
-import { getVerifiedJWTPayload } from "./authorisation";
 import { getRandomAlphaNumeric } from "./crypto";
 import { net } from "./net";
-import { SDKConfigProps } from "./sdk";
 import { Session } from "./types/api/session";
 import { UserAccessToken, UserAccessTokenCodec } from "./types/user-access-token";
 import { sign } from "jsonwebtoken";
 import { URL, URLSearchParams } from "url";
-import { refreshTokenWrapper } from "./utils/refreshTokenWrapper";
+import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
+import { getPayloadFromToken } from "./utils/get-payload-from-token";
+import { SDKConfiguration } from "./types/dme-sdk-configuration";
 
-export interface GetOnboardServiceUrlProps {
+interface GetOnboardServiceUrlOptions {
     errorCallback: string;
     successCallback: string;
     userAccessToken: UserAccessToken;
     serviceId: number;
 }
 
-export const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlProps> = t.type({
+const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.type({
     errorCallback: t.string,
     successCallback: t.string,
     userAccessToken: UserAccessTokenCodec,
     serviceId: t.number,
 });
 
-export interface GetOnboardServiceUrlResponse {
+interface GetOnboardServiceUrlResponse {
     session: Session;
     userAccessToken: UserAccessToken;
     url: string;
 }
 
 const _getOnboardServiceUrl = async (
-    {sdkConfig, ...props}: GetOnboardServiceUrlProps & SDKConfigProps,
+    props: GetOnboardServiceUrlOptions,
+    sdkConfig: SDKConfiguration,
 ): Promise<GetOnboardServiceUrlResponse> => {
     if (!GetOnboardServiceUrlCodec.is(props)) {
         throw new Error("Error on getOnboardServiceUrl(). Incorrect parameters passed in.")
@@ -67,7 +68,7 @@ const _getOnboardServiceUrl = async (
         responseType: "json",
     });
 
-    const payload = await getVerifiedJWTPayload(get(response.body, "token"), sdkConfig);
+    const payload = await getPayloadFromToken(get(response.body, "token"), sdkConfig);
     const code = payload.reference_code;
     const session = get(response.body, "session");
 
@@ -86,7 +87,13 @@ const _getOnboardServiceUrl = async (
     };
 };
 
-export const getOnboardServiceUrl = async (props: GetOnboardServiceUrlProps & SDKConfigProps)
+const getOnboardServiceUrl = async (props: GetOnboardServiceUrlOptions, sdkConfiguration: SDKConfiguration)
 : Promise<GetOnboardServiceUrlResponse> => {
-    return refreshTokenWrapper(_getOnboardServiceUrl, props);
+    return refreshTokenWrapper(_getOnboardServiceUrl, props, sdkConfiguration);
 };
+
+export {
+    getOnboardServiceUrl,
+    GetOnboardServiceUrlOptions,
+    GetOnboardServiceUrlResponse,
+}
