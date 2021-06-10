@@ -3,8 +3,8 @@
  */
 
 import * as t from "io-ts";
-import { codecAssertion, CodecAssertion } from "../../codec-assertion";
-import { DiscoveryApiServicesData, DiscoveryService, DiscoveryServiceGroup } from "../../types";
+import { codecAssertion, CodecAssertion } from "../../utils/codec-assertion";
+import { DiscoveryApiServicesData, DiscoveryService, DiscoveryServiceGroup } from "../common";
 
 export const DiscoverySourceCodec: t.Type<DiscoveryService> = t.strict({
     id: t.number,

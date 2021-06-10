@@ -5,7 +5,7 @@
 import { sign } from "jsonwebtoken";
 import { getRandomAlphaNumeric } from "./crypto";
 import { AccessTokenExchangeError, TypeValidationError } from "./errors";
-import { isNonEmptyString } from "./utils";
+import { isNonEmptyString } from "./utils/basic-utils";
 import { net } from "./net";
 import get from "lodash.get";
 import { UserAccessToken } from "./types/user-access-token";

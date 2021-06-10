@@ -4,7 +4,7 @@
 
 import { decode, verify } from "jsonwebtoken";
 import { JWTVerificationError } from "../errors";
-import { isPlainObject } from "../utils";
+import { isPlainObject } from "./basic-utils";
 import { net } from "../net";
 import isString from "lodash.isstring";
 import { isJWKS } from "../types/api/jwks";

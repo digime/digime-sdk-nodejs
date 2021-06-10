@@ -4,7 +4,7 @@
 
 import * as t from "io-ts";
 import { RetryOptionsCodec, RetryOptions } from "./retry-options";
-import { codecAssertion, CodecAssertion } from "../codec-assertion";
+import { codecAssertion, CodecAssertion } from "../utils/codec-assertion";
 import { BasicOAuthOptions, BasicOAuthOptionsCodec } from "./common";
 
 export interface SDKConfiguration {

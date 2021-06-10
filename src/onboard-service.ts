@@ -77,7 +77,7 @@ const _getOnboardServiceUrl = async (
         code,
         successCallback: props.successCallback,
         errorCallback: props.errorCallback,
-        serviceId: props.serviceId.toString(),
+        service: props.serviceId.toString(),
     }).toString();
 
     return {

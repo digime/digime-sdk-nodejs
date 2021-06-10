@@ -9,8 +9,8 @@ import get from "lodash.get";
 import { assertIsSession, Session } from "./types/api/session";
 import { UserAccessToken } from "./types/user-access-token";
 import { refreshToken } from "./refresh-token";
-import { CAScope } from "./types";
 import { SDKConfiguration } from "./types/dme-sdk-configuration";
+import { CAScope } from "./types/common";
 
 interface ReadSessionOptions {
     userAccessToken: UserAccessToken;

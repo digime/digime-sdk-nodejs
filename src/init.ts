@@ -7,7 +7,7 @@ import { BasicSDKConfiguration, SDKConfiguration, SDKConfigurationCodec } from "
 import { getAvailableServices } from "./get-available-services";
 import { getAuthorizeUrl, GetAuthorizeUrlOptions } from "./get-authorize-url";
 import { getOnboardServiceUrl, GetOnboardServiceUrlOptions } from "./onboard-service";
-import { addTrailingSlash } from "./utils";
+import { addTrailingSlash } from "./utils/basic-utils";
 import { exchangeCodeForToken, ExchangeCodeForTokenOptions } from "./exchange-code-for-token";
 import { readSession, ReadSessionOptions } from "./read-session";
 import { readFile, ReadFileOptions } from "./read-file";

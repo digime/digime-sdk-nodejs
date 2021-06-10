@@ -3,11 +3,11 @@
  */
 
 import { TypeValidationError } from "./errors";
-import { isNonEmptyString } from "./utils";
+import { isNonEmptyString } from "./utils/basic-utils";
 import { CAFileListResponse } from "./types/api/ca-file-list-response";
 import get from "lodash.get";
 import isFunction from "lodash.isfunction";
-import { sleep } from "./sleep";
+import { sleep } from "./utils/sleep";
 import NodeRSA from "node-rsa";
 import { readFile, ReadFileMeta } from "./read-file";
 import { readFileList } from "./read-file-list";

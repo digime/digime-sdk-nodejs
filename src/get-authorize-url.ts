@@ -13,8 +13,8 @@ import { getRandomAlphaNumeric, hashSha256 } from "./crypto";
 import { sign } from "jsonwebtoken";
 import { handleInvalidatedSdkResponse, net } from "./net";
 import { get } from "lodash";
-import { CAScope } from "./types";
 import { SDKConfiguration } from "./types/dme-sdk-configuration";
+import { CAScope } from "./types/common";
 
 interface GetAuthorizeUrlOptions {
     errorCallback: string;
@@ -57,7 +57,6 @@ const getAuthorizeUrl = async (
     result.search = new URLSearchParams({
         code,
         errorCallback: props.errorCallback,
-        successCallback: sdkConfig.authorizationConfig.redirectUri,
         service: props.serviceId?.toString(),
     }).toString();
 

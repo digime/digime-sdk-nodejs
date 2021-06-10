@@ -8,7 +8,7 @@ import { encryptData, getRandomAlphaNumeric, getRandomHex } from "./crypto";
 import { sign } from "jsonwebtoken";
 import { TypeValidationError } from "./errors";
 import { net, handleInvalidatedSdkResponse } from "./net";
-import { areNonEmptyStrings } from "./utils";
+import { areNonEmptyStrings } from "./utils/basic-utils";
 import { assertIsPushDataStatusResponse, PushDataToPostboxAPIResponse } from "./types/api/postbox-response";
 import { assertIsPushedFileMeta } from "./types/postbox";
 import { UserAccessToken } from "./types/user-access-token";

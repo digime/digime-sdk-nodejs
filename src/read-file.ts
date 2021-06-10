@@ -3,7 +3,7 @@
  */
 
 import { TypeValidationError } from "./errors";
-import { isNonEmptyString } from "./utils";
+import { isNonEmptyString } from "./utils/basic-utils";
 import { handleInvalidatedSdkResponse, net } from "./net";
 import { decryptData } from "./crypto";
 import { Response } from "got/dist/source";
