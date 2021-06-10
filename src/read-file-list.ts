@@ -12,7 +12,7 @@ interface ReadFileListOptions {
 
 const readFileList = async (
     options: ReadFileListOptions,
-    sdkConfig: AcceptedSDKConfiguration
+    sdkConfig: AcceptedSDKConfiguration,
 ): Promise<CAFileListResponse> => {
 
     const url = `${sdkConfig.baseUrl}permission-access/query/${options.sessionKey}`;
@@ -28,5 +28,5 @@ const readFileList = async (
 
 export {
     readFileList,
-    ReadFileListOptions
+    ReadFileListOptions,
 };

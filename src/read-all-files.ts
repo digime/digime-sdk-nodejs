@@ -32,14 +32,14 @@ interface ReadAllFilesResponse {
 
 const readAllFiles = (
     options: ReadAllFilesOptions,
-    sdkConfig: AcceptedSDKConfiguration
+    sdkConfig: AcceptedSDKConfiguration,
 ): ReadAllFilesResponse => {
 
     const {
         sessionKey,
         privateKey,
         onFileData,
-        onFileError
+        onFileError,
     } = options
 
     if (!isNonEmptyString(sessionKey)) {
@@ -112,5 +112,5 @@ const readAllFiles = (
 export {
     readAllFiles,
     ReadAllFilesOptions,
-    ReadAllFilesResponse
+    ReadAllFilesResponse,
 };

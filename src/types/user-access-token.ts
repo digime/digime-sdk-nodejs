@@ -26,5 +26,5 @@ const UserAccessTokenCodec: t.Type<UserAccessToken> = t.type({
 
 export {
     UserAccessToken,
-    UserAccessTokenCodec
+    UserAccessTokenCodec,
 }

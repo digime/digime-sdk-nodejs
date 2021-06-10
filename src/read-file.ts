@@ -29,7 +29,7 @@ interface ReadFileResponse {
 
 const readFile = async (
     options: ReadFileOptions,
-    sdkConfig: AcceptedSDKConfiguration
+    sdkConfig: AcceptedSDKConfiguration,
 ): Promise<ReadFileResponse> => {
 
     const { sessionKey, fileName, privateKey } = options;
@@ -69,7 +69,7 @@ interface FetchFileProps {
 
 const fetchFile = async (
     options: FetchFileProps,
-    sdkConfig: AcceptedSDKConfiguration
+    sdkConfig: AcceptedSDKConfiguration,
 ): Promise<FetchFileResponse> => {
 
     const { sessionKey, fileName } = options;
@@ -107,5 +107,5 @@ export {
     readFile,
     ReadFileOptions,
     ReadFileResponse,
-    ReadFileMeta
+    ReadFileMeta,
 };

@@ -17,14 +17,14 @@ type ReadAccountsResponse = Pick<CAAccountsResponse, "accounts">;
 
 const readAccounts = async (
     options: ReadAccountsOptions,
-    sdkConfig: AcceptedSDKConfiguration
+    sdkConfig: AcceptedSDKConfiguration,
 ): Promise<ReadAccountsResponse> => {
 
     const { sessionKey, privateKey } = options;
     const {fileData} = await readFile({
         sessionKey,
         fileName: "accounts.json",
-        privateKey
+        privateKey,
     }, sdkConfig);
 
     try {
@@ -40,5 +40,5 @@ const readAccounts = async (
 export {
     readAccounts,
     ReadAccountsOptions,
-    ReadAccountsResponse
+    ReadAccountsResponse,
 };

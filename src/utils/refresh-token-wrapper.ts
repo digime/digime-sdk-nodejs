@@ -9,7 +9,7 @@ import { UserAccessToken } from "../types/user-access-token";
 export const refreshTokenWrapper = async <Args extends RefreshTokenOptions, Return>(
     operation: (operationParameters: Args, sdkConfiguration: SDKConfiguration) => Return,
     prop: Args,
-    sdkConfiguration: SDKConfiguration
+    sdkConfiguration: SDKConfiguration,
 ): Promise<Return> => {
     try {
         return await operation(prop, sdkConfiguration);
@@ -20,7 +20,7 @@ export const refreshTokenWrapper = async <Args extends RefreshTokenOptions, Retu
     }
 
     const newTokens: UserAccessToken = await refreshToken({
-        userAccessToken: prop.userAccessToken
+        userAccessToken: prop.userAccessToken,
     }, sdkConfiguration);
 
     return await operation({

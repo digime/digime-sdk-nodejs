@@ -24,7 +24,7 @@ interface ReadSessionResponse {
 
 const readSession = async (
     options: ReadSessionOptions,
-    sdkConfig: SDKConfiguration
+    sdkConfig: SDKConfiguration,
 ): Promise<ReadSessionResponse> => {
 
     const { userAccessToken, scope } = options
@@ -35,7 +35,7 @@ const readSession = async (
     try {
         session = await triggerDataQuery({
             accessToken: userAccessToken.accessToken.value,
-            scope
+            scope,
         },  sdkConfig);
 
         return { session };
@@ -45,7 +45,7 @@ const readSession = async (
 
     session = await triggerDataQuery({
         accessToken: newTokens.accessToken.value,
-        scope
+        scope,
     }, sdkConfig);
 
     return {
@@ -61,7 +61,7 @@ interface TriggerDataQueryProps {
 
 const triggerDataQuery = async (
     options: TriggerDataQueryProps,
-    sdkConfig: SDKConfiguration
+    sdkConfig: SDKConfiguration,
 ): Promise<Session> => {
 
     const { accessToken, scope } = options;
@@ -89,7 +89,7 @@ const triggerDataQuery = async (
             "Content-Type": "application/json", // NOTE: we might not need this
         },
         json: {
-            scope
+            scope,
         },
         responseType: "json",
     });
@@ -103,5 +103,5 @@ const triggerDataQuery = async (
 export {
     readSession,
     ReadSessionOptions,
-    ReadSessionResponse
+    ReadSessionResponse,
 }

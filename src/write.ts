@@ -63,7 +63,7 @@ const write = async (options: WriteOptions, sdkConfig: SDKConfiguration): Promis
         data,
         publicKey,
         postboxId,
-        sessionKey
+        sessionKey,
     }, sdkConfig);
 
     // If an access token was provided and the status is pending, it means the access token may have expired.
@@ -91,7 +91,7 @@ interface TriggerPushProps extends Omit<WriteOptions, "userAccessToken"> {
 
 const triggerPush = async (
     options: TriggerPushProps,
-    sdkConfig: SDKConfiguration
+    sdkConfig: SDKConfiguration,
 ): Promise<PushDataToPostboxAPIResponse> => {
 
     const { accessToken, postboxId, publicKey, data, sessionKey } = options;

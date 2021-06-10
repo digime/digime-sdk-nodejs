@@ -19,7 +19,7 @@ interface ExchangeCodeForTokenOptions {
 
 const exchangeCodeForToken = async (
     options: ExchangeCodeForTokenOptions,
-    sdkConfig: SDKConfiguration
+    sdkConfig: SDKConfiguration,
 ): Promise<UserAccessToken> => {
 
     const { authorizationCode, codeVerifier } = options;

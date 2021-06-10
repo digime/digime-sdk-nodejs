@@ -4,5 +4,5 @@
 import { UserAccessTokenCodec } from "./types/user-access-token";
 
 export {
-    UserAccessTokenCodec
+    UserAccessTokenCodec,
 };

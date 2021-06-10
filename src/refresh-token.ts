@@ -18,7 +18,7 @@ interface RefreshTokenOptions {
 
 const refreshToken = async (
     options: RefreshTokenOptions,
-    sdkConfig: SDKConfiguration
+    sdkConfig: SDKConfiguration,
 ): Promise<UserAccessToken> => {
 
     const { userAccessToken } = options;

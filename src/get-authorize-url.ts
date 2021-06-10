@@ -43,7 +43,7 @@ interface GetAuthorizationUrlResponse {
 
 const getAuthorizeUrl = async (
     props: GetAuthorizeUrlOptions,
-    sdkConfig: SDKConfiguration
+    sdkConfig: SDKConfiguration,
 ): Promise<GetAuthorizationUrlResponse> => {
 
     if (!GetAuthorizeUrlOptionsCodec.is(props)) {
@@ -75,7 +75,7 @@ interface AuthorizeResponse {
 
 const _authorize = async (
     {state, userAccessToken}: GetAuthorizeUrlOptions,
-    sdkConfig: SDKConfiguration
+    sdkConfig: SDKConfiguration,
 ): Promise<AuthorizeResponse> => {
     const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authorizationConfig;
 
@@ -124,5 +124,5 @@ const _authorize = async (
 export {
     getAuthorizeUrl,
     GetAuthorizeUrlOptions,
-    GetAuthorizationUrlResponse
+    GetAuthorizationUrlResponse,
 };
