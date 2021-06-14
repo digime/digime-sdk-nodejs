@@ -5,22 +5,17 @@
 import * as t from "io-ts";
 import { RetryOptionsCodec, RetryOptions } from "./retry-options";
 import { codecAssertion, CodecAssertion } from "../utils/codec-assertion";
-import { BasicOAuthOptions, BasicOAuthOptionsCodec } from "./common";
 
 export interface SDKConfiguration {
-    authorizationConfig: BasicOAuthOptions;
+    applicationId: string;
     baseUrl?: string;
     onboardUrl?: string;
     retryOptions?: RetryOptions,
 };
 
-export type BasicSDKConfiguration = Omit<SDKConfiguration, "authorizationConfig">
-
-export type AcceptedSDKConfiguration = SDKConfiguration | BasicSDKConfiguration;
-
 export const SDKConfigurationCodec: t.Type<SDKConfiguration> = t.intersection([
     t.type({
-        authorizationConfig: BasicOAuthOptionsCodec,
+        applicationId: t.string,
     }),
     t.partial({
         baseUrl: t.string,
@@ -32,5 +27,3 @@ export const SDKConfigurationCodec: t.Type<SDKConfiguration> = t.intersection([
 export const isSDKConfiguration = SDKConfigurationCodec.is;
 
 export const assertIsSDKConfiguration: CodecAssertion<SDKConfiguration> = codecAssertion(SDKConfigurationCodec);
-
-export type MinSDKConfiguration = Omit<SDKConfiguration, "authorizationConfig">

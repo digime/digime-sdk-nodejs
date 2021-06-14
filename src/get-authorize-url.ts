@@ -13,10 +13,11 @@ import { getRandomAlphaNumeric, hashSha256 } from "./crypto";
 import { sign } from "jsonwebtoken";
 import { handleInvalidatedSdkResponse, net } from "./net";
 import { get } from "lodash";
-import { SDKConfiguration } from "./types/dme-sdk-configuration";
-import { CAScope } from "./types/common";
+import { SDKConfiguration } from "./types/sdk-configuration";
+import { CAScope, ContractDetails, ContractDetailsCodec } from "./types/common";
 
 interface GetAuthorizeUrlOptions {
+    contractDetails: ContractDetails;
     errorCallback: string;
     serviceId?: number;
     userAccessToken?: UserAccessToken;
@@ -26,6 +27,7 @@ interface GetAuthorizeUrlOptions {
 
 export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.intersection([
     t.type({
+        contractDetails: ContractDetailsCodec,
         errorCallback: t.string,
     }),
     t.partial({
@@ -74,16 +76,16 @@ interface AuthorizeResponse {
 }
 
 const _authorize = async (
-    {state, userAccessToken}: GetAuthorizeUrlOptions,
+    {contractDetails, state, userAccessToken}: GetAuthorizeUrlOptions,
     sdkConfig: SDKConfiguration,
 ): Promise<AuthorizeResponse> => {
-    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authorizationConfig;
+    const { contractId, privateKey, redirectUri } = contractDetails;
 
     const codeVerifier: string = base64url(getRandomAlphaNumeric(32));
     const jwt: string = sign(
         {
             access_token: userAccessToken?.accessToken.value,
-            client_id: `${applicationId}_${contractId}`,
+            client_id: `${sdkConfig.applicationId}_${contractId}`,
             code_challenge: base64url(hashSha256(codeVerifier)),
             code_challenge_method: "S256",
             nonce: getRandomAlphaNumeric(32),

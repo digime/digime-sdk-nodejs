@@ -10,9 +10,11 @@ import { net } from "./net";
 import get from "lodash.get";
 import { UserAccessToken } from "./types/user-access-token";
 import { getPayloadFromToken } from "./utils/get-payload-from-token";
-import { SDKConfiguration } from "./types/dme-sdk-configuration";
+import { SDKConfiguration } from "./types/sdk-configuration";
+import { ContractDetails } from "./types/common";
 
 interface ExchangeCodeForTokenOptions {
+    contractDetails: ContractDetails;
     codeVerifier?: string;
     authorizationCode: string,
 }
@@ -22,8 +24,8 @@ const exchangeCodeForToken = async (
     sdkConfig: SDKConfiguration,
 ): Promise<UserAccessToken> => {
 
-    const { authorizationCode, codeVerifier } = options;
-    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authorizationConfig;
+    const { authorizationCode, codeVerifier, contractDetails } = options;
+    const { contractId, privateKey, redirectUri } = contractDetails;
 
     if (!isNonEmptyString(authorizationCode)) {
         throw new TypeValidationError("Authorization code cannot be empty");
@@ -35,7 +37,7 @@ const exchangeCodeForToken = async (
 
     const jwt: string = sign(
         {
-            client_id: `${applicationId}_${contractId}`,
+            client_id: `${sdkConfig.applicationId}_${contractId}`,
             code: authorizationCode,
             code_verifier: codeVerifier,
             grant_type: "authorization_code",

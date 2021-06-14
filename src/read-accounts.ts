@@ -6,7 +6,7 @@ import { DigiMeSDKError } from "./errors";
 import { CAAccountsResponse } from "./types/api/ca-accounts-response";
 import { readFile } from "./read-file";
 import NodeRSA from "node-rsa";
-import { AcceptedSDKConfiguration } from "./types/dme-sdk-configuration";
+import { SDKConfiguration } from "./types/sdk-configuration";
 
 interface ReadAccountsOptions {
     sessionKey: string;
@@ -17,7 +17,7 @@ type ReadAccountsResponse = Pick<CAAccountsResponse, "accounts">;
 
 const readAccounts = async (
     options: ReadAccountsOptions,
-    sdkConfig: AcceptedSDKConfiguration,
+    sdkConfig: SDKConfiguration,
 ): Promise<ReadAccountsResponse> => {
 
     const { sessionKey, privateKey } = options;

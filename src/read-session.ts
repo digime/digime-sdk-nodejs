@@ -9,10 +9,11 @@ import get from "lodash.get";
 import { assertIsSession, Session } from "./types/api/session";
 import { UserAccessToken } from "./types/user-access-token";
 import { refreshToken } from "./refresh-token";
-import { SDKConfiguration } from "./types/dme-sdk-configuration";
-import { CAScope } from "./types/common";
+import { SDKConfiguration } from "./types/sdk-configuration";
+import { CAScope, ContractDetails } from "./types/common";
 
 interface ReadSessionOptions {
+    contractDetails: ContractDetails;
     userAccessToken: UserAccessToken;
     scope?: CAScope;
 }
@@ -27,7 +28,7 @@ const readSession = async (
     sdkConfig: SDKConfiguration,
 ): Promise<ReadSessionResponse> => {
 
-    const { userAccessToken, scope } = options
+    const { contractDetails, userAccessToken, scope } = options
 
     let session: Session;
 
@@ -35,16 +36,18 @@ const readSession = async (
     try {
         session = await triggerDataQuery({
             accessToken: userAccessToken.accessToken.value,
+            contractDetails,
             scope,
         },  sdkConfig);
 
         return { session };
     } catch (error) { /* Invalid tokens */ }
 
-    const newTokens: UserAccessToken = await refreshToken( {userAccessToken}, sdkConfig );
+    const newTokens: UserAccessToken = await refreshToken( {contractDetails, userAccessToken}, sdkConfig );
 
     session = await triggerDataQuery({
         accessToken: newTokens.accessToken.value,
+        contractDetails,
         scope,
     }, sdkConfig);
 
@@ -55,7 +58,8 @@ const readSession = async (
 };
 
 interface TriggerDataQueryProps {
-    accessToken: string,
+    accessToken: string;
+    contractDetails: ContractDetails;
     scope?: CAScope;
 }
 
@@ -64,12 +68,12 @@ const triggerDataQuery = async (
     sdkConfig: SDKConfiguration,
 ): Promise<Session> => {
 
-    const { accessToken, scope } = options;
-    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authorizationConfig;
+    const { accessToken, contractDetails, scope } = options;
+    const { contractId, privateKey, redirectUri } = contractDetails;
     const jwt: string = sign(
         {
             access_token: accessToken,
-            client_id: `${applicationId}_${contractId}`,
+            client_id: `${sdkConfig.applicationId}_${contractId}`,
             nonce: getRandomAlphaNumeric(32),
             redirect_uri: redirectUri,
             timestamp: new Date().getTime(),

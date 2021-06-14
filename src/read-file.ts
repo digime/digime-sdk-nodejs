@@ -11,7 +11,7 @@ import NodeRSA from "node-rsa";
 import { isDecodedCAFileHeaderResponse, MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
 import * as zlib from "zlib";
 import base64url from "base64url";
-import { AcceptedSDKConfiguration } from "./types/dme-sdk-configuration";
+import { SDKConfiguration } from "./types/sdk-configuration";
 
 interface ReadFileOptions {
     sessionKey: string;
@@ -29,7 +29,7 @@ interface ReadFileResponse {
 
 const readFile = async (
     options: ReadFileOptions,
-    sdkConfig: AcceptedSDKConfiguration,
+    sdkConfig: SDKConfiguration,
 ): Promise<ReadFileResponse> => {
 
     const { sessionKey, fileName, privateKey } = options;
@@ -69,7 +69,7 @@ interface FetchFileProps {
 
 const fetchFile = async (
     options: FetchFileProps,
-    sdkConfig: AcceptedSDKConfiguration,
+    sdkConfig: SDKConfiguration,
 ): Promise<FetchFileResponse> => {
 
     const { sessionKey, fileName } = options;

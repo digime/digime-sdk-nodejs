@@ -9,13 +9,15 @@ import { sign } from "jsonwebtoken";
 import { TypeValidationError } from "./errors";
 import { net, handleInvalidatedSdkResponse } from "./net";
 import { areNonEmptyStrings } from "./utils/basic-utils";
-import { assertIsPushDataStatusResponse, PushDataToPostboxAPIResponse } from "./types/api/postbox-response";
+import { assertIsPushDataStatusResponse, WriteDataAPIResponse } from "./types/api/postbox-response";
 import { assertIsPushedFileMeta } from "./types/postbox";
 import { UserAccessToken } from "./types/user-access-token";
 import { refreshToken } from "./refresh-token";
-import { SDKConfiguration } from "./types/dme-sdk-configuration";
+import { SDKConfiguration } from "./types/sdk-configuration";
+import { ContractDetails } from "./types/common";
 
 interface WriteOptions{
+    contractDetails: ContractDetails;
     userAccessToken: UserAccessToken;
     data: FileMeta;
     publicKey: NodeRSA.Key;
@@ -36,13 +38,14 @@ interface FileMeta {
     };
 }
 
-interface WriteResponse extends PushDataToPostboxAPIResponse {
+interface WriteResponse extends WriteDataAPIResponse {
     updatedAccessToken?: UserAccessToken;
 }
 
 const write = async (options: WriteOptions, sdkConfig: SDKConfiguration): Promise<WriteResponse> => {
 
     const {
+        contractDetails,
         userAccessToken,
         data,
         publicKey,
@@ -60,6 +63,7 @@ const write = async (options: WriteOptions, sdkConfig: SDKConfiguration): Promis
     // We have an access token, try and trigger a push request
     const result = await triggerPush({
         accessToken: userAccessToken?.accessToken.value,
+        contractDetails,
         data,
         publicKey,
         postboxId,
@@ -68,9 +72,10 @@ const write = async (options: WriteOptions, sdkConfig: SDKConfiguration): Promis
 
     // If an access token was provided and the status is pending, it means the access token may have expired.
     if (result.status === "pending" && userAccessToken) {
-        const newTokens: UserAccessToken = await refreshToken( {userAccessToken}, sdkConfig );
+        const newTokens: UserAccessToken = await refreshToken( {contractDetails, userAccessToken}, sdkConfig );
         const secondPushResult = await triggerPush({
             accessToken: newTokens.accessToken.value,
+            contractDetails,
             data,
             publicKey,
             postboxId,
@@ -92,10 +97,10 @@ interface TriggerPushProps extends Omit<WriteOptions, "userAccessToken"> {
 const triggerPush = async (
     options: TriggerPushProps,
     sdkConfig: SDKConfiguration,
-): Promise<PushDataToPostboxAPIResponse> => {
+): Promise<WriteDataAPIResponse> => {
 
-    const { accessToken, postboxId, publicKey, data, sessionKey } = options;
-    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authorizationConfig;
+    const { accessToken, contractDetails, postboxId, publicKey, data, sessionKey } = options;
+    const { contractId, privateKey, redirectUri } = contractDetails;
 
     const key: string = getRandomHex(64);
     const rsa: NodeRSA = new NodeRSA(publicKey, "pkcs1-public");
@@ -119,7 +124,7 @@ const triggerPush = async (
     const jwt: string = sign(
         {
             ...(accessToken && {access_token: accessToken}),
-            client_id: `${applicationId}_${contractId}`,
+            client_id: `${sdkConfig.applicationId}_${contractId}`,
             iv: ivString,
             metadata: encryptedMeta.toString("base64"),
             nonce: getRandomAlphaNumeric(32),

@@ -10,9 +10,11 @@ import get from "lodash.get";
 import { HTTPError } from "got/dist/source";
 import { UserAccessToken } from "./types/user-access-token";
 import { getPayloadFromToken } from "./utils/get-payload-from-token";
-import { SDKConfiguration } from "./types/dme-sdk-configuration";
+import { SDKConfiguration } from "./types/sdk-configuration";
+import { ContractDetails } from "./types/common";
 
 interface RefreshTokenOptions {
+    contractDetails: ContractDetails;
     userAccessToken: UserAccessToken;
 }
 
@@ -21,15 +23,15 @@ const refreshToken = async (
     sdkConfig: SDKConfiguration,
 ): Promise<UserAccessToken> => {
 
-    const { userAccessToken } = options;
-    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authorizationConfig;
+    const { contractDetails, userAccessToken } = options;
+    const { contractId, privateKey, redirectUri } = contractDetails;
     const jwt: string = sign(
         {
-            client_id: `${applicationId}_${contractId}`,
+            client_id: `${sdkConfig.applicationId}_${contractId}`,
             grant_type: "refresh_token",
             nonce: getRandomAlphaNumeric(32),
             redirect_uri: redirectUri,
-            refresh_token: userAccessToken.refreshToken,
+            refresh_token: userAccessToken.refreshToken.value,
             timestamp: new Date().getTime(),
         },
         privateKey.toString(),

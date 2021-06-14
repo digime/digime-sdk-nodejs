@@ -9,7 +9,7 @@ import { net } from "../net";
 import isString from "lodash.isstring";
 import { isJWKS } from "../types/api/jwks";
 import get from "lodash.get";
-import { SDKConfiguration } from "../types/dme-sdk-configuration";
+import { SDKConfiguration } from "../types/sdk-configuration";
 
 const getPayloadFromToken = async (token: string, options: SDKConfiguration): Promise<any> => {
     const decodedToken = decode(token, {complete: true});

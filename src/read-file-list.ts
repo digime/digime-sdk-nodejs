@@ -4,7 +4,7 @@
 
 import { net } from "./net";
 import { assertIsCAFileListResponse, CAFileListResponse } from "./types/api/ca-file-list-response";
-import { AcceptedSDKConfiguration } from "./types/dme-sdk-configuration";
+import { SDKConfiguration } from "./types/sdk-configuration";
 
 interface ReadFileListOptions {
     sessionKey: string;
@@ -12,7 +12,7 @@ interface ReadFileListOptions {
 
 const readFileList = async (
     options: ReadFileListOptions,
-    sdkConfig: AcceptedSDKConfiguration,
+    sdkConfig: SDKConfiguration,
 ): Promise<CAFileListResponse> => {
 
     const url = `${sdkConfig.baseUrl}permission-access/query/${options.sessionKey}`;

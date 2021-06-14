@@ -5,10 +5,10 @@
 import { net } from "./net";
 import { DiscoveryApiServicesData } from "./types/common";
 import { assertIsDiscoveryApiServicesData } from "./types/api/get-discovery-api-services";
-import { BasicSDKConfiguration } from "./types/dme-sdk-configuration";
+import { SDKConfiguration } from "./types/sdk-configuration";
 
 const getAvailableServices = async (
-    sdkConfig: BasicSDKConfiguration,
+    sdkConfig: SDKConfiguration,
     contractId?: string,
 ): Promise<DiscoveryApiServicesData> => {
 

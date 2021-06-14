@@ -12,9 +12,11 @@ import { sign } from "jsonwebtoken";
 import { URL, URLSearchParams } from "url";
 import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
 import { getPayloadFromToken } from "./utils/get-payload-from-token";
-import { SDKConfiguration } from "./types/dme-sdk-configuration";
+import { SDKConfiguration } from "./types/sdk-configuration";
+import { ContractDetails, ContractDetailsCodec } from "./types/common";
 
 interface GetOnboardServiceUrlOptions {
+    contractDetails: ContractDetails;
     errorCallback: string;
     successCallback: string;
     userAccessToken: UserAccessToken;
@@ -22,6 +24,7 @@ interface GetOnboardServiceUrlOptions {
 }
 
 const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.type({
+    contractDetails: ContractDetailsCodec,
     errorCallback: t.string,
     successCallback: t.string,
     userAccessToken: UserAccessTokenCodec,
@@ -42,13 +45,13 @@ const _getOnboardServiceUrl = async (
         throw new Error("Error on getOnboardServiceUrl(). Incorrect parameters passed in.")
     }
 
-    const { applicationId, contractId, privateKey, redirectUri } = sdkConfig.authorizationConfig;
-    const { userAccessToken } = props;
+    const { userAccessToken, contractDetails } = props;
+    const { contractId, privateKey, redirectUri } = contractDetails;
 
     const jwt: string = sign(
         {
             access_token: userAccessToken.accessToken.value,
-            client_id: `${applicationId}_${contractId}`,
+            client_id: `${sdkConfig.applicationId}_${contractId}`,
             nonce: getRandomAlphaNumeric(32),
             redirect_uri: redirectUri,
             timestamp: new Date().getTime(),

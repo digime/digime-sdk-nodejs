@@ -3,7 +3,7 @@
  */
 
 import { refreshToken, RefreshTokenOptions } from "../refresh-token";
-import { SDKConfiguration } from "../types/dme-sdk-configuration";
+import { SDKConfiguration } from "../types/sdk-configuration";
 import { UserAccessToken } from "../types/user-access-token";
 
 export const refreshTokenWrapper = async <Args extends RefreshTokenOptions, Return>(
@@ -20,6 +20,7 @@ export const refreshTokenWrapper = async <Args extends RefreshTokenOptions, Retu
     }
 
     const newTokens: UserAccessToken = await refreshToken({
+        contractDetails: prop.contractDetails,
         userAccessToken: prop.userAccessToken,
     }, sdkConfiguration);
 

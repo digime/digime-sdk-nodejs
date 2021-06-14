@@ -11,7 +11,7 @@ import { sleep } from "./utils/sleep";
 import NodeRSA from "node-rsa";
 import { readFile, ReadFileMeta } from "./read-file";
 import { readFileList } from "./read-file-list";
-import { AcceptedSDKConfiguration } from "./types/dme-sdk-configuration";
+import { SDKConfiguration } from "./types/sdk-configuration";
 
 interface ReadAllFilesOptions {
     sessionKey: string,
@@ -32,7 +32,7 @@ interface ReadAllFilesResponse {
 
 const readAllFiles = (
     options: ReadAllFilesOptions,
-    sdkConfig: AcceptedSDKConfiguration,
+    sdkConfig: SDKConfiguration,
 ): ReadAllFilesResponse => {
 
     const {
