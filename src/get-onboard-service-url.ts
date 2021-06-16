@@ -17,16 +17,14 @@ import { ContractDetails, ContractDetailsCodec } from "./types/common";
 
 interface GetOnboardServiceUrlOptions {
     contractDetails: ContractDetails;
-    errorCallback: string;
-    successCallback: string;
+    callback: string;
     userAccessToken: UserAccessToken;
     serviceId: number;
 }
 
 const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.type({
     contractDetails: ContractDetailsCodec,
-    errorCallback: t.string,
-    successCallback: t.string,
+    callback: t.string,
     userAccessToken: UserAccessTokenCodec,
     serviceId: t.number,
 });
@@ -78,8 +76,7 @@ const _getOnboardServiceUrl = async (
     const result: URL = new URL(`${sdkConfig.onboardUrl}onboard`);
     result.search = new URLSearchParams({
         code,
-        successCallback: props.successCallback,
-        errorCallback: props.errorCallback,
+        callback: props.callback,
         service: props.serviceId.toString(),
     }).toString();
 

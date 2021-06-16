@@ -22,7 +22,6 @@ interface WriteOptions{
     data: FileMeta;
     publicKey: NodeRSA.Key;
     postboxId: string;
-    sessionKey?: string;
 }
 
 interface FileMeta {
@@ -50,7 +49,6 @@ const write = async (options: WriteOptions, sdkConfig: SDKConfiguration): Promis
         data,
         publicKey,
         postboxId,
-        sessionKey,
     } = options;
 
     if (!areNonEmptyStrings([publicKey, postboxId])) {
@@ -67,7 +65,6 @@ const write = async (options: WriteOptions, sdkConfig: SDKConfiguration): Promis
         data,
         publicKey,
         postboxId,
-        sessionKey,
     }, sdkConfig);
 
     // If an access token was provided and the status is pending, it means the access token may have expired.
@@ -99,7 +96,7 @@ const triggerPush = async (
     sdkConfig: SDKConfiguration,
 ): Promise<WriteDataAPIResponse> => {
 
-    const { accessToken, contractDetails, postboxId, publicKey, data, sessionKey } = options;
+    const { accessToken, contractDetails, postboxId, publicKey, data } = options;
     const { contractId, privateKey, redirectUri } = contractDetails;
 
     const key: string = getRandomHex(64);
@@ -129,7 +126,6 @@ const triggerPush = async (
             metadata: encryptedMeta.toString("base64"),
             nonce: getRandomAlphaNumeric(32),
             redirect_uri: redirectUri,
-            session_key: sessionKey,
             symmetrical_key: encryptedKey.toString("base64"),
             timestamp: new Date().getTime(),
         },

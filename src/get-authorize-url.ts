@@ -17,18 +17,42 @@ import { SDKConfiguration } from "./types/sdk-configuration";
 import { CAScope, ContractDetails, ContractDetailsCodec } from "./types/common";
 
 interface GetAuthorizeUrlOptions {
+
+    /**
+     * Any contract related details here.
+     */
     contractDetails: ContractDetails;
-    errorCallback: string;
+
+    /**
+     * A URL to call if an error occurs. The redirect URL in contractDetails will be called if the authorization was successful.
+     */
+    callback: string;
+
+    /**
+     * Onboard a service while authorizing.
+     */
     serviceId?: number;
+
+    /**
+     * To renew an existing access token.
+     */
     userAccessToken?: UserAccessToken;
+
+    /**
+     * For read contracts, you can limit to scope of data to query.
+     */
     scope?: CAScope;
+
+    /**
+     * Any extra data you want to be passed back after a authorization flow.
+     */
     state?: string
 }
 
 export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.intersection([
     t.type({
         contractDetails: ContractDetailsCodec,
-        errorCallback: t.string,
+        callback: t.string,
     }),
     t.partial({
         serviceId: t.number,
@@ -37,7 +61,7 @@ export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.int
     }),
 ]);
 
-interface GetAuthorizationUrlResponse {
+interface GetAuthorizeUrlResponse {
     url: string;
     codeVerifier: string;
     session: Session;
@@ -46,7 +70,7 @@ interface GetAuthorizationUrlResponse {
 const getAuthorizeUrl = async (
     props: GetAuthorizeUrlOptions,
     sdkConfig: SDKConfiguration,
-): Promise<GetAuthorizationUrlResponse> => {
+): Promise<GetAuthorizeUrlResponse> => {
 
     if (!GetAuthorizeUrlOptionsCodec.is(props)) {
         // tslint:disable-next-line:max-line-length
@@ -58,7 +82,7 @@ const getAuthorizeUrl = async (
     const result: URL = new URL(`${sdkConfig.onboardUrl}authorize`);
     result.search = new URLSearchParams({
         code,
-        errorCallback: props.errorCallback,
+        callback: props.callback,
         service: props.serviceId?.toString(),
     }).toString();
 
@@ -126,5 +150,5 @@ const _authorize = async (
 export {
     getAuthorizeUrl,
     GetAuthorizeUrlOptions,
-    GetAuthorizationUrlResponse,
+    GetAuthorizeUrlResponse,
 };

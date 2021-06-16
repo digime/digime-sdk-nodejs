@@ -29,4 +29,5 @@ const readFileList = async (
 export {
     readFileList,
     ReadFileListOptions,
+    CAFileListResponse as ReadFileListResponse,
 };
