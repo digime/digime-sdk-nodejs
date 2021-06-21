@@ -2,6 +2,7 @@
  * Copyright (c) 2009-2021 digi.me Limited. All rights reserved.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import crypto from "crypto";
 import isPlainObject from "lodash.isplainobject";
 import get from "lodash.get";
@@ -20,12 +21,7 @@ interface CreateCADataOptions {
 
 // Creates CA-like data string
 const createCAData = (key: NodeRSA, inputData: string, options?: CreateCADataOptions): Buffer => {
-
-    const {
-        compression,
-        corruptHash,
-        corruptLength,
-    }: Required<CreateCADataOptions> = {
+    const { compression, corruptHash, corruptLength }: Required<CreateCADataOptions> = {
         compression: "no-compression",
         corruptHash: false,
         corruptLength: false,
@@ -74,8 +70,8 @@ type RequestHandler = (
     mockFn: ReturnType<typeof jest.fn>,
     request: ClientRequest,
     interceptor: Interceptor,
-    body: string,
-) => void
+    body: string
+) => void;
 
 interface SpyOnScopeRequestsOptions {
     requestHandler?: RequestHandler;
@@ -83,44 +79,43 @@ interface SpyOnScopeRequestsOptions {
 
 const spyOnScopeRequests = (
     scope: nock.Scope | nock.Scope[],
-    options?: SpyOnScopeRequestsOptions,
-) => {
-
+    options?: SpyOnScopeRequestsOptions
+): jest.Mock<any, any> => {
     const resolvedOptions: Required<SpyOnScopeRequestsOptions> = {
-        requestHandler: (mockFn, _r, _i, body) => { mockFn(JSON.parse(body)); },
+        requestHandler: (mockFn, _r, _i, body) => {
+            mockFn(JSON.parse(body));
+        },
         ...options,
-    }
+    };
 
     const scopes = Array.isArray(scope) ? scope : [scope];
     const requestSpy = jest.fn();
 
-    scopes.forEach((s) => {
+    for (const s of scopes) {
         s.on("request", (request: ClientRequest, interceptor: Interceptor, body: string) => {
             resolvedOptions.requestHandler(requestSpy, request, interceptor, body);
         });
-    });
+    }
 
     return requestSpy;
-}
+};
 
 interface NockDefinitionWithHeader extends nock.Definition {
     rawHeaders?: ReplyHeaders;
 }
 
 // Wrapper around nock.loadDefs which creates definitions which ignore request bodies
-const loadDefinitions = (path: string): NockDefinitionWithHeader[] => (
+const loadDefinitions = (path: string): NockDefinitionWithHeader[] =>
     nock.loadDefs(path).map((definition) => ({
         ...definition,
 
         // Avoid body filtering by default
         filteringRequestBody: (_body: unknown, recordedBody: unknown) => recordedBody,
-    }))
-);
+    }));
 
 // Same as above, but with added scope filtering
-const loadScopeDefinitions = (path: string, scope: string): NockDefinitionWithHeader[] => (
-    loadDefinitions(path).filter((definition) => definition.scope === scope)
-);
+const loadScopeDefinitions = (path: string, scope: string): NockDefinitionWithHeader[] =>
+    loadDefinitions(path).filter((definition) => definition.scope === scope);
 
 interface FileContentToCAFormatOptions {
     corruptHash?: boolean;
@@ -132,14 +127,9 @@ interface FileContentToCAFormatOptions {
 const fileContentToCAFormat = (
     definitions: NockDefinitionWithHeader[],
     key: NodeRSA,
-    {
-        corruptHash = false,
-        corruptLength = false,
-        overrideCompression,
-    }: FileContentToCAFormatOptions = {},
-): NockDefinitionWithHeader[] => (
+    { corruptHash = false, corruptLength = false, overrideCompression }: FileContentToCAFormatOptions = {}
+): NockDefinitionWithHeader[] =>
     definitions.reduce((acc, definition) => {
-
         const response: unknown = definition.response;
 
         let fileContent: any = response;
@@ -153,26 +143,21 @@ const fileContentToCAFormat = (
 
         const def = {
             ...definition,
-            response: createCAData(
-                key,
-                fileContent,
-                {
-                    compression: overrideCompression || compression,
-                    corruptHash,
-                    corruptLength,
-                },
-            ),
+            response: createCAData(key, fileContent, {
+                compression: overrideCompression || compression,
+                corruptHash,
+                corruptLength,
+            }),
             rawHeaders: {
-                "x-metadata": parseMetaToHeader(get(headers, ["x-metadata"]))
-            }
+                "x-metadata": parseMetaToHeader(get(headers, ["x-metadata"])),
+            },
         };
         return [...acc, def];
-    }, [] as NockDefinitionWithHeader[])
-);
+    }, [] as NockDefinitionWithHeader[]);
 
-const parseMetaToHeader = (meta: object): string => {
+const parseMetaToHeader = (meta: Record<string, unknown>): string => {
     return base64url.encode(JSON.stringify(meta));
-}
+};
 
 export {
     loadDefinitions,

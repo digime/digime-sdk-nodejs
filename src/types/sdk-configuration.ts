@@ -10,8 +10,8 @@ export interface SDKConfiguration {
     applicationId: string;
     baseUrl?: string;
     onboardUrl?: string;
-    retryOptions?: RetryOptions,
-};
+    retryOptions?: RetryOptions;
+}
 
 export const SDKConfigurationCodec: t.Type<SDKConfiguration> = t.intersection([
     t.type({

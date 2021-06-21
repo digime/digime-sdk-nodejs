@@ -11,8 +11,8 @@ const fileContent = `/*!
 export default "${process.env.npm_package_version}";
 `;
 
-fs.writeFile("./src/sdk-version.ts", fileContent , (err)  => {
-  if (err) {
-    throw err;
-  }
+fs.writeFile("./src/sdk-version.ts", fileContent, (err) => {
+    if (err) {
+        throw err;
+    }
 });

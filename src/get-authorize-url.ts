@@ -16,8 +16,7 @@ import { get } from "lodash";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { CAScope, ContractDetails, ContractDetailsCodec } from "./types/common";
 
-interface GetAuthorizeUrlOptions {
-
+export interface GetAuthorizeUrlOptions {
     /**
      * Any contract related details here.
      */
@@ -46,7 +45,7 @@ interface GetAuthorizeUrlOptions {
     /**
      * Any extra data you want to be passed back after a authorization flow.
      */
-    state?: string
+    state?: string;
 }
 
 export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.intersection([
@@ -61,7 +60,7 @@ export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.int
     }),
 ]);
 
-interface GetAuthorizeUrlResponse {
+export interface GetAuthorizeUrlResponse {
     url: string;
     codeVerifier: string;
     session: Session;
@@ -69,12 +68,13 @@ interface GetAuthorizeUrlResponse {
 
 const getAuthorizeUrl = async (
     props: GetAuthorizeUrlOptions,
-    sdkConfig: SDKConfiguration,
+    sdkConfig: SDKConfiguration
 ): Promise<GetAuthorizeUrlResponse> => {
-
     if (!GetAuthorizeUrlOptionsCodec.is(props)) {
         // tslint:disable-next-line:max-line-length
-        throw new TypeValidationError("Details should be a plain object that contains the properties applicationId, contractId, privateKey and redirectUri");
+        throw new TypeValidationError(
+            "Details should be a plain object that contains the properties applicationId, contractId, privateKey and redirectUri"
+        );
     }
 
     const { code, codeVerifier, session } = await _authorize(props, sdkConfig);
@@ -100,8 +100,8 @@ interface AuthorizeResponse {
 }
 
 const _authorize = async (
-    {contractDetails, state, userAccessToken}: GetAuthorizeUrlOptions,
-    sdkConfig: SDKConfiguration,
+    { contractDetails, state, userAccessToken }: GetAuthorizeUrlOptions,
+    sdkConfig: SDKConfiguration
 ): Promise<AuthorizeResponse> => {
     const { contractId, privateKey, redirectUri } = contractDetails;
 
@@ -117,17 +117,17 @@ const _authorize = async (
             response_mode: "query",
             response_type: "code",
             state,
-            timestamp: new Date().getTime(),
+            timestamp: Date.now(),
         },
         privateKey.toString(),
         {
             algorithm: "PS512",
             noTimestamp: true,
-        },
+        }
     );
 
     try {
-        const {body} = await net.post(`${sdkConfig.baseUrl}oauth/authorize`, {
+        const { body } = await net.post(`${sdkConfig.baseUrl}oauth/authorize`, {
             headers: {
                 Authorization: `Bearer ${jwt}`,
             },
@@ -138,7 +138,7 @@ const _authorize = async (
         const payload = await getPayloadFromToken(get(body, "token"), sdkConfig);
         return {
             codeVerifier,
-            code: `${payload.preauthorization_code}`,
+            code: `${get(payload, ["preauthorization_code"])}`,
             session: get(body, "session"),
         };
     } catch (error) {
@@ -147,8 +147,4 @@ const _authorize = async (
     }
 };
 
-export {
-    getAuthorizeUrl,
-    GetAuthorizeUrlOptions,
-    GetAuthorizeUrlResponse,
-};
+export { getAuthorizeUrl };

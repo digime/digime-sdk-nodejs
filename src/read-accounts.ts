@@ -8,37 +8,34 @@ import { readFile } from "./read-file";
 import NodeRSA from "node-rsa";
 import { SDKConfiguration } from "./types/sdk-configuration";
 
-interface ReadAccountsOptions {
+export interface ReadAccountsOptions {
     sessionKey: string;
     privateKey: NodeRSA.Key;
 }
 
-type ReadAccountsResponse = Pick<CAAccountsResponse, "accounts">;
+export type ReadAccountsResponse = Pick<CAAccountsResponse, "accounts">;
 
 const readAccounts = async (
     options: ReadAccountsOptions,
-    sdkConfig: SDKConfiguration,
+    sdkConfig: SDKConfiguration
 ): Promise<ReadAccountsResponse> => {
-
     const { sessionKey, privateKey } = options;
-    const {fileData} = await readFile({
-        sessionKey,
-        fileName: "accounts.json",
-        privateKey,
-    }, sdkConfig);
+    const { fileData } = await readFile(
+        {
+            sessionKey,
+            fileName: "accounts.json",
+            privateKey,
+        },
+        sdkConfig
+    );
 
     try {
         return {
             accounts: JSON.parse(fileData.toString("utf8")),
         };
-    }
-    catch(error) {
+    } catch (error) {
         throw new DigiMeSDKError("Account file is malformed.");
     }
 };
 
-export {
-    readAccounts,
-    ReadAccountsOptions,
-    ReadAccountsResponse,
-};
+export { readAccounts };

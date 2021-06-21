@@ -19,13 +19,13 @@ export interface PushedFileMeta {
 }
 
 const buffer = new t.Type<Buffer, Buffer, unknown>(
-    'Buffer',
+    "Buffer",
     (input: unknown): input is Buffer => Buffer.isBuffer(input),
     // `t.success` and `t.failure` are helpers used to build `Either` instances
     (input, context) => (Buffer.isBuffer(input) ? t.success(input) : t.failure(input, context)),
     // `A` and `O` are the same, so `encode` is just the identity function
-    t.identity,
-)
+    t.identity
+);
 
 export const PushedFileMetaCodec: t.Type<PushedFileMeta> = t.type({
     fileData: buffer,
@@ -33,9 +33,11 @@ export const PushedFileMetaCodec: t.Type<PushedFileMeta> = t.type({
     fileDescriptor: t.intersection([
         t.type({
             mimeType: t.string,
-            accounts: t.array(t.type({
-                accountId: t.string,
-            })),
+            accounts: t.array(
+                t.type({
+                    accountId: t.string,
+                })
+            ),
         }),
         t.partial({
             reference: t.array(t.string),

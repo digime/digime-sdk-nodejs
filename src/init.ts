@@ -16,7 +16,8 @@ import { readAllFiles, ReadAllFilesOptions } from "./read-all-files";
 import { readAccounts, ReadAccountsOptions } from "./read-accounts";
 import { deleteUser, DeleteUserOptions } from "./delete-user";
 
-const init = (config: SDKConfiguration) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const init = (config: SDKConfiguration): any => {
     const formatted: SDKConfiguration = {
         ...config,
         baseUrl: addTrailingSlash(config.baseUrl),
@@ -33,42 +34,18 @@ const init = (config: SDKConfiguration) => {
     };
 
     return {
-        getAuthorizeUrl: (props: GetAuthorizeUrlOptions) => (
-            getAuthorizeUrl(props, sdkConfig)
-        ),
-        getOnboardServiceUrl: (props: GetOnboardServiceUrlOptions ) => (
-            getOnboardServiceUrl(props, sdkConfig)
-        ),
-        exchangeCodeForToken: (props: ExchangeCodeForTokenOptions) => (
-            exchangeCodeForToken(props, sdkConfig)
-        ),
-        write: (props: WriteOptions) => (
-            write(props, sdkConfig)
-        ),
-        readSession: (props: ReadSessionOptions) => (
-            readSession(props, sdkConfig)
-        ),
-        deleteUser: (props: DeleteUserOptions) => (
-            deleteUser(props, sdkConfig)
-        ),
-        getAvailableServices: (contractId?: string) => (
-            getAvailableServices(sdkConfig, contractId)
-        ),
-        readFile: (props: ReadFileOptions) => (
-            readFile(props, sdkConfig)
-        ),
-        readFileList: (props: ReadFileListOptions) => (
-            readFileList(props, sdkConfig)
-        ),
-        readAllFiles: (props: ReadAllFilesOptions) => (
-            readAllFiles(props, sdkConfig)
-        ),
-        readAccounts: (props: ReadAccountsOptions) => (
-            readAccounts(props, sdkConfig)
-        ),
-    }
+        getAuthorizeUrl: (props: GetAuthorizeUrlOptions) => getAuthorizeUrl(props, sdkConfig),
+        getOnboardServiceUrl: (props: GetOnboardServiceUrlOptions) => getOnboardServiceUrl(props, sdkConfig),
+        exchangeCodeForToken: (props: ExchangeCodeForTokenOptions) => exchangeCodeForToken(props, sdkConfig),
+        write: (props: WriteOptions) => write(props, sdkConfig),
+        readSession: (props: ReadSessionOptions) => readSession(props, sdkConfig),
+        deleteUser: (props: DeleteUserOptions) => deleteUser(props, sdkConfig),
+        getAvailableServices: (contractId?: string) => getAvailableServices(sdkConfig, contractId),
+        readFile: (props: ReadFileOptions) => readFile(props, sdkConfig),
+        readFileList: (props: ReadFileListOptions) => readFileList(props, sdkConfig),
+        readAllFiles: (props: ReadAllFilesOptions) => readAllFiles(props, sdkConfig),
+        readAccounts: (props: ReadAccountsOptions) => readAccounts(props, sdkConfig),
+    };
 };
 
-export {
-    init,
-};
+export { init };

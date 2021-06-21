@@ -3,4 +3,4 @@
  */
 
 // NOTE: This mock is added to overcome jest timer mocks not working!!
-export const sleep = () => Promise.resolve();
+export const sleep = (): Promise<void> => Promise.resolve();
