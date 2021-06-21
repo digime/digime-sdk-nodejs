@@ -7,9 +7,9 @@ import { codecAssertion, CodecAssertion } from "../../utils/codec-assertion";
 
 export interface ApiErrorResponse {
     error: {
-        code: string,
-        message: string,
-    }
+        code: string;
+        message: string;
+    };
 }
 
 export const ApiErrorResponseCodec: t.Type<ApiErrorResponse> = t.type({

@@ -12,44 +12,48 @@ import { refreshToken } from "./refresh-token";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { CAScope, ContractDetails } from "./types/common";
 
-interface ReadSessionOptions {
+export interface ReadSessionOptions {
     contractDetails: ContractDetails;
     userAccessToken: UserAccessToken;
     scope?: CAScope;
 }
 
-interface ReadSessionResponse {
+export interface ReadSessionResponse {
     session: Session;
     updatedAccessToken?: UserAccessToken;
 }
 
-const readSession = async (
-    options: ReadSessionOptions,
-    sdkConfig: SDKConfiguration,
-): Promise<ReadSessionResponse> => {
-
-    const { contractDetails, userAccessToken, scope } = options
+const readSession = async (options: ReadSessionOptions, sdkConfig: SDKConfiguration): Promise<ReadSessionResponse> => {
+    const { contractDetails, userAccessToken, scope } = options;
 
     let session: Session;
 
     // 1. We have an access token, try and trigger a data request
     try {
-        session = await triggerDataQuery({
-            accessToken: userAccessToken.accessToken.value,
-            contractDetails,
-            scope,
-        },  sdkConfig);
+        session = await triggerDataQuery(
+            {
+                accessToken: userAccessToken.accessToken.value,
+                contractDetails,
+                scope,
+            },
+            sdkConfig
+        );
 
         return { session };
-    } catch (error) { /* Invalid tokens */ }
+    } catch (error) {
+        /* Invalid tokens */
+    }
 
-    const newTokens: UserAccessToken = await refreshToken( {contractDetails, userAccessToken}, sdkConfig );
+    const newTokens: UserAccessToken = await refreshToken({ contractDetails, userAccessToken }, sdkConfig);
 
-    session = await triggerDataQuery({
-        accessToken: newTokens.accessToken.value,
-        contractDetails,
-        scope,
-    }, sdkConfig);
+    session = await triggerDataQuery(
+        {
+            accessToken: newTokens.accessToken.value,
+            contractDetails,
+            scope,
+        },
+        sdkConfig
+    );
 
     return {
         session,
@@ -63,11 +67,7 @@ interface TriggerDataQueryProps {
     scope?: CAScope;
 }
 
-const triggerDataQuery = async (
-    options: TriggerDataQueryProps,
-    sdkConfig: SDKConfiguration,
-): Promise<Session> => {
-
+const triggerDataQuery = async (options: TriggerDataQueryProps, sdkConfig: SDKConfiguration): Promise<Session> => {
     const { accessToken, contractDetails, scope } = options;
     const { contractId, privateKey, redirectUri } = contractDetails;
     const jwt: string = sign(
@@ -76,13 +76,13 @@ const triggerDataQuery = async (
             client_id: `${sdkConfig.applicationId}_${contractId}`,
             nonce: getRandomAlphaNumeric(32),
             redirect_uri: redirectUri,
-            timestamp: new Date().getTime(),
+            timestamp: Date.now(),
         },
         privateKey.toString(),
         {
             algorithm: "PS512",
             noTimestamp: true,
-        },
+        }
     );
 
     const url = `${sdkConfig.baseUrl}permission-access/trigger`;
@@ -104,8 +104,4 @@ const triggerDataQuery = async (
     return session;
 };
 
-export {
-    readSession,
-    ReadSessionOptions,
-    ReadSessionResponse,
-}
+export { readSession };

@@ -1,29 +1,29 @@
 {
-    "compilerOptions": {
-        "target": "es2017",
-        "moduleResolution": "node",
-        "module": "commonjs",
-        "declaration": true,
-        "inlineSourceMap": true,
-        "esModuleInterop": true,
-        "strict": true,
-        "resolveJsonModule": true,
+  "compilerOptions": {
+      "target": "es2017",
+      "moduleResolution": "node",
+      "module": "commonjs",
+      "declaration": true,
+      "inlineSourceMap": true,
+      "esModuleInterop": true,
+      "strict": true,
+      "resolveJsonModule": true,
 
-        /* Additional Checks */
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "noImplicitReturns": true,
-        "noFallthroughCasesInSwitch": true,
+      /* Additional Checks */
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "noImplicitReturns": true,
+      "noFallthroughCasesInSwitch": true,
 
-        /* Debugging Options */
-        "traceResolution": false,
-        "listEmittedFiles": false,
-        "listFiles": false,
-        "pretty": true,
+      /* Debugging Options */
+      "traceResolution": false,
+      "listEmittedFiles": false,
+      "listFiles": false,
+      "pretty": true,
 
-        "lib": ["es2017"]
-    },
-    "include": ["src/**/*", "utils/**/*", "tools/**/*"],
-    "exclude": ["dist/**", "node_modules/**"],
-    "compileOnSave": false
+      "lib": ["es2017"]
+  },
+  "include": ["src/**/*", "utils/**/*", "tools/**/*"],
+  "exclude": ["dist/**", "node_modules/**"],
+  "compileOnSave": false
 }

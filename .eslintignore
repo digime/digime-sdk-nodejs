@@ -1,0 +1,4 @@
+# don't lint coverage output
+coverage
+# Don't lint build output
+dist

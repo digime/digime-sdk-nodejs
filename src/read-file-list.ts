@@ -6,15 +6,11 @@ import { net } from "./net";
 import { assertIsCAFileListResponse, CAFileListResponse } from "./types/api/ca-file-list-response";
 import { SDKConfiguration } from "./types/sdk-configuration";
 
-interface ReadFileListOptions {
+export interface ReadFileListOptions {
     sessionKey: string;
 }
 
-const readFileList = async (
-    options: ReadFileListOptions,
-    sdkConfig: SDKConfiguration,
-): Promise<CAFileListResponse> => {
-
+const readFileList = async (options: ReadFileListOptions, sdkConfig: SDKConfiguration): Promise<CAFileListResponse> => {
     const url = `${sdkConfig.baseUrl}permission-access/query/${options.sessionKey}`;
     const response = await net.get(url, {
         responseType: "json",
@@ -26,8 +22,4 @@ const readFileList = async (
     return response.body;
 };
 
-export {
-    readFileList,
-    ReadFileListOptions,
-    CAFileListResponse as ReadFileListResponse,
-};
+export { readFileList };

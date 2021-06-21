@@ -14,10 +14,10 @@ const BYTES = {
     DATA: [64],
 };
 
-const ALPHA_LOWER: string = `abcdefghijklmnopqrstuvwxyz`;
+const ALPHA_LOWER = `abcdefghijklmnopqrstuvwxyz`;
 const ALPHA_UPPER: string = ALPHA_LOWER.toUpperCase();
-const NUMERIC: string = `0123456789`;
-const ALPHA_NUMERIC: string = `${ALPHA_LOWER}${ALPHA_UPPER}${NUMERIC}`;
+const NUMERIC = `0123456789`;
+const ALPHA_NUMERIC = `${ALPHA_LOWER}${ALPHA_UPPER}${NUMERIC}`;
 
 const isValidSize = (data: Buffer): boolean => {
     const bytes = data.length;
@@ -25,7 +25,6 @@ const isValidSize = (data: Buffer): boolean => {
 };
 
 const decryptData = (key: NodeRSA, file: Buffer): Buffer => {
-
     // Verify file data is of correct length
     if (!isValidSize(file)) {
         throw new FileDecryptionError("File size not valid");
@@ -59,16 +58,20 @@ const encryptData = (iv: Buffer, key: Buffer, input: Buffer): Buffer => {
     return concat;
 };
 
-const getRandomHex = (size: number): string => crypto.randomBytes(Math.ceil(size / 2)).toString("hex").slice(0, size);
+const getRandomHex = (size: number): string =>
+    crypto
+        .randomBytes(Math.ceil(size / 2))
+        .toString("hex")
+        .slice(0, size);
 
 const getRandomAlphaNumeric = (size: number): string => {
     const charsLength: number = ALPHA_NUMERIC.length;
-    const value: string[] = new Array(size);
-    for (let i: number = 0; i < size; i++) {
+    const value: string[] = Array.from({ length: size });
+    for (let i = 0; i < size; i++) {
         let random: number;
         do {
             random = crypto.randomBytes(1).readUInt8(0);
-        } while (random > (256 - (256 % charsLength)));
+        } while (random > 256 - (256 % charsLength));
         value[i] = ALPHA_NUMERIC[random % charsLength];
     }
     return value.join("");
@@ -76,10 +79,4 @@ const getRandomAlphaNumeric = (size: number): string => {
 
 const hashSha256 = (data: string | Buffer): Buffer => crypto.createHash("sha256").update(data).digest();
 
-export {
-    encryptData,
-    decryptData,
-    getRandomHex,
-    getRandomAlphaNumeric,
-    hashSha256,
-};
+export { encryptData, decryptData, getRandomHex, getRandomAlphaNumeric, hashSha256 };

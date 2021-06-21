@@ -8,16 +8,13 @@ import { TypeValidationError } from "../errors";
 import { sprintf } from "sprintf-js";
 
 export const codecAssertion = <T extends t.Mixed>(codec: T) => {
-    return (
-        value: unknown,
-        message: string = "%s",
-    ): asserts value is t.TypeOf<T> => {
+    return (value: unknown, message = "%s"): asserts value is t.TypeOf<T> => {
         try {
             ThrowReporter.report(codec.decode(value));
-        } catch(error) {
+        } catch (error) {
             throw new TypeValidationError(sprintf(message, error.message));
         }
-    }
+    };
 };
 
 export type CodecAssertion<T> = (value: unknown, message?: string) => asserts value is T;

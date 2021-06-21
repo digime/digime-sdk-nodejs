@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2021 digi.me Limited. All rights reserved.
  */
 
-import { decode, verify } from "jsonwebtoken";
+import { decode, Secret, verify } from "jsonwebtoken";
 import { JWTVerificationError } from "../errors";
 import { isPlainObject } from "./basic-utils";
 import { net } from "../net";
@@ -11,8 +11,8 @@ import { isJWKS } from "../types/api/jwks";
 import get from "lodash.get";
 import { SDKConfiguration } from "../types/sdk-configuration";
 
-const getPayloadFromToken = async (token: string, options: SDKConfiguration): Promise<any> => {
-    const decodedToken = decode(token, {complete: true});
+const getPayloadFromToken = async (token: string, options: SDKConfiguration): Promise<unknown> => {
+    const decodedToken = decode(token, { complete: true });
 
     if (!isPlainObject(decodedToken)) {
         throw new JWTVerificationError("Unexpected JWT payload in token");
@@ -38,12 +38,10 @@ const getPayloadFromToken = async (token: string, options: SDKConfiguration): Pr
 
     try {
         // NOTE: Casting to any as pem is unknown and this will throw anyway
-        return verify(token, pem[0] as any, {algorithms: ["PS512"]});
+        return verify(token, pem[0] as Secret, { algorithms: ["PS512"] });
     } catch (error) {
         throw new JWTVerificationError(get(error, "body.error.message"));
     }
 };
 
-export {
-    getPayloadFromToken,
-};
+export { getPayloadFromToken };
