@@ -15,7 +15,7 @@ const AccountSyncStatusCodec: t.Type<AccountSyncStatus> = t.keyof({
     running: null,
     partial: null,
     completed: null,
-})
+});
 
 /*
  * LibrarySyncStatus
@@ -28,7 +28,7 @@ const LibrarySyncStatusCodec: t.Type<LibrarySyncStatus> = t.keyof({
     partial: null,
     completed: null,
     pending: null,
-})
+});
 
 /*
  * CAFileListEntry
@@ -37,7 +37,7 @@ const LibrarySyncStatusCodec: t.Type<LibrarySyncStatus> = t.keyof({
 interface CAFileListEntry {
     name: string;
     updatedDate: number;
-};
+}
 
 const CAFileListEntryCodec: t.Type<CAFileListEntry> = t.type({
     name: t.string,
@@ -50,7 +50,7 @@ const CAFileListEntryCodec: t.Type<CAFileListEntry> = t.type({
 
 interface AccountSyncStatusEntry {
     state: AccountSyncStatus;
-};
+}
 
 const AccountSyncStatusEntryCodec: t.Type<AccountSyncStatusEntry> = t.type({
     state: AccountSyncStatusCodec,
@@ -66,7 +66,7 @@ export interface CAFileListResponse {
         details?: Record<string, AccountSyncStatusEntry>;
     };
     fileList?: CAFileListEntry[];
-};
+}
 
 const CAFileListResponseCodec: t.Type<CAFileListResponse> = t.intersection([
     t.type({

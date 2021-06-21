@@ -8,7 +8,7 @@ import { codecAssertion, CodecAssertion } from "../../utils/codec-assertion";
 
 export interface CAAccountsResponse {
     accounts: CAAccount[];
-};
+}
 
 export const CAAccountsResponseCodec: t.Type<CAAccountsResponse> = t.type({
     accounts: t.array(CAAccountCodec),

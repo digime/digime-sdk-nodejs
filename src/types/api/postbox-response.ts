@@ -5,17 +5,17 @@
 import * as t from "io-ts";
 import { codecAssertion, CodecAssertion } from "../../utils/codec-assertion";
 
-interface WriteDataAPIResponse {
+export interface WriteDataAPIResponse {
     expires: number;
     status: DataStatus;
 }
 
-type DataStatus = "delivered" | "pending";
+export type DataStatus = "delivered" | "pending";
 
 const PushDataStatusCodec: t.Type<DataStatus> = t.keyof({
     delivered: null,
     pending: null,
-})
+});
 
 const PushDataToPostboxResponseCodec: t.Type<WriteDataAPIResponse> = t.type({
     status: PushDataStatusCodec,
@@ -25,8 +25,4 @@ const PushDataToPostboxResponseCodec: t.Type<WriteDataAPIResponse> = t.type({
 const assertIsPushDataStatusResponse: CodecAssertion<WriteDataAPIResponse> =
     codecAssertion(PushDataToPostboxResponseCodec);
 
-export {
-    DataStatus,
-    WriteDataAPIResponse,
-    assertIsPushDataStatusResponse,
-}
+export { assertIsPushDataStatusResponse };

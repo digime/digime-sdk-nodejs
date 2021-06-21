@@ -13,17 +13,16 @@ import { getPayloadFromToken } from "./utils/get-payload-from-token";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { ContractDetails } from "./types/common";
 
-interface ExchangeCodeForTokenOptions {
+export interface ExchangeCodeForTokenOptions {
     contractDetails: ContractDetails;
     codeVerifier?: string;
-    authorizationCode: string,
+    authorizationCode: string;
 }
 
 const exchangeCodeForToken = async (
     options: ExchangeCodeForTokenOptions,
-    sdkConfig: SDKConfiguration,
+    sdkConfig: SDKConfiguration
 ): Promise<UserAccessToken> => {
-
     const { authorizationCode, codeVerifier, contractDetails } = options;
     const { contractId, privateKey, redirectUri } = contractDetails;
 
@@ -43,13 +42,13 @@ const exchangeCodeForToken = async (
             grant_type: "authorization_code",
             nonce: getRandomAlphaNumeric(32),
             redirect_uri: redirectUri,
-            timestamp: new Date().getTime(),
+            timestamp: Date.now(),
         },
         privateKey,
         {
             algorithm: "PS512",
             noTimestamp: true,
-        },
+        }
     );
 
     try {
@@ -65,12 +64,12 @@ const exchangeCodeForToken = async (
 
         return {
             accessToken: {
-                value: payload.access_token.value,
-                expiry: payload.access_token.expires_on,
+                value: get(payload, ["access_token", "value"]),
+                expiry: get(payload, ["access_token", "expires_on"]),
             },
             refreshToken: {
-                value: payload.refresh_token .value,
-                expiry: payload.refresh_token .expires_on,
+                value: get(payload, ["refresh_token", "value"]),
+                expiry: get(payload, ["refresh_token", "expires_on"]),
             },
         };
     } catch (error) {
@@ -78,7 +77,4 @@ const exchangeCodeForToken = async (
     }
 };
 
-export {
-    exchangeCodeForToken,
-    ExchangeCodeForTokenOptions,
-};
+export { exchangeCodeForToken };

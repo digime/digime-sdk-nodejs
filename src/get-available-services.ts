@@ -9,18 +9,17 @@ import { SDKConfiguration } from "./types/sdk-configuration";
 
 const getAvailableServices = async (
     sdkConfig: SDKConfiguration,
-    contractId?: string,
+    contractId?: string
 ): Promise<DiscoveryApiServicesData> => {
-
-    const response = await net.get(`${sdkConfig.baseUrl}discovery/services`, {
-        headers: { contractId },
-    }).json();
+    const response = await net
+        .get(`${sdkConfig.baseUrl}discovery/services`, {
+            headers: { contractId },
+        })
+        .json();
 
     assertIsDiscoveryApiServicesData(response);
 
     return response.data;
 };
 
-export {
-    getAvailableServices,
-};
+export { getAvailableServices };

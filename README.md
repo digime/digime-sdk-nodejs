@@ -28,7 +28,7 @@ This SDK is a server side Node library that allows seamless authentication with 
 ## Requirements
 
 ### Development
-- Node 10.16 or above
+- Node 12.0 or above
 - (Optional, if using TypeScript) TypeScript 3.8 or above
 
 ## Installation
@@ -70,7 +70,7 @@ To start requesting or pushing data, you will need to establish a session:
 import { establishSession } from "@digime/digime-js-sdk";
 
 const session = establishSession({
-    "applicationId": "YOUR_APP_ID", 
+    "applicationId": "YOUR_APP_ID",
     "contractId": "YOUR_CONTRACT_ID"
 });
 ```
@@ -89,11 +89,11 @@ In digi.me we provide two different ways to prompt user for consent
     import { establishSession, authorize } from "@digime/digime-js-sdk";
 
     const session = establishSession({
-        "applicationId": "YOUR_APP_ID", 
+        "applicationId": "YOUR_APP_ID",
         "contractId": "YOUR_CONTRACT_ID"
     });
     const redirectUrl = authorize.once.getPrivateShareConsentUrl({
-        "applicationId": "YOUR_APP_ID", 
+        "applicationId": "YOUR_APP_ID",
         "session": session,
         "callbackUrl": "YOUR_CALLBACK_URL"
     });
@@ -111,7 +111,7 @@ In digi.me we provide two different ways to prompt user for consent
      import { establishSession, authorize } from "@digime/digime-js-sdk";
 
     const session = establishSession({
-        "applicationId": "YOUR_APP_ID", 
+        "applicationId": "YOUR_APP_ID",
         "contractId": "YOUR_CONTRACT_ID"
     });
     const redirectUrl = authorize.once.getPrivateShareAsGuestUrl({

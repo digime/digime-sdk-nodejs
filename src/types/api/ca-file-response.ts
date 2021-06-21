@@ -15,7 +15,7 @@ export interface MappedFileMetadata {
 export interface RawFileMetadata {
     mimetype: string;
     accounts: {
-        accountid: string,
+        accountid: string;
     }[];
     appid?: string;
     created?: number;
@@ -40,9 +40,11 @@ const MappedFileMetadataCodec: t.Type<MappedFileMetadata> = t.type({
 
 const RawFileMetadataCodec: t.Type<RawFileMetadata> = t.intersection([
     t.type({
-        accounts: t.array(t.type({
-            accountid: t.string,
-        })),
+        accounts: t.array(
+            t.type({
+                accountid: t.string,
+            })
+        ),
         mimetype: t.string,
     }),
     t.partial({
@@ -57,7 +59,7 @@ const RawFileMetadataCodec: t.Type<RawFileMetadata> = t.intersection([
                 t.partial({
                     references: t.array(t.string),
                 }),
-            ]),
+            ])
         ),
         partnerid: t.string,
         reference: t.array(t.string),
@@ -76,7 +78,7 @@ export const assertIsRawFileMetadata: CodecAssertion<RawFileMetadata> = codecAss
 
 export interface CAFileHeaderResponse {
     "x-metadata": string;
-};
+}
 
 const FileHeaderCodec: t.Type<CAFileHeaderResponse> = t.type({
     "x-metadata": t.string,
@@ -87,7 +89,7 @@ export const assertIsCAFileHeaderResponse: CodecAssertion<CAFileHeaderResponse> 
 export interface DecodedCAFileHeaderResponse {
     fileMetadata: MappedFileMetadata | RawFileMetadata;
     compression?: string;
-};
+}
 
 const DecodedCAFileHeaderResponseCodec: t.Type<DecodedCAFileHeaderResponse> = t.intersection([
     t.type({
@@ -98,4 +100,4 @@ const DecodedCAFileHeaderResponseCodec: t.Type<DecodedCAFileHeaderResponse> = t.
     }),
 ]);
 
- export const isDecodedCAFileHeaderResponse = DecodedCAFileHeaderResponseCodec.is;
+export const isDecodedCAFileHeaderResponse = DecodedCAFileHeaderResponseCodec.is;

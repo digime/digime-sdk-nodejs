@@ -9,7 +9,7 @@ interface Token {
     value: string;
 }
 
-interface UserAccessToken {
+export interface UserAccessToken {
     accessToken: Token;
     refreshToken: Token;
 }
@@ -24,7 +24,4 @@ const UserAccessTokenCodec: t.Type<UserAccessToken> = t.type({
     refreshToken: TokenCodec,
 });
 
-export {
-    UserAccessToken,
-    UserAccessTokenCodec,
-}
+export { UserAccessTokenCodec };
