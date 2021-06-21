@@ -5,7 +5,7 @@
 import * as t from "io-ts";
 import { CodecAssertion, codecAssertion } from "../../utils/codec-assertion";
 
-export interface CAAccount extends Record<string, unknown>{};
+export interface CAAccount extends Record<string, unknown> {}
 
 export const CAAccountCodec: t.Type<CAAccount> = t.UnknownRecord;
 

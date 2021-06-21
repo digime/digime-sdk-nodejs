@@ -8,23 +8,23 @@ import { net, handleInvalidatedSdkResponse } from "./net";
 import { UserAccessToken } from "./types/user-access-token";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { ContractDetails } from "./types/common";
+import { Response } from "got";
 
-interface DeleteUserOptions {
+export interface DeleteUserOptions {
     contractDetails: ContractDetails;
     userAccessToken: UserAccessToken;
 }
 
-interface DeleteUserResponse {
+export interface DeleteUserResponse {
     deleted: boolean;
-    response: any;
+    response: Response<unknown>;
 }
 
 const deleteUser = async (options: DeleteUserOptions, sdkConfig: SDKConfiguration): Promise<DeleteUserResponse> => {
-
     const { userAccessToken, contractDetails } = options;
     const { contractId, privateKey, redirectUri } = contractDetails;
 
-    const url: string = `${sdkConfig.baseUrl}user`;
+    const url = `${sdkConfig.baseUrl}user`;
 
     const jwt: string = sign(
         {
@@ -32,13 +32,13 @@ const deleteUser = async (options: DeleteUserOptions, sdkConfig: SDKConfiguratio
             client_id: `${sdkConfig.applicationId}_${contractId}`,
             nonce: getRandomAlphaNumeric(32),
             redirect_uri: redirectUri,
-            timestamp: new Date().getTime(),
+            timestamp: Date.now(),
         },
         privateKey.toString(),
         {
             algorithm: "PS512",
             noTimestamp: true,
-        },
+        }
     );
 
     try {
@@ -55,14 +55,9 @@ const deleteUser = async (options: DeleteUserOptions, sdkConfig: SDKConfiguratio
             response,
         };
     } catch (error) {
-
         handleInvalidatedSdkResponse(error);
         throw error;
     }
-}
-
-export {
-    deleteUser,
-    DeleteUserOptions,
-    DeleteUserResponse,
 };
+
+export { deleteUser };

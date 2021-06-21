@@ -13,16 +13,12 @@ import { getPayloadFromToken } from "./utils/get-payload-from-token";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { ContractDetails } from "./types/common";
 
-interface RefreshTokenOptions {
+export interface RefreshTokenOptions {
     contractDetails: ContractDetails;
     userAccessToken: UserAccessToken;
 }
 
-const refreshToken = async (
-    options: RefreshTokenOptions,
-    sdkConfig: SDKConfiguration,
-): Promise<UserAccessToken> => {
-
+const refreshToken = async (options: RefreshTokenOptions, sdkConfig: SDKConfiguration): Promise<UserAccessToken> => {
     const { contractDetails, userAccessToken } = options;
     const { contractId, privateKey, redirectUri } = contractDetails;
     const jwt: string = sign(
@@ -32,13 +28,13 @@ const refreshToken = async (
             nonce: getRandomAlphaNumeric(32),
             redirect_uri: redirectUri,
             refresh_token: userAccessToken.refreshToken.value,
-            timestamp: new Date().getTime(),
+            timestamp: Date.now(),
         },
         privateKey.toString(),
         {
             algorithm: "PS512",
             noTimestamp: true,
-        },
+        }
     );
 
     const url = `${sdkConfig.baseUrl}oauth/token`;
@@ -55,15 +51,14 @@ const refreshToken = async (
         const payload = await getPayloadFromToken(get(response.body, "token"), sdkConfig);
         return {
             accessToken: {
-                value: payload.access_token.value,
-                expiry: payload.access_token.expires_on,
+                value: get(payload, ["access_token", "value"]),
+                expiry: get(payload, ["access_token", "expires_on"]),
             },
             refreshToken: {
-                value: payload.refresh_token .value,
-                expiry: payload.refresh_token .expires_on,
+                value: get(payload, ["refresh_token", "value"]),
+                expiry: get(payload, ["refresh_token", "expires_on"]),
             },
         };
-
     } catch (error) {
         if (!(error instanceof HTTPError)) {
             throw error;
@@ -72,8 +67,12 @@ const refreshToken = async (
         const errorCode = get(error, "body.error.code");
 
         if (
-            errorCode === "InvalidJWT" || errorCode === "InvalidRequest" || errorCode === "InvalidRedirectUri" ||
-            errorCode === "InvalidGrant" || errorCode === "InvalidToken" || errorCode === "InvalidTokenType"
+            errorCode === "InvalidJWT" ||
+            errorCode === "InvalidRequest" ||
+            errorCode === "InvalidRedirectUri" ||
+            errorCode === "InvalidGrant" ||
+            errorCode === "InvalidToken" ||
+            errorCode === "InvalidTokenType"
         ) {
             throw new OAuthError(get(error, "body.error.message"));
         }
@@ -82,7 +81,4 @@ const refreshToken = async (
     }
 };
 
-export {
-    RefreshTokenOptions,
-    refreshToken,
-};
+export { refreshToken };

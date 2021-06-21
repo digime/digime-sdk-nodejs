@@ -2,6 +2,7 @@
  * Copyright (c) 2009-2021 digi.me Limited. All rights reserved.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { TypeValidationError } from "./errors";
 import { isNonEmptyString } from "./utils/basic-utils";
 import { handleInvalidatedSdkResponse, net } from "./net";
@@ -13,32 +14,28 @@ import * as zlib from "zlib";
 import base64url from "base64url";
 import { SDKConfiguration } from "./types/sdk-configuration";
 
-interface ReadFileOptions {
+export interface ReadFileOptions {
     sessionKey: string;
     privateKey: NodeRSA.Key;
     fileName: string;
 }
 
-type ReadFileMeta = MappedFileMetadata | RawFileMetadata;
+export type ReadFileMeta = MappedFileMetadata | RawFileMetadata;
 
-interface ReadFileResponse {
+export interface ReadFileResponse {
     fileData: Buffer;
     fileName: string;
     fileMetadata: ReadFileMeta;
 }
 
-const readFile = async (
-    options: ReadFileOptions,
-    sdkConfig: SDKConfiguration,
-): Promise<ReadFileResponse> => {
-
+const readFile = async (options: ReadFileOptions, sdkConfig: SDKConfiguration): Promise<ReadFileResponse> => {
     const { sessionKey, fileName, privateKey } = options;
 
     if (!isNonEmptyString(sessionKey)) {
         throw new TypeValidationError("Parameter sessionKey should be a non empty string");
     }
 
-    const response = await fetchFile({sessionKey, fileName}, sdkConfig);
+    const response = await fetchFile({ sessionKey, fileName }, sdkConfig);
     const { compression, fileContent, fileMetadata } = response;
     const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
     let data: Buffer = decryptData(key, fileContent);
@@ -67,11 +64,7 @@ interface FetchFileProps {
     fileName: string;
 }
 
-const fetchFile = async (
-    options: FetchFileProps,
-    sdkConfig: SDKConfiguration,
-): Promise<FetchFileResponse> => {
-
+const fetchFile = async (options: FetchFileProps, sdkConfig: SDKConfiguration): Promise<FetchFileResponse> => {
     const { sessionKey, fileName } = options;
 
     let response: Response<unknown>;
@@ -82,9 +75,8 @@ const fetchFile = async (
                 accept: "application/octet-stream",
             },
             responseType: "buffer",
-        })
+        });
     } catch (error) {
-
         handleInvalidatedSdkResponse(error);
 
         throw error;
@@ -103,9 +95,4 @@ const fetchFile = async (
     };
 };
 
-export {
-    readFile,
-    ReadFileOptions,
-    ReadFileResponse,
-    ReadFileMeta,
-};
+export { readFile };

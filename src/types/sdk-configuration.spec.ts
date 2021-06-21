@@ -6,7 +6,6 @@ import { isSDKConfiguration, assertIsSDKConfiguration } from "./sdk-configuratio
 import { TypeValidationError } from "../errors";
 
 describe("isSDKConfiguration", () => {
-
     it("Returns true when given a minimal valid DMESDKConfiguration", async () => {
         const config = {
             baseUrl: "https://api.digi.me",
@@ -25,13 +24,10 @@ describe("isSDKConfiguration", () => {
     });
 
     describe("Returns false when given a non-object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])(
-            "%p",
-            (value: any) => {
-                const actual = isSDKConfiguration(value);
-                expect(actual).toBe(false);
-            },
-        );
+        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+            const actual = isSDKConfiguration(value);
+            expect(actual).toBe(false);
+        });
     });
 
     it("Returns false when given an empty object", () => {
@@ -39,22 +35,16 @@ describe("isSDKConfiguration", () => {
     });
 
     describe("Returns false when the baseUrl property is not a string", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, {}, () => null, Symbol("test")])(
-            "%p",
-            (value: any) => {
-                const actual = isSDKConfiguration({
-                    baseUrl: value,
-                });
-                expect(actual).toBe(false);
-            },
-        );
+        it.each([true, false, null, undefined, [], 0, NaN, {}, () => null, Symbol("test")])("%p", (value) => {
+            const actual = isSDKConfiguration({
+                baseUrl: value,
+            });
+            expect(actual).toBe(false);
+        });
     });
-
 });
 
 describe("assertIsSDKConfiguration", () => {
-
-
     it("Does not throw when given a minimal valid DMESDKConfiguration", async () => {
         const config = {
             baseUrl: "https://api.digi.me",
@@ -73,13 +63,10 @@ describe("assertIsSDKConfiguration", () => {
     });
 
     describe("Throws TypeValidationError when given a non-object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])(
-            "%p",
-            (value: any) => {
-                const actual = () => assertIsSDKConfiguration(value);
-                expect(actual).toThrow(TypeValidationError);
-            },
-        );
+        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+            const actual = () => assertIsSDKConfiguration(value);
+            expect(actual).toThrow(TypeValidationError);
+        });
     });
 
     it("Throws TypeValidationError when given an empty object", () => {
@@ -87,15 +74,13 @@ describe("assertIsSDKConfiguration", () => {
     });
 
     describe("Throws TypeValidationError when the baseUrl property is not a string", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, {}, () => null, Symbol("test")])(
-            "%p",
-            (value: any) => {
-                const actual = () => assertIsSDKConfiguration({
+        it.each([true, false, null, undefined, [], 0, NaN, {}, () => null, Symbol("test")])("%p", (value) => {
+            const actual = () =>
+                assertIsSDKConfiguration({
                     baseUrl: value,
                 });
-                expect(actual).toThrow(TypeValidationError);
-            },
-        );
+            expect(actual).toThrow(TypeValidationError);
+        });
     });
 
     it("Throws TypeValidationError with custom error messages", () => {
@@ -107,7 +92,6 @@ describe("assertIsSDKConfiguration", () => {
     it("Throws TypeValidationError with custom formated error messages", () => {
         const actual = () => assertIsSDKConfiguration({}, "Test start %s test end");
         expect(actual).toThrow(TypeValidationError);
-        expect(actual).toThrow(/^Test start ([\s\S]*)? test end$/);
+        expect(actual).toThrow(/^Test start ([\S\s]*)? test end$/);
     });
-
 });

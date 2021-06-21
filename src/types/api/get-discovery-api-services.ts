@@ -12,7 +12,7 @@ export const DiscoverySourceCodec: t.Type<DiscoveryService> = t.strict({
     serviceGroups: t.array(
         t.strict({
             id: t.number,
-        }),
+        })
     ),
     serviceId: t.number,
     platform: t.record(
@@ -20,7 +20,7 @@ export const DiscoverySourceCodec: t.Type<DiscoveryService> = t.strict({
         t.strict({
             availability: t.string,
             currentStatus: t.string,
-        }),
+        })
     ),
 });
 
@@ -42,5 +42,6 @@ export interface DiscoveryApiServicesDataResponse {
     data: DiscoveryApiServicesData;
 }
 
-export const assertIsDiscoveryApiServicesData: CodecAssertion<DiscoveryApiServicesDataResponse> =
-    codecAssertion(DiscoveryApiServicesDataResponseCodec);
+export const assertIsDiscoveryApiServicesData: CodecAssertion<DiscoveryApiServicesDataResponse> = codecAssertion(
+    DiscoveryApiServicesDataResponseCodec
+);

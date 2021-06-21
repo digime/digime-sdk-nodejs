@@ -30,7 +30,8 @@ interface PinnedHosts {
 type PinnedHostCertificate = Buffer;
 
 const getCertificate = (certPath: string): Buffer => {
-    const pem = fs.readFileSync(certPath)
+    const pem = fs
+        .readFileSync(certPath)
         .toString()
         .replace("-----BEGIN CERTIFICATE-----", "")
         .replace("-----END CERTIFICATE-----", "")
@@ -39,20 +40,21 @@ const getCertificate = (certPath: string): Buffer => {
     return Buffer.from(pem, "base64");
 };
 
-const getPinningData = memoize((directory: string): PinnedHosts => (
-    fs.readdirSync(directory).reduce((acc, hostName) => {
-        try {
-            return {
-                ...acc,
-                [hostName]: fs.readdirSync(path.resolve(directory, hostName)).map((cert) => (
-                    getCertificate(path.resolve(directory, hostName, cert))
-                )),
-            };
-        } catch {
-            return acc;
-        }
-    }, {})
-));
+const getPinningData = memoize(
+    (directory: string): PinnedHosts =>
+        fs.readdirSync(directory).reduce((acc, hostName) => {
+            try {
+                return {
+                    ...acc,
+                    [hostName]: fs
+                        .readdirSync(path.resolve(directory, hostName))
+                        .map((cert) => getCertificate(path.resolve(directory, hostName, cert))),
+                };
+            } catch {
+                return acc;
+            }
+        }, {})
+);
 
 const packageDir = (): string => {
     const packageDirectory = pkgDir.sync(__dirname);
@@ -67,7 +69,7 @@ const packageDir = (): string => {
 const defaultPinningDataPath: string = path.resolve(packageDir(), "certificates");
 
 export const net: Got = (got as ExtendedGot).extend({
-    checkServerIdentity: (host: any, cert: any) => {
+    checkServerIdentity: (host: string, cert: PeerCertificate) => {
         const pinnedHosts: PinnedHosts = getPinningData(defaultPinningDataPath);
         const pinnedHost: Buffer[] | undefined = pinnedHosts[host];
 
@@ -89,7 +91,6 @@ export const net: Got = (got as ExtendedGot).extend({
 });
 
 export const handleInvalidatedSdkResponse = (error: Error): void => {
-
     if (!(error instanceof HTTPError)) {
         return;
     }
@@ -122,4 +123,4 @@ export const handleInvalidatedSdkResponse = (error: Error): void => {
     if (code === "SDKVersionInvalid") {
         throw new SDKVersionInvalidError(message);
     }
-}
+};
