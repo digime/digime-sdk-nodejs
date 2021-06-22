@@ -4,7 +4,7 @@
 
 import { sign } from "jsonwebtoken";
 import { getRandomAlphaNumeric } from "./crypto";
-import { OAuthError } from "./errors";
+import { TokenRefreshError } from "./errors";
 import { net } from "./net";
 import get from "lodash.get";
 import { HTTPError } from "got/dist/source";
@@ -64,7 +64,7 @@ const refreshToken = async (options: RefreshTokenOptions, sdkConfig: SDKConfigur
             throw error;
         }
 
-        const errorCode = get(error, "body.error.code");
+        const errorCode = get(error, "response.body.error.code");
 
         if (
             errorCode === "InvalidJWT" ||
@@ -74,7 +74,7 @@ const refreshToken = async (options: RefreshTokenOptions, sdkConfig: SDKConfigur
             errorCode === "InvalidToken" ||
             errorCode === "InvalidTokenType"
         ) {
-            throw new OAuthError(get(error, "body.error.message"));
+            throw new TokenRefreshError(get(error, "response.body.error.message"), get(error, "response.body.error"));
         }
 
         throw error;

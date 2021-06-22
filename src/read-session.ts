@@ -7,10 +7,12 @@ import { sign } from "jsonwebtoken";
 import { getRandomAlphaNumeric } from "./crypto";
 import get from "lodash.get";
 import { assertIsSession, Session } from "./types/api/session";
-import { UserAccessToken } from "./types/user-access-token";
-import { refreshToken } from "./refresh-token";
+import { UserAccessToken, UserAccessTokenCodec } from "./types/user-access-token";
 import { SDKConfiguration } from "./types/sdk-configuration";
-import { CAScope, ContractDetails } from "./types/common";
+import { CAScope, CAScopeCodec, ContractDetails, ContractDetailsCodec } from "./types/common";
+import * as t from "io-ts";
+import { TypeValidationError } from "./errors";
+import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
 
 export interface ReadSessionOptions {
     contractDetails: ContractDetails;
@@ -20,59 +22,33 @@ export interface ReadSessionOptions {
 
 export interface ReadSessionResponse {
     session: Session;
-    updatedAccessToken?: UserAccessToken;
+    userAccessToken?: UserAccessToken;
 }
 
-const readSession = async (options: ReadSessionOptions, sdkConfig: SDKConfiguration): Promise<ReadSessionResponse> => {
-    const { contractDetails, userAccessToken, scope } = options;
+export const ReadSessionOptionsCodec: t.Type<ReadSessionOptions> = t.intersection([
+    t.type({
+        contractDetails: ContractDetailsCodec,
+        userAccessToken: UserAccessTokenCodec,
+    }),
+    t.partial({
+        scope: CAScopeCodec,
+    }),
+]);
 
-    let session: Session;
-
-    // 1. We have an access token, try and trigger a data request
-    try {
-        session = await triggerDataQuery(
-            {
-                accessToken: userAccessToken.accessToken.value,
-                contractDetails,
-                scope,
-            },
-            sdkConfig
+const _readSession = async (options: ReadSessionOptions, sdkConfig: SDKConfiguration): Promise<ReadSessionResponse> => {
+    if (!ReadSessionOptionsCodec.is(options)) {
+        // tslint:disable-next-line:max-line-length
+        throw new TypeValidationError(
+            "Parameters failed validation. props should be a plain object that contains the properties contractDetails and userAccessToken. If scope is passed in, please ensure it's the right format."
         );
-
-        return { session };
-    } catch (error) {
-        /* Invalid tokens */
     }
 
-    const newTokens: UserAccessToken = await refreshToken({ contractDetails, userAccessToken }, sdkConfig);
+    const { contractDetails, userAccessToken, scope } = options;
 
-    session = await triggerDataQuery(
-        {
-            accessToken: newTokens.accessToken.value,
-            contractDetails,
-            scope,
-        },
-        sdkConfig
-    );
-
-    return {
-        session,
-        updatedAccessToken: newTokens,
-    };
-};
-
-interface TriggerDataQueryProps {
-    accessToken: string;
-    contractDetails: ContractDetails;
-    scope?: CAScope;
-}
-
-const triggerDataQuery = async (options: TriggerDataQueryProps, sdkConfig: SDKConfiguration): Promise<Session> => {
-    const { accessToken, contractDetails, scope } = options;
     const { contractId, privateKey, redirectUri } = contractDetails;
     const jwt: string = sign(
         {
-            access_token: accessToken,
+            access_token: userAccessToken.accessToken.value,
             client_id: `${sdkConfig.applicationId}_${contractId}`,
             nonce: getRandomAlphaNumeric(32),
             redirect_uri: redirectUri,
@@ -101,7 +77,17 @@ const triggerDataQuery = async (options: TriggerDataQueryProps, sdkConfig: SDKCo
     const session: unknown = get(response, "body.session");
     assertIsSession(session);
 
-    return session;
+    return {
+        session,
+        userAccessToken,
+    };
+};
+
+const readSession = async (
+    props: ReadSessionOptions,
+    sdkConfiguration: SDKConfiguration
+): Promise<ReadSessionResponse> => {
+    return refreshTokenWrapper(_readSession, props, sdkConfiguration);
 };
 
 export { readSession };

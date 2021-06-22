@@ -8,9 +8,11 @@ import { TypeValidationError } from "../..";
 describe("isApiErrorResponse", () => {
     it("Returns true when given a valid API error response", async () => {
         const fixtures = [
-            ...(await import("../../../fixtures/network/establish-session/invalid-sdk-version.json")).default.values(),
-            ...(await import("../../../fixtures/network/establish-session/invalid-sdk.json")).default.values(),
-            ...(await import("../../../fixtures/network/establish-session/bad-request.json")).default.values(),
+            ...(
+                await import("../../../fixtures/network/get-session-accounts/invalid-sdk-version.json")
+            ).default.values(),
+            ...(await import("../../../fixtures/network/get-session-accounts/invalid-sdk.json")).default.values(),
+            ...(await import("../../../fixtures/network/get-session-accounts/bad-request.json")).default.values(),
         ];
 
         expect.assertions(fixtures.length);
@@ -79,9 +81,11 @@ describe("isApiErrorResponse", () => {
 describe("assertIsApiErrorResponse", () => {
     it("Does not throw when given a valid SDKVersionInvalidError error object", async () => {
         const fixtures = [
-            ...(await import("../../../fixtures/network/establish-session/invalid-sdk-version.json")).default.values(),
-            ...(await import("../../../fixtures/network/establish-session/invalid-sdk.json")).default.values(),
-            ...(await import("../../../fixtures/network/establish-session/bad-request.json")).default.values(),
+            ...(
+                await import("../../../fixtures/network/get-session-accounts/invalid-sdk-version.json")
+            ).default.values(),
+            ...(await import("../../../fixtures/network/get-session-accounts/invalid-sdk.json")).default.values(),
+            ...(await import("../../../fixtures/network/get-session-accounts/bad-request.json")).default.values(),
         ];
 
         expect.assertions(fixtures.length);

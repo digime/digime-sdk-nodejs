@@ -14,6 +14,8 @@ import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
 import { getPayloadFromToken } from "./utils/get-payload-from-token";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { ContractDetails, ContractDetailsCodec } from "./types/common";
+import { TypeValidationError } from "./errors";
+import { isNonEmptyString } from "./utils/basic-utils";
 
 export interface GetOnboardServiceUrlOptions {
     contractDetails: ContractDetails;
@@ -39,8 +41,8 @@ const _getOnboardServiceUrl = async (
     props: GetOnboardServiceUrlOptions,
     sdkConfig: SDKConfiguration
 ): Promise<GetOnboardServiceUrlResponse> => {
-    if (!GetOnboardServiceUrlCodec.is(props)) {
-        throw new Error("Error on getOnboardServiceUrl(). Incorrect parameters passed in.");
+    if (!GetOnboardServiceUrlCodec.is(props) || isNaN(props.serviceId) || !isNonEmptyString(props.callback)) {
+        throw new TypeValidationError("Error on getOnboardServiceUrl(). Incorrect parameters passed in.");
     }
 
     const { userAccessToken, contractDetails } = props;
