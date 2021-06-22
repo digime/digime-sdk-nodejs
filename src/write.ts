@@ -7,24 +7,33 @@ import NodeRSA from "node-rsa";
 import { encryptData, getRandomAlphaNumeric, getRandomHex } from "./crypto";
 import { sign } from "jsonwebtoken";
 import { TypeValidationError } from "./errors";
-import { net, handleInvalidatedSdkResponse } from "./net";
+import { net, handleServerResponse } from "./net";
 import { areNonEmptyStrings } from "./utils/basic-utils";
 import { assertIsPushDataStatusResponse, WriteDataAPIResponse } from "./types/api/postbox-response";
-import { assertIsPushedFileMeta } from "./types/postbox";
-import { UserAccessToken } from "./types/user-access-token";
+import { assertIsPushedFileMeta, PushedFileMetaCodec } from "./types/postbox";
+import { UserAccessToken, UserAccessTokenCodec } from "./types/user-access-token";
 import { refreshToken } from "./refresh-token";
 import { SDKConfiguration } from "./types/sdk-configuration";
-import { ContractDetails } from "./types/common";
+import { ContractDetails, ContractDetailsCodec } from "./types/common";
+import * as t from "io-ts";
 
-export interface WriteOptions {
+interface WriteOptions {
     contractDetails: ContractDetails;
     userAccessToken: UserAccessToken;
     data: FileMeta;
-    publicKey: NodeRSA.Key;
+    publicKey: string;
     postboxId: string;
 }
 
-export interface FileMeta {
+export const WriteOptionsCodec: t.Type<WriteOptions> = t.type({
+    contractDetails: ContractDetailsCodec,
+    userAccessToken: UserAccessTokenCodec,
+    postboxId: t.string,
+    publicKey: t.string,
+    data: PushedFileMetaCodec,
+});
+
+interface FileMeta {
     fileData: Buffer;
     fileName: string;
     fileDescriptor: {
@@ -37,11 +46,18 @@ export interface FileMeta {
     };
 }
 
-export interface WriteResponse extends WriteDataAPIResponse {
-    updatedAccessToken?: UserAccessToken;
+interface WriteResponse extends WriteDataAPIResponse {
+    userAccessToken: UserAccessToken;
 }
 
 const write = async (options: WriteOptions, sdkConfig: SDKConfiguration): Promise<WriteResponse> => {
+    if (!WriteOptionsCodec.is(options)) {
+        // tslint:disable-next-line:max-line-length
+        throw new TypeValidationError(
+            "Parameters failed validation. props should be a plain object that contains the properties contractDetails, userAccessToken, postboxId, publicKey and data."
+        );
+    }
+
     const { contractDetails, userAccessToken, data, publicKey, postboxId } = options;
 
     if (!areNonEmptyStrings([publicKey, postboxId])) {
@@ -66,7 +82,7 @@ const write = async (options: WriteOptions, sdkConfig: SDKConfiguration): Promis
     );
 
     // If an access token was provided and the status is pending, it means the access token may have expired.
-    if (result.status === "pending" && userAccessToken) {
+    if (result.status === "pending") {
         const newTokens: UserAccessToken = await refreshToken({ contractDetails, userAccessToken }, sdkConfig);
         const secondPushResult = await triggerPush(
             {
@@ -81,11 +97,14 @@ const write = async (options: WriteOptions, sdkConfig: SDKConfiguration): Promis
 
         return {
             ...secondPushResult,
-            updatedAccessToken: newTokens,
+            userAccessToken: newTokens,
         };
     }
 
-    return result;
+    return {
+        ...result,
+        userAccessToken,
+    };
 };
 
 interface TriggerPushProps extends Omit<WriteOptions, "userAccessToken"> {
@@ -143,9 +162,9 @@ const triggerPush = async (options: TriggerPushProps, sdkConfig: SDKConfiguratio
         assertIsPushDataStatusResponse(body);
         return body;
     } catch (error) {
-        handleInvalidatedSdkResponse(error);
+        handleServerResponse(error);
         throw error;
     }
 };
 
-export { write };
+export { WriteOptions, write, WriteResponse };

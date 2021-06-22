@@ -11,12 +11,20 @@ import { URL } from "url";
 import * as SDK from ".";
 import { fileContentToCAFormat, loadScopeDefinitions } from "../utils/test-utils";
 import { TypeValidationError } from "./errors";
-import ReadStream from "stream";
+import { TEST_BASE_URL, TEST_CUSTOM_BASE_URL, TEST_CUSTOM_ONBOARD_URL } from "../utils/test-constants";
 
-jest.mock("./sleep");
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+jest.mock("./utils/sleep");
+
+const digime = SDK.init({
+    applicationId: "test-application-id",
+});
 
 const customSDK = SDK.init({
-    baseUrl: "https://api.digi.test/v7",
+    applicationId: "test-application-id",
+    baseUrl: TEST_CUSTOM_BASE_URL,
+    onboardUrl: TEST_CUSTOM_ONBOARD_URL,
 });
 
 const testKeyPair: NodeRSA = new NodeRSA({ b: 2048 });
@@ -27,20 +35,20 @@ beforeEach(() => {
 });
 
 describe.each<[string, ReturnType<typeof SDK.init>, string]>([
-    ["Default exported SDK", SDK, "https://api.digi.me/v1.5"],
-    ["Custom SDK", customSDK, "https://api.digi.test/v7"],
+    ["Default exported SDK", digime, TEST_BASE_URL],
+    ["Custom SDK", customSDK, TEST_CUSTOM_BASE_URL],
 ])("%s", (_title, sdk, baseUrl) => {
     describe(`getSessionData`, () => {
         it("Returns a promise and a function", async () => {
             nock(`${new URL(baseUrl).origin}`)
-                .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
+                .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                 .reply(200, {
                     status: {
                         state: "completed",
                     },
                 });
 
-            const { stopPolling, filePromise } = sdk.pull.getSessionData({
+            const { stopPolling, filePromise } = sdk.readAllFiles({
                 sessionKey: "test-session-key",
                 privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
                 onFileData: () => null,
@@ -66,7 +74,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     scope.on("request", listCallback);
                 }
 
-                const { filePromise } = sdk.pull.getSessionData({
+                const { filePromise } = sdk.readAllFiles({
                     sessionKey: "test-session-key",
                     privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
                     onFileData: () => null,
@@ -81,13 +89,13 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
         it("Continues polling if the status returned is pending", async () => {
             const scope = nock(`${new URL(baseUrl).origin}`)
-                .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
+                .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                 .reply(200, {
                     status: {
                         state: "pending",
                     },
                 })
-                .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
+                .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                 .reply(200, {
                     status: {
                         state: "completed",
@@ -97,7 +105,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             const listCallback = jest.fn();
             scope.on("request", listCallback);
 
-            const { filePromise } = sdk.pull.getSessionData({
+            const { filePromise } = sdk.readAllFiles({
                 sessionKey: "test-session-key",
                 privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
                 onFileData: () => null,
@@ -120,7 +128,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     ];
 
                     nock(`${new URL(baseUrl).origin}`)
-                        .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
+                        .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                         .reply(200, {
                             status: {
                                 details: {
@@ -132,7 +140,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             },
                             fileList,
                         })
-                        .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
+                        .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                         .reply(200, {
                             status: {
                                 state: "completed",
@@ -149,7 +157,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     nock.define(caFormatted);
                     const successCallback = jest.fn();
 
-                    const { filePromise } = sdk.pull.getSessionData({
+                    const { filePromise } = sdk.readAllFiles({
                         sessionKey: "test-session-key",
                         privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
                         onFileData: successCallback,
@@ -163,13 +171,13 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     for (const fileDef of fileDefs) {
                         const xMetaData = get(fileDef, ["rawHeaders", "x-metadata"]);
                         const { metadata } = xMetaData;
-                        const response: string | Buffer | ReadStream | undefined = isPlainObject(fileDef.response)
+                        const response: any = isPlainObject(fileDef.response)
                             ? JSON.stringify(fileDef.response)
                             : fileDef.response;
 
                         expect(successCallback).toHaveBeenCalledWith(
                             expect.objectContaining({
-                                fileData: Buffer.from(response ? response : ""),
+                                fileData: Buffer.from(response),
                                 fileName: basename(fileDef.path),
                                 fileList,
                                 fileMetadata: metadata,
@@ -182,7 +190,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
         it("Calls onFileData() callback if a filelist is returned and files downloaded successfully", async () => {
             nock(`${new URL(baseUrl).origin}`)
-                .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
+                .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                 .reply(200, {
                     status: {
                         details: {
@@ -198,7 +206,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         { name: "file3.json", updatedDate: 1568716294874 },
                     ],
                 })
-                .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
+                .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                 .reply(200, {
                     status: {
                         state: "completed",
@@ -214,7 +222,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             nock.define(caFormatted);
             const onFileData = jest.fn();
 
-            const { filePromise } = sdk.pull.getSessionData({
+            const { filePromise } = sdk.readAllFiles({
                 sessionKey: "test-session-key",
                 privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
                 onFileData,
@@ -228,7 +236,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
         it("Redownloads the file again if updated date changes between polling", async () => {
             nock(`${new URL(baseUrl).origin}`)
-                .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
+                .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                 .reply(200, {
                     status: {
                         details: {
@@ -244,7 +252,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         { name: "file3.json", updatedDate: 10 },
                     ],
                 })
-                .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
+                .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                 .reply(200, {
                     status: {
                         details: {
@@ -260,7 +268,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         { name: "file3.json", updatedDate: 20 },
                     ],
                 })
-                .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
+                .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                 .reply(200, {
                     status: {
                         state: "completed",
@@ -277,7 +285,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             scopes.map((scope) => scope.persist(true));
             const onFileData = jest.fn();
 
-            const { filePromise } = sdk.pull.getSessionData({
+            const { filePromise } = sdk.readAllFiles({
                 sessionKey: "test-session-key",
                 privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
                 onFileData,
@@ -292,7 +300,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         it("Stops the polling when stopPolling function is triggered", async () => {
             nock(`${new URL(baseUrl).origin}`)
                 .persist()
-                .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
+                .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                 .reply(200, {
                     status: {
                         details: {
@@ -318,7 +326,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             nock.define(caFormatted);
             const onFileData = jest.fn();
 
-            const { filePromise, stopPolling } = sdk.pull.getSessionData({
+            const { filePromise, stopPolling } = sdk.readAllFiles({
                 sessionKey: "test-session-key",
                 privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
                 onFileData,
@@ -335,9 +343,9 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         describe("Throws TypeValidationError when sessionKey (first parameter) is", () => {
             it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                 "%p",
-                (sessionKey) => {
+                (sessionKey: any) => {
                     expect(() =>
-                        sdk.pull.getSessionData({
+                        sdk.readAllFiles({
                             sessionKey,
                             privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
                             onFileData: () => null,
@@ -386,7 +394,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 ];
 
                 nock(`${new URL(baseUrl).origin}`)
-                    .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
+                    .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                     .reply(200, {
                         status: {
                             details: {
@@ -398,7 +406,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         },
                         fileList,
                     })
-                    .get(`${new URL(baseUrl).pathname}/permission-access/query/test-session-key`)
+                    .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                     .reply(200, {
                         status: {
                             state: "completed",
@@ -420,7 +428,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
                 const onFileError = jest.fn();
 
-                const { filePromise } = sdk.pull.getSessionData({
+                const { filePromise } = sdk.readAllFiles({
                     sessionKey: "test-session-key",
                     privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
                     onFileData: () => null,

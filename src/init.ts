@@ -3,11 +3,11 @@
  */
 
 import { write, WriteOptions } from "./write";
-import { SDKConfiguration } from "./types/sdk-configuration";
+import { assertIsSDKConfiguration, SDKConfiguration } from "./types/sdk-configuration";
 import { getAvailableServices } from "./get-available-services";
 import { getAuthorizeUrl, GetAuthorizeUrlOptions } from "./get-authorize-url";
 import { getOnboardServiceUrl, GetOnboardServiceUrlOptions } from "./get-onboard-service-url";
-import { addTrailingSlash } from "./utils/basic-utils";
+import { addTrailingSlash, isPlainObject } from "./utils/basic-utils";
 import { exchangeCodeForToken, ExchangeCodeForTokenOptions } from "./exchange-code-for-token";
 import { readSession, ReadSessionOptions } from "./read-session";
 import { readFile, ReadFileOptions } from "./read-file";
@@ -15,23 +15,32 @@ import { readFileList, ReadFileListOptions } from "./read-file-list";
 import { readAllFiles, ReadAllFilesOptions } from "./read-all-files";
 import { readAccounts, ReadAccountsOptions } from "./read-accounts";
 import { deleteUser, DeleteUserOptions } from "./delete-user";
+import { TypeValidationError } from "./errors";
+import { DigimeSDK } from "./sdk";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const init = (config: SDKConfiguration): any => {
-    const formatted: SDKConfiguration = {
-        ...config,
-        baseUrl: addTrailingSlash(config.baseUrl),
-        onboardUrl: addTrailingSlash(config.onboardUrl),
-    };
+const DEFAULT_BASE_URL = "https://api.digi.me/v1.6/";
+const DEFAULT_ONBOARD_URL = "https://api.digi.me/apps/saas/";
+const DEFAULT_RETRIES_OPTIONS = {
+    retries: 5,
+};
+
+const init = (config: SDKConfiguration): DigimeSDK => {
+    if (!isPlainObject(config)) {
+        throw new TypeValidationError("SDK options should be object that contains your application Id");
+    }
 
     const sdkConfig: SDKConfiguration = {
-        baseUrl: "https://api.digi.me/v1.6/",
-        onboardUrl: "https://api.digi.me/apps/saas/",
-        retryOptions: {
-            retries: 5,
-        },
-        ...formatted,
+        ...config,
+        baseUrl: addTrailingSlash(config.baseUrl) || DEFAULT_BASE_URL,
+        onboardUrl: addTrailingSlash(config.onboardUrl) || DEFAULT_ONBOARD_URL,
+        retryOptions: config.retryOptions || DEFAULT_RETRIES_OPTIONS,
     };
+
+    assertIsSDKConfiguration(sdkConfig);
+
+    if (config.applicationId.length === 0) {
+        throw new TypeValidationError("Application Id cannot be an empty string");
+    }
 
     return {
         getAuthorizeUrl: (props: GetAuthorizeUrlOptions) => getAuthorizeUrl(props, sdkConfig),

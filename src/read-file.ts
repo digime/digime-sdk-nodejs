@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TypeValidationError } from "./errors";
 import { isNonEmptyString } from "./utils/basic-utils";
-import { handleInvalidatedSdkResponse, net } from "./net";
+import { handleServerResponse, net } from "./net";
 import { decryptData } from "./crypto";
 import { Response } from "got/dist/source";
 import NodeRSA from "node-rsa";
@@ -77,8 +77,7 @@ const fetchFile = async (options: FetchFileProps, sdkConfig: SDKConfiguration): 
             responseType: "buffer",
         });
     } catch (error) {
-        handleInvalidatedSdkResponse(error);
-
+        handleServerResponse(error);
         throw error;
     }
 

@@ -5,15 +5,16 @@
 import { isSession, assertIsSession } from "./session";
 import { TypeValidationError } from "../../errors";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 describe("isSession", () => {
     it("Returns true when given a valid session", async () => {
-        const fixtures = (await import("../../../fixtures/network/establish-session/valid-session.json")).default;
-
-        expect.assertions(2);
-
-        for (const fixture of fixtures.values()) {
-            expect(isSession(fixture.response)).toBe(true);
-        }
+        expect(
+            isSession({
+                expiry: 0,
+                key: "test-session-key",
+            })
+        ).toBe(true);
     });
 
     describe("Returns false when given a non-object", () => {
@@ -28,22 +29,20 @@ describe("isSession", () => {
     });
 
     describe("Returns false when expiry is not a number", () => {
-        it.each([true, false, null, undefined, [], {}, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], {}, "", () => null, Symbol("test")])("%p", (value: any) => {
             const actual = isSession({
                 expiry: value,
-                sessionKey: "test-session-key",
-                sessionExchangeToken: "test-session-exchange-token",
+                key: "test-session-key",
             });
             expect(actual).toBe(false);
         });
     });
 
     describe("Returns false when sessionKey is not a string", () => {
-        it.each([true, false, null, NaN, undefined, [], {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, NaN, undefined, [], {}, () => null, Symbol("test")])("%p", (value: any) => {
             const actual = isSession({
                 expiry: 0,
-                sessionKey: value,
-                sessionExchangeToken: "test-session-exchange-token",
+                key: value,
             });
             expect(actual).toBe(false);
         });
@@ -63,13 +62,12 @@ describe("isSession", () => {
 
 describe("assertIsSession", () => {
     it("Does not throw when given a valid session", async () => {
-        const fixtures = (await import("../../../fixtures/network/establish-session/valid-session.json")).default;
-
-        expect.assertions(2);
-
-        for (const fixture of fixtures.values()) {
-            expect(() => assertIsSession(fixture.response)).not.toThrow();
-        }
+        expect(() =>
+            assertIsSession({
+                expiry: 0,
+                key: "test-session-key",
+            })
+        ).not.toThrow();
     });
 
     describe("Throws TypeValidationError when given a non-object", () => {
