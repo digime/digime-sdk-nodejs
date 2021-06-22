@@ -3,19 +3,24 @@
  */
 
 import NodeRSA from "node-rsa";
-import { PushDataToPostboxOptions } from "../../src/types";
 import fs from "fs";
+import { WriteOptions } from "../../src/write";
+import { ContractDetails } from "../../src/types/common";
+import { SAMPLE_TOKEN } from "../../utils/test-constants";
 
 export const testKeyPair: NodeRSA = new NodeRSA({ b: 2048 });
 
-export const defaultValidDataPush: PushDataToPostboxOptions = {
-    applicationId: "test-application-id",
+const CONTRACT_DETAILS: ContractDetails = {
     contractId: "test-contract-id",
-    redirectUri: "test-redirect-uri",
-    sessionKey: "test-session-key",
+    redirectUri: "test-redirect-url",
+    privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+};
+
+export const defaultValidDataPush: WriteOptions = {
+    contractDetails: CONTRACT_DETAILS,
     postboxId: "test-postbox-id",
-    privateKey: testKeyPair.exportKey("pkcs1-private"),
     publicKey: testKeyPair.exportKey("pkcs1-public"),
+    userAccessToken: SAMPLE_TOKEN,
     data: {
         fileData: Buffer.from(JSON.stringify("test-data")),
         fileName: "file-name",

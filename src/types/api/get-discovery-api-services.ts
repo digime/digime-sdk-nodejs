@@ -4,7 +4,29 @@
 
 import * as t from "io-ts";
 import { codecAssertion, CodecAssertion } from "../../utils/codec-assertion";
-import { DiscoveryApiServicesData, DiscoveryService, DiscoveryServiceGroup } from "../common";
+
+interface DiscoveryService {
+    id: number;
+    name: string;
+    serviceGroups: Array<{ id: number }>;
+}
+
+export interface DiscoveryServiceCountry {
+    id: number;
+    name: string;
+    code: string;
+}
+
+export interface DiscoveryServiceGroup {
+    id: number;
+    name: string;
+}
+
+export interface DiscoveryApiServicesData {
+    countries: DiscoveryServiceCountry[];
+    serviceGroups: DiscoveryServiceGroup[];
+    services: DiscoveryService[];
+}
 
 export const DiscoverySourceCodec: t.Type<DiscoveryService> = t.strict({
     id: t.number,
@@ -14,14 +36,12 @@ export const DiscoverySourceCodec: t.Type<DiscoveryService> = t.strict({
             id: t.number,
         })
     ),
-    serviceId: t.number,
-    platform: t.record(
-        t.string,
-        t.strict({
-            availability: t.string,
-            currentStatus: t.string,
-        })
-    ),
+});
+
+export const DiscoveryServiceCountryCodec: t.Type<DiscoveryServiceCountry> = t.strict({
+    code: t.string,
+    id: t.number,
+    name: t.string,
 });
 
 export const DiscoverySourceGroupCodec: t.Type<DiscoveryServiceGroup> = t.strict({
@@ -30,6 +50,7 @@ export const DiscoverySourceGroupCodec: t.Type<DiscoveryServiceGroup> = t.strict
 });
 
 export const DiscoveryApiServicesDataCodec: t.Type<DiscoveryApiServicesData> = t.strict({
+    countries: t.array(DiscoveryServiceCountryCodec),
     serviceGroups: t.array(DiscoverySourceGroupCodec),
     services: t.array(DiscoverySourceCodec),
 });

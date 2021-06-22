@@ -13,7 +13,7 @@
     "clear-dist": "rimraf ./dist",
     "lint": "eslint . --max-warnings=0",
     "lint-fix": "eslint --fix . --ext .js,.ts",
-    "test": "",
+    "test": "./node_modules/.bin/jest --coverage --config=jest-config.json",
     "code-statistics": "./node_modules/.bin/sloc src",
     "version": "ts-node ./tools/update-sdk-version.ts",
     "preversion": "npm run test"
@@ -36,6 +36,7 @@
     "@types/lodash.isplainobject": "~4.0.6",
     "@types/lodash.isstring": "~4.0.6",
     "@types/lodash.memoize": "~4.1.6",
+    "@types/lodash.omit": "~4.5.6",
     "@types/node": "~14.14.45",
     "@types/sprintf-js": "~1.1.2",
     "@typescript-eslint/eslint-plugin": "~4.27.0",
@@ -69,6 +70,7 @@
     "lodash.isplainobject": "~4.0.6",
     "lodash.isstring": "~4.0.1",
     "lodash.memoize": "~4.1.2",
+    "lodash.omit": "~4.5.0",
     "node-rsa": "~1.1.1",
     "pkg-dir": "~5.0.0",
     "sprintf-js": "~1.1.2"

@@ -8,14 +8,23 @@ import { TypeValidationError } from "../errors";
 describe("isSDKConfiguration", () => {
     it("Returns true when given a minimal valid DMESDKConfiguration", async () => {
         const config = {
-            baseUrl: "https://api.digi.me",
+            applicationId: "test-application-id",
         };
 
         expect(isSDKConfiguration(config)).toBe(true);
     });
 
+    it("Returns false when not passed in required paramters", async () => {
+        const config = {
+            baseUrl: "https://api.digi.me",
+        };
+
+        expect(isSDKConfiguration(config)).toBe(false);
+    });
+
     it("Returns true when given a valid DMESDKConfiguration with retryOptions", async () => {
         const config = {
+            applicationId: "test-application-id",
             baseUrl: "https://api.digi.me",
             retryOptions: {},
         };
@@ -47,7 +56,7 @@ describe("isSDKConfiguration", () => {
 describe("assertIsSDKConfiguration", () => {
     it("Does not throw when given a minimal valid DMESDKConfiguration", async () => {
         const config = {
-            baseUrl: "https://api.digi.me",
+            applicationId: "test-application-id",
         };
 
         expect(() => assertIsSDKConfiguration(config)).not.toThrow();
@@ -55,7 +64,7 @@ describe("assertIsSDKConfiguration", () => {
 
     it("Does not throw when given a valid DMESDKConfiguration with retryOptions", async () => {
         const config = {
-            baseUrl: "https://api.digi.me",
+            applicationId: "test-application-id",
             retryOptions: {},
         };
 
