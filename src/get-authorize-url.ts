@@ -12,7 +12,7 @@ import base64url from "base64url";
 import { getRandomAlphaNumeric, hashSha256 } from "./crypto";
 import { sign } from "jsonwebtoken";
 import { handleInvalidatedSdkResponse, net } from "./net";
-import { get } from "lodash";
+import get from "lodash.get";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { CAScope, ContractDetails, ContractDetailsCodec } from "./types/common";
 

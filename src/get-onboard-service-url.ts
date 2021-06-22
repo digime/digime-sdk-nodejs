@@ -3,7 +3,7 @@
  */
 
 import * as t from "io-ts";
-import { get } from "lodash";
+import get from "lodash.get";
 import { getRandomAlphaNumeric } from "./crypto";
 import { net } from "./net";
 import { Session } from "./types/api/session";
