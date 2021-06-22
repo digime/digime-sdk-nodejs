@@ -6,7 +6,7 @@ import { net } from "./net";
 import { assertIsCAFileListResponse, CAFileListResponse } from "./types/api/ca-file-list-response";
 import { SDKConfiguration } from "./types/sdk-configuration";
 
-export interface ReadFileListOptions {
+interface ReadFileListOptions {
     sessionKey: string;
 }
 
@@ -22,4 +22,4 @@ const readFileList = async (options: ReadFileListOptions, sdkConfig: SDKConfigur
     return response.body;
 };
 
-export { readFileList };
+export { readFileList, ReadFileListOptions, CAFileListResponse as ReadFileListResponse };

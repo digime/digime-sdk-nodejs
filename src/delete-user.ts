@@ -4,7 +4,7 @@
 
 import { getRandomAlphaNumeric } from "./crypto";
 import { sign } from "jsonwebtoken";
-import { net, handleInvalidatedSdkResponse } from "./net";
+import { net, handleServerResponse } from "./net";
 import { UserAccessToken } from "./types/user-access-token";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { ContractDetails } from "./types/common";
@@ -55,7 +55,7 @@ const deleteUser = async (options: DeleteUserOptions, sdkConfig: SDKConfiguratio
             response,
         };
     } catch (error) {
-        handleInvalidatedSdkResponse(error);
+        handleServerResponse(error);
         throw error;
     }
 };

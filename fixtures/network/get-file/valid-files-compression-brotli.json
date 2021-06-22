@@ -1,7 +1,7 @@
 [
     {
         "scope": "https://api.digi.me",
-        "path": "/v1.5/permission-access/query/test-session-key/file1.json",
+        "path": "/v1.6/permission-access/query/test-session-key/file1.json",
         "method": "GET",
         "status": 200,
         "response": {
@@ -43,7 +43,7 @@
 
     {
         "scope": "https://api.digi.me",
-        "path": "/v1.5/permission-access/query/test-session-key/file2.json",
+        "path": "/v1.6/permission-access/query/test-session-key/file2.json",
         "method": "GET",
         "status": 200,
         "response": {
@@ -85,7 +85,7 @@
 
     {
         "scope": "https://api.digi.me",
-        "path": "/v1.5/permission-access/query/test-session-key/file3.json",
+        "path": "/v1.6/permission-access/query/test-session-key/file3.json",
         "method": "GET",
         "status": 200,
         "response": {

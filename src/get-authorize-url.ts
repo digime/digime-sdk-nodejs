@@ -11,10 +11,12 @@ import * as t from "io-ts";
 import base64url from "base64url";
 import { getRandomAlphaNumeric, hashSha256 } from "./crypto";
 import { sign } from "jsonwebtoken";
-import { handleInvalidatedSdkResponse, net } from "./net";
+import { handleServerResponse, net } from "./net";
 import get from "lodash.get";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { CAScope, ContractDetails, ContractDetailsCodec } from "./types/common";
+import { isNonEmptyString } from "./utils/basic-utils";
+import sdkVersion from "./sdk-version";
 
 export interface GetAuthorizeUrlOptions {
     /**
@@ -70,20 +72,21 @@ const getAuthorizeUrl = async (
     props: GetAuthorizeUrlOptions,
     sdkConfig: SDKConfiguration
 ): Promise<GetAuthorizeUrlResponse> => {
-    if (!GetAuthorizeUrlOptionsCodec.is(props)) {
+    if (!GetAuthorizeUrlOptionsCodec.is(props) || !isNonEmptyString(props.callback)) {
         // tslint:disable-next-line:max-line-length
         throw new TypeValidationError(
-            "Details should be a plain object that contains the properties applicationId, contractId, privateKey and redirectUri"
+            "Parameters failed validation. props should be a plain object that contains the properties contractDetails and callback."
         );
     }
 
     const { code, codeVerifier, session } = await _authorize(props, sdkConfig);
+    const { serviceId } = props;
 
     const result: URL = new URL(`${sdkConfig.onboardUrl}authorize`);
     result.search = new URLSearchParams({
         code,
         callback: props.callback,
-        service: props.serviceId?.toString(),
+        ...(serviceId && { service: serviceId.toString() }),
     }).toString();
 
     return {
@@ -131,6 +134,17 @@ const _authorize = async (
             headers: {
                 Authorization: `Bearer ${jwt}`,
             },
+            json: {
+                agent: {
+                    sdk: {
+                        name: "js",
+                        version: sdkVersion,
+                        meta: {
+                            node: process.version,
+                        },
+                    },
+                },
+            },
             responseType: "json",
             retry: sdkConfig.retryOptions,
         });
@@ -142,7 +156,7 @@ const _authorize = async (
             session: get(body, "session"),
         };
     } catch (error) {
-        handleInvalidatedSdkResponse(error);
+        handleServerResponse(error);
         throw error;
     }
 };

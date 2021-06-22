@@ -2,12 +2,16 @@
  * Copyright (c) 2009-2021 digi.me Limited. All rights reserved.
  */
 
+import { ApiError } from "./types/api/api-error-response";
+
 // tslint:disable:max-classes-per-file
 class DigiMeSDKError extends Error {
     public name = "DigiMeSDKError";
+    public error?: ApiError;
 
-    constructor(message: Error["message"]) {
+    constructor(message: Error["message"], error?: ApiError) {
         super(message);
+        this.error = error;
         Error.captureStackTrace(this, this.constructor);
     }
 }
@@ -32,26 +36,26 @@ class ServerIdentityError extends DigiMeSDKError {
     public name = "ServerIdentityError";
 }
 
-class OAuthError extends DigiMeSDKError {
-    public name = "OAuthError";
-}
-
 class JWTVerificationError extends DigiMeSDKError {
     public name = "JWTVerificationError";
 }
 
-class AccessTokenExchangeError extends DigiMeSDKError {
-    public name = "AccessTokenExchangeError";
+class TokenRefreshError extends DigiMeSDKError {
+    public name = "TokenRefreshError";
+}
+
+class ServerError extends DigiMeSDKError {
+    public name = "DigiMeServerError";
 }
 
 export {
-    AccessTokenExchangeError,
     DigiMeSDKError,
     SDKInvalidError,
     SDKVersionInvalidError,
     TypeValidationError,
     FileDecryptionError,
-    ServerIdentityError,
-    OAuthError,
     JWTVerificationError,
+    ServerIdentityError,
+    TokenRefreshError,
+    ServerError,
 };
