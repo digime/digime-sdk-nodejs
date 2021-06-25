@@ -16,6 +16,7 @@ import get from "lodash.get";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { CAScope, ContractDetails, ContractDetailsCodec } from "./types/common";
 import { isNonEmptyString } from "./utils/basic-utils";
+import sdkVersion from "./sdk-version";
 
 export interface GetAuthorizeUrlOptions {
     /**
@@ -132,6 +133,17 @@ const _authorize = async (
         const { body } = await net.post(`${sdkConfig.baseUrl}oauth/authorize`, {
             headers: {
                 Authorization: `Bearer ${jwt}`,
+            },
+            json: {
+                agent: {
+                    sdk: {
+                        name: "js",
+                        version: sdkVersion,
+                        meta: {
+                            node: process.version,
+                        },
+                    },
+                },
             },
             responseType: "json",
             retry: sdkConfig.retryOptions,
