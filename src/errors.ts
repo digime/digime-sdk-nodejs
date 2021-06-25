@@ -16,6 +16,14 @@ class DigiMeSDKError extends Error {
     }
 }
 
+class SDKInvalidError extends DigiMeSDKError {
+    public name = "SDKInvalidError";
+}
+
+class SDKVersionInvalidError extends DigiMeSDKError {
+    public name = "SDKVersionInvalidError";
+}
+
 class TypeValidationError extends DigiMeSDKError {
     public name = "TypeValidationError";
 }
@@ -42,6 +50,8 @@ class ServerError extends DigiMeSDKError {
 
 export {
     DigiMeSDKError,
+    SDKInvalidError,
+    SDKVersionInvalidError,
     TypeValidationError,
     FileDecryptionError,
     JWTVerificationError,
