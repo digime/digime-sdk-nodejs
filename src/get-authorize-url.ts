@@ -118,7 +118,7 @@ interface AuthorizeResponse {
 }
 
 const _authorize = async (
-    { contractDetails, state, userAccessToken }: GetAuthorizeUrlOptions,
+    { contractDetails, scope, state, userAccessToken }: GetAuthorizeUrlOptions,
     sdkConfig: SDKConfiguration
 ): Promise<AuthorizeResponse> => {
     const { contractId, privateKey, redirectUri } = contractDetails;
@@ -157,6 +157,11 @@ const _authorize = async (
                         meta: {
                             node: process.version,
                         },
+                    },
+                },
+                actions: {
+                    pull: {
+                        scope,
                     },
                 },
             },
