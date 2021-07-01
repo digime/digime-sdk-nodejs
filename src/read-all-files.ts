@@ -4,12 +4,12 @@
 
 import { TypeValidationError } from "./errors";
 import { isNonEmptyString } from "./utils/basic-utils";
-import { CAFileListResponse } from "./types/api/ca-file-list-response";
+import { CAFileListEntry, CAFileListResponse } from "./types/api/ca-file-list-response";
 import get from "lodash.get";
 import isFunction from "lodash.isfunction";
 import { sleep } from "./utils/sleep";
 import NodeRSA from "node-rsa";
-import { readFile, ReadFileMeta } from "./read-file";
+import { readFile, ReadFileResponse } from "./read-file";
 import { readFileList } from "./read-file-list";
 import { SDKConfiguration } from "./types/sdk-configuration";
 
@@ -20,8 +20,8 @@ export interface ReadAllFilesOptions {
     onFileError: FileErrorHandler;
 }
 
-type FileSuccessResult = { data: unknown } & ReadFileMeta;
-type FileErrorResult = { error: Error } & ReadFileMeta;
+type FileSuccessResult = { fileList: CAFileListEntry[] } & ReadFileResponse;
+type FileErrorResult = { fileList: CAFileListEntry[]; error: Error; fileName: string };
 type FileSuccessHandler = (response: FileSuccessResult) => void;
 type FileErrorHandler = (response: FileErrorResult) => void;
 
