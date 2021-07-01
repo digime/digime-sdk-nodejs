@@ -34,7 +34,7 @@ const LibrarySyncStatusCodec: t.Type<LibrarySyncStatus> = t.keyof({
  * CAFileListEntry
  */
 
-interface CAFileListEntry {
+export interface CAFileListEntry {
     name: string;
     updatedDate: number;
 }
