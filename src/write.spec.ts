@@ -5,7 +5,12 @@
 import nock = require("nock");
 import * as SDK from ".";
 import { ServerError, TypeValidationError } from "./errors";
-import { defaultValidDataPush, invalidFileMeta, validFileMeta } from "../fixtures/postbox/example-data-pushes";
+import {
+    defaultValidDataPush,
+    invalidFileMeta,
+    validFileMeta,
+    validFileMetaStream,
+} from "../fixtures/postbox/example-data-pushes";
 import { SAMPLE_TOKEN, TEST_BASE_URL, TEST_CUSTOM_BASE_URL, TEST_CUSTOM_ONBOARD_URL } from "../utils/test-constants";
 import NodeRSA = require("node-rsa");
 import { ContractDetails } from "./types/common";
@@ -140,12 +145,35 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             });
         });
 
-        describe("No errors are thrown when passed in valid", () => {
+        describe("No errors are thrown when passed in valid data as buffers", () => {
             it.each<[string, any]>([
                 ["plain text", validFileMeta.PLAIN_TEXT],
                 ["JSON file", validFileMeta.FILE_JSON],
                 ["PDF file", validFileMeta.FILE_PDF],
-                ["JPG file", validFileMeta.FILE_PDF],
+                ["JPG file", validFileMeta.FILE_JPG],
+            ])("%p", async (_label, data: any) => {
+                nock(`${new URL(baseUrl).origin}`)
+                    .post(`${new URL(baseUrl).pathname}permission-access/postbox/test-postbox-id`)
+                    .reply(200, {
+                        status: "delivered",
+                        expires: 200000,
+                    });
+
+                const response = await sdk.write({
+                    ...defaultValidDataPush,
+                    data,
+                });
+
+                expect(response).toBeDefined();
+            });
+        });
+
+        describe("No errors are thrown when passed in valid data as stream", () => {
+            it.each<[string, any]>([
+                ["plain text", validFileMetaStream.PLAIN_TEXT],
+                ["JSON file", validFileMetaStream.FILE_JSON],
+                ["PDF file", validFileMetaStream.FILE_PDF],
+                ["JPG file", validFileMetaStream.FILE_JPG],
             ])("%p", async (_label, data: any) => {
                 nock(`${new URL(baseUrl).origin}`)
                     .post(`${new URL(baseUrl).pathname}permission-access/postbox/test-postbox-id`)
