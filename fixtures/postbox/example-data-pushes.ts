@@ -68,6 +68,41 @@ export const validFileMeta = {
     },
 };
 
+export const validFileMetaStream = {
+    PLAIN_TEXT: {
+        fileData: fs.createReadStream(process.cwd() + "/fixtures/postbox/test.txt"),
+        fileName: "file-name",
+        fileDescriptor: {
+            mimeType: "text/plain",
+            accounts: [],
+        },
+    },
+    FILE_JSON: {
+        fileData: fs.createReadStream(process.cwd() + "/fixtures/postbox/test.json"),
+        fileName: "file-name",
+        fileDescriptor: {
+            mimeType: "text/plain",
+            accounts: [],
+        },
+    },
+    FILE_PDF: {
+        fileData: fs.createReadStream(process.cwd() + "/fixtures/postbox/test.pdf"),
+        fileName: "file-name",
+        fileDescriptor: {
+            mimeType: "application/pdf",
+            accounts: [],
+        },
+    },
+    FILE_JPG: {
+        fileData: fs.createReadStream(process.cwd() + "/fixtures/postbox/test.jpg"),
+        fileName: "file-name",
+        fileDescriptor: {
+            mimeType: "image/jpeg",
+            accounts: [],
+        },
+    },
+};
+
 export const invalidFileMeta = {
     NON_BUFFER_FILE_DATA: {
         fileData: JSON.stringify("test-data"),
