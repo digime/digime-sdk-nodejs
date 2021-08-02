@@ -20,10 +20,10 @@
 <br>
 
 ## Contributing
-We are open to, and grateful for, any contributions made by the community. When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change. 
+We are open to, and grateful for, any contributions made by the community. When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
 
 ## Code of Conduct
-We have adopted the [Contributor Covenant](https://www.contributor-covenant.org/) as our Code of Conduct, and we expect project participants to adhere to it. 
+We have adopted the [Contributor Covenant](https://www.contributor-covenant.org/) as our Code of Conduct, and we expect project participants to adhere to it.
 Please read the full text so that you can understand what actions will and will not be tolerated.
 
 ### Our Pledge
@@ -91,7 +91,7 @@ faith may face temporary or permanent repercussions as determined by other
 members of the project's leadership.
 
 ## Open Development
-All work on our SDK happens directly on Github. Core team members and external contributors send pull requests which go through the same review process. 
+All work on our SDK happens directly on Github. Core team members and external contributors send pull requests which go through the same review process.
 
 ## Semantic Versioning
 Our SDK follows semantic versioning. Patch versions are reserved for bug fixes, minor versions for new features and major version for any breaking changes.
@@ -105,7 +105,7 @@ For non-trivial changes, please open an issue with a proposal for a new feature 
 ## Development
 To start working on the SDK, fork, then clone the repo:
 
-`git clone https://www.github.com/<your_username>/digime-sdk-js.git`
+`git clone https://www.github.com/<your_username>/digime-sdk-nodejs.git`
 
 #### Building
 

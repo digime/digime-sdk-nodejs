@@ -41,7 +41,7 @@ Authorization is needed:
 ## Getting a authorization URL and a code verifier
 
 ```typescript
-import {init} from "@digime/digime-js-sdk";
+import {init} from "@digime/digime-sdk-nodejs";
 
 const sdk = init({ applicationId: <you-application-id> });
 

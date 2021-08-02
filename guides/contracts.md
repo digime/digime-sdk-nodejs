@@ -27,7 +27,7 @@ To get your own application ID, you can get yours by filling out the [registrati
 
 Contracts represent the data that you are requesting from your users as well as the specifics around terms of use. Each contract has a contract ID, a private key that work together to request, download and decrypt personal data shared with your app.
 
-For demo purposes, we provide example contracts with its example keys in our [example application](https://github.com/digime/digime-js-sdk-example). In order to release your app to production, you will need personalised contracts that are tied to your application ID and have your branding and contact information as well as your legal terms embedded. When you are ready to go to production or interact with real users, visit our [launching your app](https://developers.digi.me/launching-your-app) page to request production contracts.
+For demo purposes, we provide example contracts with its example keys in our [example application](https://github.com/digime/digime-sdk-nodejs-example). In order to release your app to production, you will need personalised contracts that are tied to your application ID and have your branding and contact information as well as your legal terms embedded. When you are ready to go to production or interact with real users, visit our [launching your app](https://developers.digi.me/launching-your-app) page to request production contracts.
 
 There are three types of contracts available in digi.me:
 
