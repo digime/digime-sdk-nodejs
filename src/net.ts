@@ -60,7 +60,7 @@ const packageDir = (): string => {
     const packageDirectory = pkgDir.sync(__dirname);
 
     if (!packageDirectory) {
-        throw new DigiMeSDKError("Unable to determine digime-js-sdk package root");
+        throw new DigiMeSDKError("Unable to determine digime-sdk-nodejs package root");
     }
 
     return packageDirectory;

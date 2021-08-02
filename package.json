@@ -1,7 +1,7 @@
 {
-  "name": "@digime/digime-js-sdk",
-  "version": "5.0.0",
-  "description": "digime-js-sdk",
+  "name": "@digime/digime-sdk-nodejs",
+  "version": "5.1.0",
+  "description": "Node.JS SDK for digi.me",
   "main": "dist/main/index.js",
   "types": "dist/main/index.d.ts",
   "module": "dist/module/index.js",
@@ -21,14 +21,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/digime/digime-js-sdk.git"
+    "url": "git+https://github.com/digime/digime-sdk-nodejs.git"
   },
   "author": "digi.me Limited",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/digime/digime-js-sdk/issues"
+    "url": "https://github.com/digime/digime-sdk-nodejs/issues"
   },
-  "homepage": "https://github.com/digime/digime-js-sdk#readme",
+  "homepage": "https://github.com/digime/digime-sdk-nodejs#readme",
   "devDependencies": {
     "@types/jest": "~26.0.20",
     "@types/jsonwebtoken": "~8.5.2",

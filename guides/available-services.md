@@ -36,7 +36,7 @@ Service describes the different service groups
 The most basic initialization:
 ```typescript
 // Initialize the SDK
-import {init} from "@digime/digime-js-sdk";
+import {init} from "@digime/digime-sdk-nodejs";
 const sdk = init({ applicationId: <you-application-id> });
 
 const services = await sdk.getAvailableServices(<read-contract-id>);

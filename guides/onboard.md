@@ -25,7 +25,7 @@ Once a user is authorized, you can onboard additional services to their library 
 To trigger a new service onboard, you can do the following:
 ```typescript
 // Initialize the SDK
-import {init} from "@digime/digime-js-sdk";
+import {init} from "@digime/digime-sdk-nodejs";
 
 const sdk = init({ applicationId: <you-application-id> });
 
