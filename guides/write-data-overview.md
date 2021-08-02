@@ -36,7 +36,7 @@ Before we can write data to user, we need go through the authorization flow and 
 Start this process by getting the authorization URL by calling `getAuthorizeUrl`:
 
 ```typescript
-import { init } from "@digime/digime-js-sdk";
+import { init } from "@digime/digime-sdk-nodejs";
 
 const sdk = init({ applicationId });
 

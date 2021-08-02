@@ -35,7 +35,7 @@ To start reading user data, we first need to ask the user to onboard a service.
 To see a list of services available for users to onboard:
 
 ```typescript
-import { init } from "@digime/digime-js-sdk";
+import { init } from "@digime/digime-sdk-nodejs";
 
 const sdk = init({ applicationId });
 

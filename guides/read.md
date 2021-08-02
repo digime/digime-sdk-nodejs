@@ -31,7 +31,7 @@ To start reading user data, we first need to obtain a session:
 
 ```typescript
 // initialize the SDK
-import { init } from "@digime/digime-js-sdk";
+import { init } from "@digime/digime-sdk-nodejs";
 const sdk = init({ applicationId });
 
 // contractDetails - The same one used in getAuthorizeUrl().

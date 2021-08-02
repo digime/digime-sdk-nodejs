@@ -37,21 +37,21 @@ The most basic initialization:
 
 _Using ES6 modules_
 ```typescript
-import { init } from "@digime/digime-js-sdk";
+import { init } from "@digime/digime-sdk-nodejs";
 
 const sdk = init({ applicationId: <my-unique-application-id> });
 ```
 
 _Using CommonJS_
 ```typescript
-const { init } = require("@digime/digime-js-sdk");
+const { init } = require("@digime/digime-sdk-nodejs");
 
 const sdk = init({ applicationId: <my-unique-application-id> });
 ```
 
 If you'd like to specify retry options for the SDK:
 ```typescript
-import { init } from "@digime/digime-js-sdk";
+import { init } from "@digime/digime-sdk-nodejs";
 
 const sdk = init({
     applicationId: <my-unique-application-id>,

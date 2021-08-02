@@ -28,7 +28,7 @@ By default, the SDK retries to make calls twice before giving up. This is someth
 These are errors that have been thrown by the digi.me API. These errors will be thrown as `ServerError` and it will contain an error object specifying the error.
 
 ```
-import { ServerError } from "@digime/digime-js-sdk";
+import { ServerError } from "@digime/digime-sdk-nodejs";
 
 // ... init the sdk
 
