@@ -152,7 +152,7 @@ const _authorize = async (
             json: {
                 agent: {
                     sdk: {
-                        name: "js",
+                        name: "nodejs",
                         version: sdkVersion,
                         meta: {
                             node: process.version,
