@@ -19,6 +19,10 @@
 
 <br>
 
+:warning: __NPM package @digime/digime-js-sdk is deprecated.__
+
+:warning: __Please use @digime/digime-sdk-nodejs instead.__
+
 ## Introduction
 
 The digi.me private sharing platform empowers developers to make use of user data from thousands of sources in a way that fully respects a user's privacy, and whilst conforming to GDPR. Our consent driven solution allows you to define exactly what terms you want data by, and the user to see these completely transparently, allowing them to make an informed choice as to whether to grant consent or not.
