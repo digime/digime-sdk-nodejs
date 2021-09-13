@@ -64,7 +64,7 @@ const contractDetails = {
     redirectUri: <an-url-to-call-when-authorization-is-complete>,
 }
 
-const { url, codeVerifier } = await sdk.getAuthorizeUrl({
+const { url, codeVerifier, session } = await sdk.getAuthorizeUrl({
     contractDetails,
     callback: <an-url-to-call-when-an-error-is-encountered>,
     serviceId: toNumber(serviceId),
@@ -74,6 +74,7 @@ const { url, codeVerifier } = await sdk.getAuthorizeUrl({
 
 // Store the codeVerifier against the current user, and redirect them to the url returned.
 // This will kick start the authorization process.
+// The session will be used later when triggering a data read.
 ```
 
 ### Redirect the user
@@ -145,35 +146,13 @@ After the user has onboarded and finished with the authorization, the `callback`
 https://your-website.com/onboard-return?userId=<user-id>&success=true
 ```
 
-
-## 5. Start a Read Session
-When your user has onboarded all the services you require, we can kick off a read session:
-
-```typescript
-// ... initialize the SDK
-
-// contractDetails - The same one used in getAuthorizeUrl().
-// userAccessToken - The user access token from the authorization step.
-
-const { session, updatedAccessToken }  = await sdk.readSession({
-    contractDetails,
-    userAccessToken,
-});
-
-// A session object will be returned which can then be used to query data.
-// If the user access token needed to be refreshed, the SDK will handle that automatically and the new one will be returned
-```
-
-The `session` object can be used to query the data from this user.
-
-
-## 6. Query user data.
-Once we have a session, we can query the data.
+## 5. Query user data.
+When your user has onboarded all the services you require, we can start reading the data using the session from earlier.
 
 ```typescript
 // ... initialize the SDK
 
-// session - The session we received from readSession().
+// session - The session we received from getAuthorizeUrl().
 // privateKey - The private key for this contract.
 // onFileData - A function that will be called when a file is successfully downloaded.
 // onFileError - A function that will be called when an error occurs when downloading a file.

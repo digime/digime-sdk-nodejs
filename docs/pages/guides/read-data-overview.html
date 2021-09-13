@@ -129,7 +129,7 @@
 <span style="color: #000000">    </span><span style="color: #001080">redirectUri:</span><span style="color: #000000"> &lt;</span><span style="color: #267F99">an</span><span style="color: #000000">-</span><span style="color: #267F99">url</span><span style="color: #000000">-</span><span style="color: #267F99">to</span><span style="color: #000000">-</span><span style="color: #267F99">call</span><span style="color: #000000">-</span><span style="color: #267F99">when</span><span style="color: #000000">-</span><span style="color: #267F99">authorization</span><span style="color: #000000">-</span><span style="color: #267F99">is</span><span style="color: #000000">-</span><span style="color: #267F99">complete</span><span style="color: #000000">&gt;,</span>
 <span style="color: #000000">}</span>
 
-<span style="color: #0000FF">const</span><span style="color: #000000"> { </span><span style="color: #0070C1">url</span><span style="color: #000000">, </span><span style="color: #0070C1">codeVerifier</span><span style="color: #000000"> } = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">sdk</span><span style="color: #000000">.</span><span style="color: #795E26">getAuthorizeUrl</span><span style="color: #000000">({</span>
+<span style="color: #0000FF">const</span><span style="color: #000000"> { </span><span style="color: #0070C1">url</span><span style="color: #000000">, </span><span style="color: #0070C1">codeVerifier</span><span style="color: #000000">, </span><span style="color: #0070C1">session</span><span style="color: #000000"> } = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">sdk</span><span style="color: #000000">.</span><span style="color: #795E26">getAuthorizeUrl</span><span style="color: #000000">({</span>
 <span style="color: #000000">    </span><span style="color: #001080">contractDetails</span><span style="color: #000000">,</span>
 <span style="color: #000000">    </span><span style="color: #001080">callback:</span><span style="color: #000000"> &lt;</span><span style="color: #267F99">an</span><span style="color: #000000">-</span><span style="color: #267F99">url</span><span style="color: #000000">-</span><span style="color: #267F99">to</span><span style="color: #000000">-</span><span style="color: #267F99">call</span><span style="color: #000000">-</span><span style="color: #267F99">when</span><span style="color: #000000">-</span><span style="color: #267F99">an</span><span style="color: #000000">-</span><span style="color: #267F99">error</span><span style="color: #000000">-</span><span style="color: #267F99">is</span><span style="color: #000000">-</span><span style="color: #267F99">encountered</span><span style="color: #000000">&gt;,</span>
 <span style="color: #000000">    </span><span style="color: #001080">serviceId:</span><span style="color: #000000"> </span><span style="color: #795E26">toNumber</span><span style="color: #000000">(</span><span style="color: #001080">serviceId</span><span style="color: #000000">),</span>
@@ -139,6 +139,7 @@
 
 <span style="color: #008000">// Store the codeVerifier against the current user, and redirect them to the url returned.</span>
 <span style="color: #008000">// This will kick start the authorization process.</span>
+<span style="color: #008000">// The session will be used later when triggering a data read.</span>
 </code></pre>
 				<a href="#redirect-the-user" id="redirect-the-user" style="color: inherit; text-decoration: none;">
 					<h3>Redirect the user</h3>
@@ -198,31 +199,13 @@
 				<p>After the user has onboarded and finished with the authorization, the <code>callback</code> provided will be called. You are welcome to populate the <code>callback</code> with any query parameters to help you identify the user. An example of a returned URL might be:</p>
 				<pre><code><span style="color: #000000">https:</span><span style="color: #008000">//your-website.com/onboard-return?userId=&lt;user-id&gt;&amp;success=true</span>
 </code></pre>
-				<a href="#5-start-a-read-session" id="5-start-a-read-session" style="color: inherit; text-decoration: none;">
-					<h2>5. Start a Read Session</h2>
+				<a href="#5-query-user-data" id="5-query-user-data" style="color: inherit; text-decoration: none;">
+					<h2>5. Query user data.</h2>
 				</a>
-				<p>When your user has onboarded all the services you require, we can kick off a read session:</p>
+				<p>When your user has onboarded all the services you require, we can start reading the data using the session from earlier.</p>
 				<pre><code class="language-typescript"><span style="color: #008000">// ... initialize the SDK</span>
 
-<span style="color: #008000">// contractDetails - The same one used in getAuthorizeUrl().</span>
-<span style="color: #008000">// userAccessToken - The user access token from the authorization step.</span>
-
-<span style="color: #0000FF">const</span><span style="color: #000000"> { </span><span style="color: #0070C1">session</span><span style="color: #000000">, </span><span style="color: #0070C1">updatedAccessToken</span><span style="color: #000000"> }  = </span><span style="color: #AF00DB">await</span><span style="color: #000000"> </span><span style="color: #001080">sdk</span><span style="color: #000000">.</span><span style="color: #795E26">readSession</span><span style="color: #000000">({</span>
-<span style="color: #000000">    </span><span style="color: #001080">contractDetails</span><span style="color: #000000">,</span>
-<span style="color: #000000">    </span><span style="color: #001080">userAccessToken</span><span style="color: #000000">,</span>
-<span style="color: #000000">});</span>
-
-<span style="color: #008000">// A session object will be returned which can then be used to query data.</span>
-<span style="color: #008000">// If the user access token needed to be refreshed, the SDK will handle that automatically and the new one will be returned</span>
-</code></pre>
-				<p>The <code>session</code> object can be used to query the data from this user.</p>
-				<a href="#6-query-user-data" id="6-query-user-data" style="color: inherit; text-decoration: none;">
-					<h2>6. Query user data.</h2>
-				</a>
-				<p>Once we have a session, we can query the data.</p>
-				<pre><code class="language-typescript"><span style="color: #008000">// ... initialize the SDK</span>
-
-<span style="color: #008000">// session - The session we received from readSession().</span>
+<span style="color: #008000">// session - The session we received from getAuthorizeUrl().</span>
 <span style="color: #008000">// privateKey - The private key for this contract.</span>
 <span style="color: #008000">// onFileData - A function that will be called when a file is successfully downloaded.</span>
 <span style="color: #008000">// onFileError - A function that will be called when an error occurs when downloading a file.</span>
