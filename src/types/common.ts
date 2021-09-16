@@ -35,6 +35,15 @@ export interface CAScope {
     serviceGroups?: ServiceGroup[];
 }
 
+export interface PullSessionOptions {
+    limits?: {
+        duration?: {
+            sourceFetch?: number;
+        };
+    };
+    scope?: CAScope;
+}
+
 export interface ServiceGroup {
     id: number;
     serviceTypes?: Service[];
@@ -113,4 +122,13 @@ export const ServiceGroupCodec: t.Type<ServiceGroup> = t.intersection([
 export const CAScopeCodec: t.Type<CAScope> = t.partial({
     timeRanges: t.array(TimeRangeCodec),
     serviceGroups: t.array(ServiceGroupCodec),
+});
+
+export const PullSessionOptionsCodec: t.Type<PullSessionOptions> = t.partial({
+    limits: t.partial({
+        duration: t.partial({
+            sourceFetch: t.number,
+        }),
+    }),
+    scope: CAScopeCodec,
 });

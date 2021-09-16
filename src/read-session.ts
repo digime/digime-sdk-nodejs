@@ -9,7 +9,7 @@ import get from "lodash.get";
 import { assertIsSession, Session } from "./types/api/session";
 import { UserAccessToken, UserAccessTokenCodec } from "./types/user-access-token";
 import { SDKConfiguration } from "./types/sdk-configuration";
-import { CAScope, CAScopeCodec, ContractDetails, ContractDetailsCodec } from "./types/common";
+import { ContractDetails, ContractDetailsCodec, PullSessionOptions, PullSessionOptionsCodec } from "./types/common";
 import * as t from "io-ts";
 import { TypeValidationError } from "./errors";
 import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
@@ -17,7 +17,7 @@ import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
 export interface ReadSessionOptions {
     contractDetails: ContractDetails;
     userAccessToken: UserAccessToken;
-    scope?: CAScope;
+    sessionOptions?: PullSessionOptions;
 }
 
 export interface ReadSessionResponse {
@@ -31,7 +31,7 @@ export const ReadSessionOptionsCodec: t.Type<ReadSessionOptions> = t.intersectio
         userAccessToken: UserAccessTokenCodec,
     }),
     t.partial({
-        scope: CAScopeCodec,
+        sessionOptions: PullSessionOptionsCodec,
     }),
 ]);
 
@@ -43,7 +43,7 @@ const _readSession = async (options: ReadSessionOptions, sdkConfig: SDKConfigura
         );
     }
 
-    const { contractDetails, userAccessToken, scope } = options;
+    const { contractDetails, userAccessToken, sessionOptions } = options;
 
     const { contractId, privateKey, redirectUri } = contractDetails;
     const jwt: string = sign(
@@ -68,9 +68,7 @@ const _readSession = async (options: ReadSessionOptions, sdkConfig: SDKConfigura
             Authorization: `Bearer ${jwt}`,
             "Content-Type": "application/json", // NOTE: we might not need this
         },
-        json: {
-            scope,
-        },
+        json: sessionOptions,
         responseType: "json",
     });
 

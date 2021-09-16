@@ -17,6 +17,7 @@ import { ContractDetails } from "./types/common";
 import { GetAuthorizeUrlResponse } from "./get-authorize-url";
 import { sign } from "jsonwebtoken";
 import { HTTPError } from "got/dist/source";
+import { isEqual } from "lodash";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -132,6 +133,44 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     return expect(promise).rejects.toThrowError(TypeValidationError);
                 }
             );
+        });
+
+        describe("Throws TypeValidationError when actions is not an object", () => {
+            it.each([true, false, null, [], 0, NaN, "", () => null, Symbol("test")])(
+                "%p",
+                async (sessionOptions: any) => {
+                    const promise = sdk.getAuthorizeUrl({
+                        contractDetails: CONTRACT_DETAILS,
+                        callback: CALLBACK_URL,
+                        sessionOptions,
+                    });
+
+                    return expect(promise).rejects.toThrowError(TypeValidationError);
+                }
+            );
+        });
+
+        describe("Throws TypeValidationError when scope is a malformed object", () => {
+            it.each([
+                {
+                    timeRanges: ["notAnObject"],
+                },
+                {
+                    serviceGroups: [{ noIdSet: 18 }],
+                },
+            ])("%p", async (scope: any) => {
+                const promise = sdk.getAuthorizeUrl({
+                    contractDetails: CONTRACT_DETAILS,
+                    callback: CALLBACK_URL,
+                    sessionOptions: {
+                        pull: {
+                            scope,
+                        },
+                    },
+                });
+
+                return expect(promise).rejects.toThrowError(TypeValidationError);
+            });
         });
 
         describe(`Authorizing with minimum props`, () => {
@@ -309,6 +348,161 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
 
             it("Throws HTTPError when we get an error from the call", async () => {
                 return expect(error).toBeInstanceOf(HTTPError);
+            });
+        });
+
+        describe(`Options are passed up to the server as they are`, () => {
+            let response: GetAuthorizeUrlResponse;
+            beforeAll(async () => {
+                const jwt: string = sign(
+                    {
+                        preauthorization_code: "test-preauth-code",
+                    },
+                    testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                    {
+                        algorithm: "PS512",
+                        noTimestamp: true,
+                        header: {
+                            alg: "PS512",
+                            jku: `${baseUrl}test-jku-url`,
+                            kid: "test-kid",
+                        },
+                    }
+                );
+
+                const actionsToSend = {
+                    pull: {
+                        limits: {
+                            duration: {
+                                sourceFetch: 6,
+                            },
+                        },
+                        scope: {
+                            timeRanges: [
+                                {
+                                    last: "6y",
+                                },
+                            ],
+                        },
+                    },
+                };
+
+                nock(`${new URL(baseUrl).origin}`)
+                    .post(`${new URL(baseUrl).pathname}oauth/authorize`, (body) => isEqual(body.actions, actionsToSend))
+                    .reply(201, {
+                        token: jwt,
+                    })
+                    .get(`${new URL(baseUrl).pathname}test-jku-url`)
+                    .reply(201, {
+                        keys: [
+                            {
+                                kid: "test-kid",
+                                pem: testKeyPair.exportKey("pkcs1-public"),
+                            },
+                        ],
+                    });
+
+                response = await sdk.getAuthorizeUrl({
+                    contractDetails: CONTRACT_DETAILS,
+                    callback: CALLBACK_URL,
+                    sessionOptions: actionsToSend as any,
+                });
+            });
+
+            it("returns an object with property codeVerifier as a string", () => {
+                expect(response.codeVerifier).toBeDefined();
+                expect(typeof response.codeVerifier).toBe("string");
+            });
+
+            it("returns an object with a link", () => {
+                expect(response.url).toBeDefined();
+            });
+
+            it("returned link uses the onboard url as origin", () => {
+                expect(new URL(response.url).origin).toEqual(new URL(saasUrl).origin);
+            });
+
+            it("returned link contains callback as a query", () => {
+                expect(new URL(response.url).searchParams.get("callback")).toEqual(CALLBACK_URL);
+            });
+
+            it("returned link contains correct code", () => {
+                expect(new URL(response.url).searchParams.get("code")).toEqual("test-preauth-code");
+            });
+
+            it("returned link does not contain service Id", () => {
+                expect(new URL(response.url).searchParams.has("service")).toBe(false);
+            });
+        });
+
+        describe(`Extra unexpected options is passed up to the server as they are`, () => {
+            let response: GetAuthorizeUrlResponse;
+            beforeAll(async () => {
+                const jwt: string = sign(
+                    {
+                        preauthorization_code: "test-preauth-code",
+                    },
+                    testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                    {
+                        algorithm: "PS512",
+                        noTimestamp: true,
+                        header: {
+                            alg: "PS512",
+                            jku: `${baseUrl}test-jku-url`,
+                            kid: "test-kid",
+                        },
+                    }
+                );
+
+                const actionsToSend = {
+                    extra: "This is an unexpacted field",
+                };
+
+                nock(`${new URL(baseUrl).origin}`)
+                    .post(`${new URL(baseUrl).pathname}oauth/authorize`, (body) => isEqual(body.actions, actionsToSend))
+                    .reply(201, {
+                        token: jwt,
+                    })
+                    .get(`${new URL(baseUrl).pathname}test-jku-url`)
+                    .reply(201, {
+                        keys: [
+                            {
+                                kid: "test-kid",
+                                pem: testKeyPair.exportKey("pkcs1-public"),
+                            },
+                        ],
+                    });
+
+                response = await sdk.getAuthorizeUrl({
+                    contractDetails: CONTRACT_DETAILS,
+                    callback: CALLBACK_URL,
+                    sessionOptions: actionsToSend as any,
+                });
+            });
+
+            it("returns an object with property codeVerifier as a string", () => {
+                expect(response.codeVerifier).toBeDefined();
+                expect(typeof response.codeVerifier).toBe("string");
+            });
+
+            it("returns an object with a link", () => {
+                expect(response.url).toBeDefined();
+            });
+
+            it("returned link uses the onboard url as origin", () => {
+                expect(new URL(response.url).origin).toEqual(new URL(saasUrl).origin);
+            });
+
+            it("returned link contains callback as a query", () => {
+                expect(new URL(response.url).searchParams.get("callback")).toEqual(CALLBACK_URL);
+            });
+
+            it("returned link contains correct code", () => {
+                expect(new URL(response.url).searchParams.get("code")).toEqual("test-preauth-code");
+            });
+
+            it("returned link does not contain service Id", () => {
+                expect(new URL(response.url).searchParams.has("service")).toBe(false);
             });
         });
     });
