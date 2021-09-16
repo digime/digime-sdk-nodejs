@@ -11,6 +11,7 @@ import { ServerError, TypeValidationError } from "./errors";
 import { ReadSessionResponse } from "./read-session";
 import { ContractDetails } from "./types/common";
 import { sign } from "jsonwebtoken";
+import { isEqual } from "lodash";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -111,12 +112,26 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         );
     });
 
+    describe("Throws TypeValidationError when options is ", () => {
+        it.each([true, false, null, [], 0, NaN, "", () => null, Symbol("test")])("%p", async (sessionOptions: any) => {
+            const promise = sdk.readSession({
+                contractDetails: CONTRACT_DETAILS,
+                userAccessToken: SAMPLE_TOKEN,
+                sessionOptions,
+            });
+
+            return expect(promise).rejects.toThrowError(TypeValidationError);
+        });
+    });
+
     describe("Throws TypeValidationError when scope is ", () => {
         it.each([true, false, null, [], 0, NaN, "", () => null, Symbol("test")])("%p", async (scope: any) => {
             const promise = sdk.readSession({
                 contractDetails: CONTRACT_DETAILS,
                 userAccessToken: SAMPLE_TOKEN,
-                scope,
+                sessionOptions: {
+                    scope,
+                },
             });
 
             return expect(promise).rejects.toThrowError(TypeValidationError);
@@ -135,7 +150,9 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             const promise = sdk.readSession({
                 contractDetails: CONTRACT_DETAILS,
                 userAccessToken: SAMPLE_TOKEN,
-                scope,
+                sessionOptions: {
+                    scope,
+                },
             });
 
             return expect(promise).rejects.toThrowError(TypeValidationError);
@@ -162,6 +179,49 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             response = await sdk.readSession({
                 contractDetails: CONTRACT_DETAILS,
                 userAccessToken: SAMPLE_TOKEN,
+            });
+        });
+
+        it("returns the session returned from digi.me", () => {
+            expect(response.session).toEqual(session);
+        });
+
+        it("returns the same user access token", () => {
+            expect(response.userAccessToken).toEqual(SAMPLE_TOKEN);
+        });
+
+        it("triggers the data trigger query", () => {
+            expect(dataTriggerCall).toHaveBeenCalled();
+        });
+    });
+
+    describe(`Extra unexpected options is passed up to the server as they are`, () => {
+        let response: ReadSessionResponse;
+        const dataTriggerCall = jest.fn();
+        const session = {
+            expiry: 9999,
+            key: "session-key",
+        };
+
+        beforeAll(async () => {
+            const optionsWithExtras = {
+                extra: "This is an unexpacted field",
+            };
+
+            const scope = nock(`${new URL(baseUrl).origin}`)
+                .post(`${new URL(baseUrl).pathname}permission-access/trigger`, (body) =>
+                    isEqual(body, optionsWithExtras)
+                )
+                .reply(202, {
+                    session,
+                });
+            // Request event only fires when the scope target has been hit
+            scope.on("request", dataTriggerCall);
+
+            response = await sdk.readSession({
+                contractDetails: CONTRACT_DETAILS,
+                userAccessToken: SAMPLE_TOKEN,
+                sessionOptions: optionsWithExtras as any,
             });
         });
 

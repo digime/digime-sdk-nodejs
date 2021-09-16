@@ -14,7 +14,7 @@ import { sign } from "jsonwebtoken";
 import { handleServerResponse, net } from "./net";
 import get from "lodash.get";
 import { SDKConfiguration } from "./types/sdk-configuration";
-import { CAScope, ContractDetails, ContractDetailsCodec } from "./types/common";
+import { ContractDetails, ContractDetailsCodec, PullSessionOptions, PullSessionOptionsCodec } from "./types/common";
 import { isNonEmptyString } from "./utils/basic-utils";
 import sdkVersion from "./sdk-version";
 
@@ -40,9 +40,11 @@ export interface GetAuthorizeUrlOptions {
     userAccessToken?: UserAccessToken;
 
     /**
-     * For read contracts, you can limit to scope of data to query.
+     * Any optional parameters for the share.
      */
-    scope?: CAScope;
+    sessionOptions?: {
+        pull?: PullSessionOptions;
+    };
 
     /**
      * Any extra data you want to be passed back after a authorization flow.
@@ -59,6 +61,9 @@ export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.int
         serviceId: t.number,
         userAccessToken: UserAccessTokenCodec,
         state: t.string,
+        sessionOptions: t.partial({
+            pull: PullSessionOptionsCodec,
+        }),
     }),
 ]);
 
@@ -118,7 +123,7 @@ interface AuthorizeResponse {
 }
 
 const _authorize = async (
-    { contractDetails, scope, state, userAccessToken }: GetAuthorizeUrlOptions,
+    { contractDetails, sessionOptions, state, userAccessToken }: GetAuthorizeUrlOptions,
     sdkConfig: SDKConfiguration
 ): Promise<AuthorizeResponse> => {
     const { contractId, privateKey, redirectUri } = contractDetails;
@@ -159,11 +164,7 @@ const _authorize = async (
                         },
                     },
                 },
-                actions: {
-                    pull: {
-                        scope,
-                    },
-                },
+                actions: sessionOptions,
             },
             responseType: "json",
             retry: sdkConfig.retryOptions,
