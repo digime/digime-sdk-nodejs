@@ -105,7 +105,7 @@ For non-trivial changes, please open an issue with a proposal for a new feature 
 ## Development
 To start working on the SDK, fork, then clone the repo:
 
-`git clone https://www.github.com/<your_username>/digime-sdk-nodejs.git`
+`git clone https://www.github.com/digime/digime-sdk-nodejs.git`
 
 #### Building
 
