@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>SDKConfiguration | @digime/digime-sdk-nodejs</title>
+	<title>PullSessionOptions | @digime/digime-sdk-nodejs</title>
 	<meta name="description" content="Documentation for @digime/digime-sdk-nodejs">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -60,10 +60,10 @@
 					<a href="../modules/types.html">Types</a>
 				</li>
 				<li>
-					<a href="types.sdkconfiguration.html">SDKConfiguration</a>
+					<a href="types.pullsessionoptions.html">PullSessionOptions</a>
 				</li>
 			</ul>
-			<h1>Interface SDKConfiguration</h1>
+			<h1>Interface PullSessionOptions</h1>
 		</div>
 	</div>
 </header>
@@ -74,7 +74,7 @@
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">SDKConfiguration</span>
+						<span class="target">PullSessionOptions</span>
 					</li>
 				</ul>
 			</section>
@@ -85,10 +85,8 @@
 						<section class="tsd-index-section ">
 							<h3>Properties</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="types.sdkconfiguration.html#applicationid" class="tsd-kind-icon">application<wbr>Id</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="types.sdkconfiguration.html#baseurl" class="tsd-kind-icon">base<wbr>Url</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="types.sdkconfiguration.html#onboardurl" class="tsd-kind-icon">onboard<wbr>Url</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="types.sdkconfiguration.html#retryoptions" class="tsd-kind-icon">retry<wbr>Options</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="types.pullsessionoptions.html#limits" class="tsd-kind-icon">limits</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="types.pullsessionoptions.html#scope" class="tsd-kind-icon">scope</a></li>
 							</ul>
 						</section>
 					</div>
@@ -97,65 +95,37 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Properties</h2>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="applicationid" class="tsd-anchor"></a>
-					<h3>application<wbr>Id</h3>
-					<div class="tsd-signature tsd-kind-icon">application<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="limits" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> limits</h3>
+					<div class="tsd-signature tsd-kind-icon">limits<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>duration<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{ </span>sourceFetch<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span><span class="tsd-signature-symbol"> }</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/6deca2f/src/types/sdk-configuration.ts#L13">src/types/sdk-configuration.ts:13</a></li>
+							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/6deca2f/src/types/common.ts#L39">src/types/common.ts:39</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Your customised application ID from digi.me</p>
-						</div>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> duration<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-symbol">{ </span>sourceFetch<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> }</span></h5>
+								<ul class="tsd-parameters">
+									<li class="tsd-parameter">
+										<h5><span class="tsd-flag ts-flagOptional">Optional</span> source<wbr>Fetch<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">number</span></h5>
+									</li>
+								</ul>
+							</li>
+						</ul>
 					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="baseurl" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> base<wbr>Url</h3>
-					<div class="tsd-signature tsd-kind-icon">base<wbr>Url<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
+					<a name="scope" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> scope</h3>
+					<div class="tsd-signature tsd-kind-icon">scope<span class="tsd-signature-symbol">:</span> <a href="types.cascope.html" class="tsd-signature-type">CAScope</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/6deca2f/src/types/sdk-configuration.ts#L18">src/types/sdk-configuration.ts:18</a></li>
+							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/6deca2f/src/types/common.ts#L44">src/types/common.ts:44</a></li>
 						</ul>
 					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Root URL for the digi.me API. Default is <a href="https://api.digi.me/v1.6/">https://api.digi.me/v1.6/</a></p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="onboardurl" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> onboard<wbr>Url</h3>
-					<div class="tsd-signature tsd-kind-icon">onboard<wbr>Url<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/6deca2f/src/types/sdk-configuration.ts#L23">src/types/sdk-configuration.ts:23</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Root URL for the digi.me web onboard. Default is <a href="https://api.digi.me/apps/saas/">https://api.digi.me/apps/saas/</a></p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="retryoptions" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> retry<wbr>Options</h3>
-					<div class="tsd-signature tsd-kind-icon">retry<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">RetryOptions</span></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/6deca2f/src/types/sdk-configuration.ts#L29">src/types/sdk-configuration.ts:29</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>Options to specify retry logic for failed API calls. By default we retry any failed API calls five times.
-							See <a href="https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/got/index.d.ts#L267" class="external">here</a> for all possible options</p>
-						</div>
-					</div>
 				</section>
 			</section>
 		</div>
@@ -262,9 +232,21 @@
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
 						<a href="types.mappedfilemetadata.html" class="tsd-kind-icon">Mapped<wbr>File<wbr>Metadata</a>
 					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-module">
+				</ul>
+				<ul class="current">
+					<li class="current tsd-kind-interface tsd-parent-kind-module">
 						<a href="types.pullsessionoptions.html" class="tsd-kind-icon">Pull<wbr>Session<wbr>Options</a>
+						<ul>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="types.pullsessionoptions.html#limits" class="tsd-kind-icon">limits</a>
+							</li>
+							<li class=" tsd-kind-property tsd-parent-kind-interface">
+								<a href="types.pullsessionoptions.html#scope" class="tsd-kind-icon">scope</a>
+							</li>
+						</ul>
 					</li>
+				</ul>
+				<ul class="after-current">
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
 						<a href="types.rawfilemetadata.html" class="tsd-kind-icon">Raw<wbr>File<wbr>Metadata</a>
 					</li>
@@ -295,27 +277,9 @@
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
 						<a href="types.readsessionresponse.html" class="tsd-kind-icon">Read<wbr>Session<wbr>Response</a>
 					</li>
-				</ul>
-				<ul class="current">
-					<li class="current tsd-kind-interface tsd-parent-kind-module">
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
 						<a href="types.sdkconfiguration.html" class="tsd-kind-icon">SDKConfiguration</a>
-						<ul>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="types.sdkconfiguration.html#applicationid" class="tsd-kind-icon">application<wbr>Id</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="types.sdkconfiguration.html#baseurl" class="tsd-kind-icon">base<wbr>Url</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="types.sdkconfiguration.html#onboardurl" class="tsd-kind-icon">onboard<wbr>Url</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="types.sdkconfiguration.html#retryoptions" class="tsd-kind-icon">retry<wbr>Options</a>
-							</li>
-						</ul>
 					</li>
-				</ul>
-				<ul class="after-current">
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
 						<a href="types.session.html" class="tsd-kind-icon">Session</a>
 					</li>

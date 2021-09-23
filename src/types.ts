@@ -20,6 +20,6 @@ export { WriteOptions, WriteResponse } from "./write";
 export { SDKConfiguration } from "./types/sdk-configuration";
 export { Session } from "./types/api/session";
 export { MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
-export { CAScope, ContractDetails } from "./types/common";
+export { CAScope, ContractDetails, PullSessionOptions } from "./types/common";
 
 export * from "./codecs";

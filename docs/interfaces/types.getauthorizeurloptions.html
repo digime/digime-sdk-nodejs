@@ -87,8 +87,8 @@
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="types.getauthorizeurloptions.html#callback" class="tsd-kind-icon">callback</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="types.getauthorizeurloptions.html#contractdetails" class="tsd-kind-icon">contract<wbr>Details</a></li>
-								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="types.getauthorizeurloptions.html#scope" class="tsd-kind-icon">scope</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="types.getauthorizeurloptions.html#serviceid" class="tsd-kind-icon">service<wbr>Id</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="types.getauthorizeurloptions.html#sessionoptions" class="tsd-kind-icon">session<wbr>Options</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="types.getauthorizeurloptions.html#state" class="tsd-kind-icon">state</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="types.getauthorizeurloptions.html#useraccesstoken" class="tsd-kind-icon">user<wbr>Access<wbr>Token</a></li>
 							</ul>
@@ -104,7 +104,7 @@
 					<div class="tsd-signature tsd-kind-icon">callback<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/fc4d297/src/get-authorize-url.ts#L30">src/get-authorize-url.ts:30</a></li>
+							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/6deca2f/src/get-authorize-url.ts#L30">src/get-authorize-url.ts:30</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -119,7 +119,7 @@
 					<div class="tsd-signature tsd-kind-icon">contract<wbr>Details<span class="tsd-signature-symbol">:</span> <a href="types.contractdetails.html" class="tsd-signature-type">ContractDetails</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/fc4d297/src/get-authorize-url.ts#L25">src/get-authorize-url.ts:25</a></li>
+							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/6deca2f/src/get-authorize-url.ts#L25">src/get-authorize-url.ts:25</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -129,27 +129,12 @@
 					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-					<a name="scope" class="tsd-anchor"></a>
-					<h3><span class="tsd-flag ts-flagOptional">Optional</span> scope</h3>
-					<div class="tsd-signature tsd-kind-icon">scope<span class="tsd-signature-symbol">:</span> <a href="types.cascope.html" class="tsd-signature-type">CAScope</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/fc4d297/src/get-authorize-url.ts#L45">src/get-authorize-url.ts:45</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-comment tsd-typography">
-						<div class="lead">
-							<p>For read contracts, you can limit to scope of data to query.</p>
-						</div>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="serviceid" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> service<wbr>Id</h3>
 					<div class="tsd-signature tsd-kind-icon">service<wbr>Id<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/fc4d297/src/get-authorize-url.ts#L35">src/get-authorize-url.ts:35</a></li>
+							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/6deca2f/src/get-authorize-url.ts#L35">src/get-authorize-url.ts:35</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -159,12 +144,35 @@
 					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="sessionoptions" class="tsd-anchor"></a>
+					<h3><span class="tsd-flag ts-flagOptional">Optional</span> session<wbr>Options</h3>
+					<div class="tsd-signature tsd-kind-icon">session<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{ </span>pull<span class="tsd-signature-symbol">?: </span><a href="types.pullsessionoptions.html" class="tsd-signature-type">PullSessionOptions</a><span class="tsd-signature-symbol"> }</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/6deca2f/src/get-authorize-url.ts#L45">src/get-authorize-url.ts:45</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Any optional parameters for the share.</p>
+						</div>
+					</div>
+					<div class="tsd-type-declaration">
+						<h4>Type declaration</h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter">
+								<h5><span class="tsd-flag ts-flagOptional">Optional</span> pull<span class="tsd-signature-symbol">?: </span><a href="types.pullsessionoptions.html" class="tsd-signature-type">PullSessionOptions</a></h5>
+							</li>
+						</ul>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 					<a name="state" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagOptional">Optional</span> state</h3>
 					<div class="tsd-signature tsd-kind-icon">state<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/fc4d297/src/get-authorize-url.ts#L50">src/get-authorize-url.ts:50</a></li>
+							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/6deca2f/src/get-authorize-url.ts#L52">src/get-authorize-url.ts:52</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -179,7 +187,7 @@
 					<div class="tsd-signature tsd-kind-icon">user<wbr>Access<wbr>Token<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">UserAccessToken</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/fc4d297/src/get-authorize-url.ts#L40">src/get-authorize-url.ts:40</a></li>
+							<li>Defined in <a href="https://github.com/digime/digime-js-sdk/blob/6deca2f/src/get-authorize-url.ts#L40">src/get-authorize-url.ts:40</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -287,10 +295,10 @@
 								<a href="types.getauthorizeurloptions.html#contractdetails" class="tsd-kind-icon">contract<wbr>Details</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="types.getauthorizeurloptions.html#scope" class="tsd-kind-icon">scope</a>
+								<a href="types.getauthorizeurloptions.html#serviceid" class="tsd-kind-icon">service<wbr>Id</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="types.getauthorizeurloptions.html#serviceid" class="tsd-kind-icon">service<wbr>Id</a>
+								<a href="types.getauthorizeurloptions.html#sessionoptions" class="tsd-kind-icon">session<wbr>Options</a>
 							</li>
 							<li class=" tsd-kind-property tsd-parent-kind-interface">
 								<a href="types.getauthorizeurloptions.html#state" class="tsd-kind-icon">state</a>
@@ -316,6 +324,9 @@
 					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
 						<a href="types.mappedfilemetadata.html" class="tsd-kind-icon">Mapped<wbr>File<wbr>Metadata</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="types.pullsessionoptions.html" class="tsd-kind-icon">Pull<wbr>Session<wbr>Options</a>
 					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
 						<a href="types.rawfilemetadata.html" class="tsd-kind-icon">Raw<wbr>File<wbr>Metadata</a>
