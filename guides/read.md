@@ -36,7 +36,7 @@ const sdk = init({ applicationId });
 
 // contractDetails - The same one used in getAuthorizeUrl().
 // userAccessToken - The user access token from the authorization step.
-// scope - (Optional) For filtering the amount of data retrieved.
+// sessionOptions - (Optional) An limits or scopes to set for this session.
 
 const { session, updatedAccessToken }  = await sdk.readSession({
     contractDetails,
