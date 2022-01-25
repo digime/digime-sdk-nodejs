@@ -8,7 +8,6 @@
     "collectCoverageFrom": [
         "src/**/*.ts",
         "!**/dev/**",
-        "!**/certificates/**",
         "!**/dist/**",
         "!**/*.d.ts"
     ],

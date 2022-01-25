@@ -3,7 +3,6 @@
 
 # Include these folders in the package
 !dist/**
-!certificates/**
 
 # Exclude tests from the package
 *.spec.*
