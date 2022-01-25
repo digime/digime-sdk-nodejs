@@ -76,8 +76,6 @@ When decrypting files from digi.me, if an incorrect private key is provided, `Fi
 
 ## Other Errors
 
-`ServerIdentityError` - Thrown if there's a mismatch of certificates when communicating with our production server.
-
 `DigiMeSDKError` - Thrown for other generic errors in the SDK.
 
 

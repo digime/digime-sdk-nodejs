@@ -57,11 +57,4 @@ class FileDecryptionError extends DigiMeSDKError {
     public name = "FileDecryptionError";
 }
 
-/**
- * Thrown if there's a mismatch of certificates when communicating with our production server.
- */
-class ServerIdentityError extends DigiMeSDKError {
-    public name = "ServerIdentityError";
-}
-
-export { DigiMeSDKError, SDKInvalidError, TypeValidationError, FileDecryptionError, ServerIdentityError, ServerError };
+export { DigiMeSDKError, SDKInvalidError, TypeValidationError, FileDecryptionError, ServerError };
