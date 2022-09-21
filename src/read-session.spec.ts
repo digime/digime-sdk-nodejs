@@ -359,6 +359,9 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     userAccessToken: SAMPLE_TOKEN,
                 });
             } catch (e) {
+                if (!(e instanceof Error)) {
+                    throw e;
+                }
                 error = e;
             }
         });

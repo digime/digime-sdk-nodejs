@@ -178,7 +178,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         expect(successCallback).toHaveBeenCalledWith(
                             expect.objectContaining({
                                 fileData: Buffer.from(response),
-                                fileName: basename(fileDef.path),
+                                fileName: basename(fileDef.path.toString()),
                                 fileList,
                                 fileMetadata: metadata,
                             })

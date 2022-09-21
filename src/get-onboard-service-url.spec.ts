@@ -250,6 +250,9 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         callback: CALLBACK_URL,
                     });
                 } catch (e) {
+                    if (!(e instanceof Error)) {
+                        throw e;
+                    }
                     error = e;
                 }
             });
@@ -287,6 +290,9 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         callback: CALLBACK_URL,
                     });
                 } catch (e) {
+                    if (!(e instanceof Error)) {
+                        throw e;
+                    }
                     error = e;
                 }
             });

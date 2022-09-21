@@ -306,6 +306,9 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         serviceId: 30,
                     });
                 } catch (e) {
+                    if (!(e instanceof Error)) {
+                        throw e;
+                    }
                     error = e;
                 }
             });
@@ -342,6 +345,9 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         serviceId: 30,
                     });
                 } catch (e) {
+                    if (!(e instanceof Error)) {
+                        throw e;
+                    }
                     error = e;
                 }
             });

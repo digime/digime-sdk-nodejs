@@ -10,7 +10,7 @@ import isString from "lodash.isstring";
 
 export const net: Got = got;
 
-export const handleServerResponse = (error: Error): void => {
+export const handleServerResponse = (error: Error | unknown): void => {
     if (!(error instanceof HTTPError)) {
         return;
     }

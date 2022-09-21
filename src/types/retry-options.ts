@@ -3,11 +3,12 @@
  */
 
 import * as t from "io-ts";
-import type { RetryFunction, RetryOptions as GotRetryOptions } from "got";
+import type { RetryFunction, RequiredRetryOptions } from "got";
 import { codecAssertion, CodecAssertion } from "../utils/codec-assertion";
 
-// tslint:disable-next-line: no-empty-interface
-export interface RetryOptions extends GotRetryOptions {}
+export interface RetryOptions extends Partial<RequiredRetryOptions> {
+    retries?: number;
+}
 
 const isRetryFunction = (u: unknown): u is RetryFunction => typeof u === "function";
 
