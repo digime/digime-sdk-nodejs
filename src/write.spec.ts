@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2021 digi.me Limited. All rights reserved.
  */
 
-import nock = require("nock");
+import nock from "nock";
 import * as SDK from ".";
 import { ServerError, TypeValidationError } from "./errors";
 import {
@@ -12,7 +12,7 @@ import {
     validFileMetaStream,
 } from "../fixtures/postbox/example-data-pushes";
 import { SAMPLE_TOKEN, TEST_BASE_URL, TEST_CUSTOM_BASE_URL, TEST_CUSTOM_ONBOARD_URL } from "../utils/test-constants";
-import NodeRSA = require("node-rsa");
+import NodeRSA from "node-rsa";
 import { ContractDetails } from "./types/common";
 import { URL } from "url";
 import { WriteResponse } from "./write";
@@ -333,6 +333,9 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 try {
                     await sdk.write(defaultValidDataPush);
                 } catch (e) {
+                    if (!(e instanceof Error)) {
+                        throw e;
+                    }
                     error = e;
                 }
             });
@@ -359,6 +362,9 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 try {
                     await sdk.write(defaultValidDataPush);
                 } catch (e) {
+                    if (!(e instanceof Error)) {
+                        throw e;
+                    }
                     error = e;
                 }
             });

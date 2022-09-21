@@ -12,6 +12,9 @@ export const codecAssertion = <T extends t.Mixed>(codec: T) => {
         try {
             ThrowReporter.report(codec.decode(value));
         } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
             throw new TypeValidationError(sprintf(message, error.message));
         }
     };

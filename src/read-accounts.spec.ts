@@ -86,6 +86,9 @@ describe.each<[string, ReturnType<typeof init>, string]>([
                         privateKey: testKeyPair.exportKey("pkcs1-private"),
                     });
                 } catch (e) {
+                    if (!(e instanceof Error)) {
+                        throw e;
+                    }
                     error = e;
                 }
             });
