@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2021 digi.me Limited. All rights reserved.
+ * Copyright (c) 2009-2022 digi.me Limited. All rights reserved.
  */
 
 /**
@@ -14,7 +14,7 @@
  *
  * Therefore I believe updating both in sync when appropriate is the most reasonable option.
  */
-const copyrightYearTo = "2021";
+const copyrightYearTo = "2022";
 
 module.exports = {
     env: {
