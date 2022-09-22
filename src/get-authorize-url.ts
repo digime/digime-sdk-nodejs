@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2021 digi.me Limited. All rights reserved.
+ * Copyright (c) 2009-2022 digi.me Limited. All rights reserved.
  */
 
 import { URL, URLSearchParams } from "url";
