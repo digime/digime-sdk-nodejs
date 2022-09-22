@@ -1,6 +1,6 @@
 {
   "name": "@digime/digime-sdk-nodejs",
-  "version": "6.0.2",
+  "version": "7.0.0-rc.1",
   "description": "Node.JS SDK for digi.me",
   "main": "dist/main/index.js",
   "types": "dist/main/index.d.ts",

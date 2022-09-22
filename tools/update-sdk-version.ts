@@ -5,7 +5,7 @@
 import fs from "fs";
 
 const fileContent = `/*!
-* Copyright (c) 2009-2021 digi.me Limited. All rights reserved.
+* Copyright (c) 2009-2022 digi.me Limited. All rights reserved.
 */
 
 export default "${process.env.npm_package_version}";
