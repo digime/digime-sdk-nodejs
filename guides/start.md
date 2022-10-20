@@ -23,7 +23,7 @@
 
 ## Requirements
 
-- Node 12.0 or above
+- Node 14.0 or above
 - (Optional, if using TypeScript) TypeScript 3.8 or above
 
 ## Installation

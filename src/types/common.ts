@@ -25,14 +25,19 @@ export interface ContractDetails {
 
 export interface CAScope {
     /**
-     * Control the scope using time ranges
+     * Control the scope of mapped data using time ranges
      */
     timeRanges?: TimeRange[];
 
     /**
-     * Control the scope using service groups
+     * Control the scope for mapped data using service groups
      */
     serviceGroups?: ServiceGroup[];
+
+    /**
+     * Control the scope for raw data
+     */
+    criteria?: Criteria[];
 }
 
 export interface PullSessionOptions {
@@ -47,6 +52,26 @@ export interface PullSessionOptions {
 export interface ServiceGroup {
     id: number;
     serviceTypes?: Service[];
+}
+
+export interface Criteria {
+    from?: number;
+    last?: string;
+    metadata?: Metadata;
+}
+
+export interface Account {
+    accountId: string;
+    username?: string;
+}
+
+export interface Metadata {
+    appId?: string[];
+    accounts?: Account[];
+    contractId?: string[];
+    mimeType?: string[];
+    reference?: string[];
+    tags?: string[];
 }
 
 export interface Service {
