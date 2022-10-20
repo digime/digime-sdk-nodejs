@@ -63,6 +63,9 @@ const result = await sdk.getAuthorizeUrl({
     state: <any-extra-info-to-identify-user>
     serviceId: toNumber(serviceId),
     userAccessToken: <access-token>,
+    sessionOptions: <{
+        pull?: PullSessionOptions
+    }>,
 });
 
 // => result will contain a url and a code verifier which you will need for later.
@@ -70,6 +73,8 @@ const result = await sdk.getAuthorizeUrl({
 ```
 The [result](../../interfaces/types.getauthorizeurlresponse.html) returned will include a `url` and `codeVerifier`.
 Store the `codeVerifier` against this user as this will be required for later.
+
+More on limits and scoping of raw and mapped data interface can be found [here](../../interfaces/Types.PullSessionOptions.html).
 
 ## Redirecting the user to this authorization URL
 
