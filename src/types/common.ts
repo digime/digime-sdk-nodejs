@@ -33,6 +33,11 @@ export interface CAScope {
      * Control the scope using service groups
      */
     serviceGroups?: ServiceGroup[];
+
+    /**
+     * Control the scope for raw data
+     */
+    criteria?: Criteria[];
 }
 
 export interface PullSessionOptions {
@@ -47,6 +52,26 @@ export interface PullSessionOptions {
 export interface ServiceGroup {
     id: number;
     serviceTypes?: Service[];
+}
+
+export interface Criteria {
+    from?: number;
+    last?: string;
+    metadata?: Metadata;
+}
+
+export interface Metadata {
+    appId?: string[];
+    "accounts.accountId"?: string[];
+    "accounts.username"?: string[];
+    contractId?: string[];
+    mimeType?: string[];
+    tags?: string[];
+    // Below props are not in use until scoping for all other data is replaced with this interface
+    // Currently Criteria interface in CAScope is only used for raw data.
+    "objectTypes.name"?: string[];
+    providerName?: string[];
+    serviceGroups?: string[];
 }
 
 export interface Service {
