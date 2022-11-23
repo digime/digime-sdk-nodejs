@@ -25,12 +25,12 @@ export interface ContractDetails {
 
 export interface CAScope {
     /**
-     * Control the scope using time ranges
+     * Control the scope of mapped data using time ranges
      */
     timeRanges?: TimeRange[];
 
     /**
-     * Control the scope using service groups
+     * Control the scope for mapped data using service groups
      */
     serviceGroups?: ServiceGroup[];
 
@@ -60,18 +60,18 @@ export interface Criteria {
     metadata?: Metadata;
 }
 
+export interface Account {
+    accountId: string;
+    username?: string;
+}
+
 export interface Metadata {
     appId?: string[];
-    "accounts.accountId"?: string[];
-    "accounts.username"?: string[];
+    accounts?: Account[];
     contractId?: string[];
     mimeType?: string[];
+    reference?: string[];
     tags?: string[];
-    // Below props are not in use until scoping for all other data is replaced with this interface
-    // Currently Criteria interface in CAScope is only used for raw data.
-    "objectTypes.name"?: string[];
-    providerName?: string[];
-    serviceGroups?: string[];
 }
 
 export interface Service {

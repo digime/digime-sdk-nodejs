@@ -46,6 +46,8 @@ const { session, updatedAccessToken }  = await sdk.readSession({
 
 The [session](../../interfaces/types.session.html) received can now be used to query data.
 
+More on limits and scoping of raw and mapped data interface can be found [here](../../interfaces/Types.PullSessionOptions.html).
+
 ## Reading All Files
 Using the session received above, we can trigger [readAllFiles()](../../interfaces/sdk.digimesdk.html#readallfiles) to read all available files from this user.
 
