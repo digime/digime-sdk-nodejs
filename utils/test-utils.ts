@@ -15,15 +15,13 @@ import base64url from "base64url";
 
 interface CreateCADataOptions {
     compression?: "no-compression" | "brotli" | "gzip";
-    corruptHash?: boolean;
     corruptLength?: boolean;
 }
 
 // Creates CA-like data string
 const createCAData = (key: NodeRSA, inputData: string, options?: CreateCADataOptions): Buffer => {
-    const { compression, corruptHash, corruptLength }: Required<CreateCADataOptions> = {
+    const { compression, corruptLength }: Required<CreateCADataOptions> = {
         compression: "no-compression",
-        corruptHash: false,
         corruptLength: false,
         ...options,
     };
@@ -43,20 +41,11 @@ const createCAData = (key: NodeRSA, inputData: string, options?: CreateCADataOpt
         data = gzipSync(data);
     }
 
-    // Create a hash of data and concatenate
-    const dataHash: crypto.Hash = crypto.createHash("sha512").update(data);
-
-    if (corruptHash) {
-        dataHash.update("test");
-    }
-
-    const hashAndData: Buffer = Buffer.concat([dataHash.digest(), data]);
-
-    // Encrypt the hash and data
+    // Encrypt data
     const cipher: crypto.Cipher = crypto.createCipheriv("aes-256-cbc", dsk, div);
-    const encryptedHashAndData: Buffer = Buffer.concat([cipher.update(hashAndData), cipher.final()]);
+    const encryptedData: Buffer = Buffer.concat([cipher.update(data), cipher.final()]);
 
-    const output: Buffer = Buffer.concat([key.encrypt(dsk), div, encryptedHashAndData]);
+    const output: Buffer = Buffer.concat([key.encrypt(dsk), div, encryptedData]);
 
     // Appending some data to corrupt the output
     if (corruptLength) {
@@ -118,7 +107,6 @@ const loadScopeDefinitions = (path: string, scope: string): NockDefinitionWithHe
     loadDefinitions(path).filter((definition) => definition.scope === scope);
 
 interface FileContentToCAFormatOptions {
-    corruptHash?: boolean;
     corruptLength?: boolean;
     overrideCompression?: "no-compression" | "brotli" | "gzip";
 }
@@ -127,7 +115,7 @@ interface FileContentToCAFormatOptions {
 const fileContentToCAFormat = (
     definitions: NockDefinitionWithHeader[],
     key: NodeRSA,
-    { corruptHash = false, corruptLength = false, overrideCompression }: FileContentToCAFormatOptions = {}
+    { corruptLength = false, overrideCompression }: FileContentToCAFormatOptions = {}
 ): NockDefinitionWithHeader[] =>
     definitions.reduce((acc, definition) => {
         const response: unknown = definition.response;
@@ -145,7 +133,6 @@ const fileContentToCAFormat = (
             ...definition,
             response: createCAData(key, fileContent, {
                 compression: overrideCompression || compression,
-                corruptHash,
                 corruptLength,
             }),
             rawHeaders: {

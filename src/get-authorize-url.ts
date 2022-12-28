@@ -171,10 +171,13 @@ const _authorize = async (
         });
 
         const payload = await getPayloadFromToken(get(body, "token"), sdkConfig);
+
+        const session = get(body, "session", {} as AuthorizeResponse["session"]);
+
         return {
             codeVerifier,
             code: `${get(payload, ["preauthorization_code"])}`,
-            session: get(body, "session"),
+            session,
         };
     } catch (error) {
         handleServerResponse(error);

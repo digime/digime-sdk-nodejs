@@ -41,7 +41,7 @@ const exchangeCodeForToken = async (
     }
 
     const { authorizationCode, codeVerifier, contractDetails } = options;
-    const { contractId, privateKey, redirectUri } = contractDetails;
+    const { contractId, privateKey } = contractDetails;
 
     const jwt: string = sign(
         {
@@ -50,7 +50,6 @@ const exchangeCodeForToken = async (
             code_verifier: codeVerifier,
             grant_type: "authorization_code",
             nonce: getRandomAlphaNumeric(32),
-            redirect_uri: redirectUri,
             timestamp: Date.now(),
         },
         privateKey,

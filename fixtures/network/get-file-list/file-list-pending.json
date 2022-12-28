@@ -1,7 +1,7 @@
 [
     {
         "scope": "https://api.digi.me",
-        "path": "/v1.6/permission-access/query/test-session-key",
+        "path": "/v1.7/permission-access/query/test-session-key",
         "method": "GET",
         "status": 200,
         "response": {

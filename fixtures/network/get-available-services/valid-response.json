@@ -1,7 +1,7 @@
 [
     {
         "scope": "https://api.digi.me",
-        "path": "/v1.6/discovery/services",
+        "path": "/v1.7/discovery/services",
         "method": "GET",
         "status": 200,
         "response": {

@@ -12,10 +12,13 @@ import NodeRSA from "node-rsa";
 import { readFile, ReadFileResponse } from "./read-file";
 import { readFileList } from "./read-file-list";
 import { SDKConfiguration } from "./types/sdk-configuration";
+import { UserAccessToken } from "./types/user-access-token";
 
 export interface ReadAllFilesOptions {
     sessionKey: string;
     privateKey: NodeRSA.Key;
+    contractId: string;
+    userAccessToken: UserAccessToken;
     onFileData: FileSuccessHandler;
     onFileError: FileErrorHandler;
 }
@@ -31,7 +34,7 @@ export interface ReadAllFilesResponse {
 }
 
 const readAllFiles = (options: ReadAllFilesOptions, sdkConfig: SDKConfiguration): ReadAllFilesResponse => {
-    const { sessionKey, privateKey, onFileData, onFileError } = options;
+    const { sessionKey, privateKey, userAccessToken, contractId, onFileData, onFileError } = options;
 
     if (!isNonEmptyString(sessionKey)) {
         throw new TypeValidationError("Parameter sessionKey should be a non empty string");
@@ -46,7 +49,10 @@ const readAllFiles = (options: ReadAllFilesOptions, sdkConfig: SDKConfiguration)
         let state: CAFileListResponse["status"]["state"] = "pending";
 
         while (allowPollingToContinue && state !== "partial" && state !== "completed") {
-            const { status, fileList }: CAFileListResponse = await readFileList({ sessionKey }, sdkConfig);
+            const { status, fileList }: CAFileListResponse = await readFileList(
+                { sessionKey, contractId, privateKey, userAccessToken },
+                sdkConfig
+            );
             state = status.state;
 
             if (state === "pending") {
@@ -66,7 +72,7 @@ const readAllFiles = (options: ReadAllFilesOptions, sdkConfig: SDKConfiguration)
             }, []);
 
             const newPromises = newFiles.map((fileName: string) => {
-                return readFile({ sessionKey, fileName, privateKey }, sdkConfig)
+                return readFile({ sessionKey, fileName, privateKey, userAccessToken, contractId }, sdkConfig)
                     .then((fileMeta) => {
                         if (isFunction(onFileData)) {
                             onFileData({ ...fileMeta, fileList });

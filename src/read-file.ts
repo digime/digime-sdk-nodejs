@@ -6,18 +6,22 @@
 import { TypeValidationError } from "./errors";
 import { isNonEmptyString } from "./utils/basic-utils";
 import { handleServerResponse, net } from "./net";
-import { decryptData } from "./crypto";
+import { decryptData, getRandomAlphaNumeric } from "./crypto";
 import { Response } from "got/dist/source";
 import NodeRSA from "node-rsa";
 import { isDecodedCAFileHeaderResponse, MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
 import * as zlib from "zlib";
 import base64url from "base64url";
 import { SDKConfiguration } from "./types/sdk-configuration";
+import { UserAccessToken } from "./types/user-access-token";
+import { sign } from "jsonwebtoken";
 
 export interface ReadFileOptions {
     sessionKey: string;
     privateKey: NodeRSA.Key;
     fileName: string;
+    contractId: string;
+    userAccessToken: UserAccessToken;
 }
 
 export type ReadFileMeta = MappedFileMetadata | RawFileMetadata;
@@ -35,7 +39,7 @@ const readFile = async (options: ReadFileOptions, sdkConfig: SDKConfiguration): 
         throw new TypeValidationError("Parameter sessionKey should be a non empty string");
     }
 
-    const response = await fetchFile({ sessionKey, fileName }, sdkConfig);
+    const response = await fetchFile(options, sdkConfig);
     const { compression, fileContent, fileMetadata } = response;
     const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
     let data: Buffer = decryptData(key, fileContent);
@@ -59,20 +63,30 @@ interface FetchFileResponse {
     compression?: string;
 }
 
-interface FetchFileProps {
-    sessionKey: string;
-    fileName: string;
-}
-
-const fetchFile = async (options: FetchFileProps, sdkConfig: SDKConfiguration): Promise<FetchFileResponse> => {
-    const { sessionKey, fileName } = options;
+const fetchFile = async (options: ReadFileOptions, sdkConfig: SDKConfiguration): Promise<FetchFileResponse> => {
+    const { sessionKey, fileName, userAccessToken, contractId, privateKey } = options;
 
     let response: Response<unknown>;
+
+    const jwt: string = sign(
+        {
+            access_token: userAccessToken.accessToken.value,
+            client_id: `${sdkConfig.applicationId}_${contractId}`,
+            nonce: getRandomAlphaNumeric(32),
+            timestamp: Date.now(),
+        },
+        privateKey.toString(),
+        {
+            algorithm: "PS512",
+            noTimestamp: true,
+        }
+    );
 
     try {
         response = await net.get(`${sdkConfig.baseUrl}permission-access/query/${sessionKey}/${fileName}`, {
             headers: {
                 accept: "application/octet-stream",
+                Authorization: `Bearer ${jwt}`,
             },
             responseType: "buffer",
         });

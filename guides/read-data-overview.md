@@ -107,7 +107,7 @@ The `code` returned in the query parameters in the step above can be used with t
 
 // authorizationCode - The code returned in the query parameter of the returned URL.
 // codeVerifier - The one stored from step above.
-// contractDetails - The same one used in getAuthorizeUrl().
+// contractDetails - The same one used in getAuthorizeUrl, redirect_uri is not needed in this case.
 
 const userAccessToken = await sdk.exchangeCodeForToken({
     codeVerifier,
@@ -154,12 +154,16 @@ When your user has onboarded all the services you require, we can start reading 
 
 // session - The session we received from getAuthorizeUrl().
 // privateKey - The private key for this contract.
+// contractId - Your contract id
+// userAccessToken - The user access token from the authorization step.
 // onFileData - A function that will be called when a file is successfully downloaded.
 // onFileError - A function that will be called when an error occurs when downloading a file.
 
 const { stopPolling, filePromise } = await sdk.readAllFiles({
     sessionKey: session.key,
     privateKey: <private-key-of-contract>,
+    contractId: <your-contract-id>,
+    userAccessToken,
     onFileData: onFileDownloaded,
     onFileError: onFileError
 });

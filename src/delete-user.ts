@@ -22,7 +22,7 @@ export interface DeleteUserResponse {
 
 const deleteUser = async (options: DeleteUserOptions, sdkConfig: SDKConfiguration): Promise<DeleteUserResponse> => {
     const { userAccessToken, contractDetails } = options;
-    const { contractId, privateKey, redirectUri } = contractDetails;
+    const { contractId, privateKey } = contractDetails;
 
     const url = `${sdkConfig.baseUrl}user`;
 
@@ -31,7 +31,6 @@ const deleteUser = async (options: DeleteUserOptions, sdkConfig: SDKConfiguratio
             access_token: userAccessToken.accessToken.value,
             client_id: `${sdkConfig.applicationId}_${contractId}`,
             nonce: getRandomAlphaNumeric(32),
-            redirect_uri: redirectUri,
             timestamp: Date.now(),
         },
         privateKey.toString(),

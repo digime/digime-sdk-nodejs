@@ -127,7 +127,7 @@ const pushByBuffer = async (options: TriggerPushProps, sdkConfig: SDKConfigurati
         throw new TypeError("fileData needs to be a Buffer");
     }
 
-    const { contractId, privateKey, redirectUri } = contractDetails;
+    const { contractId, privateKey } = contractDetails;
 
     const key: string = getRandomHex(64);
     const rsa: NodeRSA = new NodeRSA(publicKey, "pkcs1-public");
@@ -151,7 +151,6 @@ const pushByBuffer = async (options: TriggerPushProps, sdkConfig: SDKConfigurati
             iv: ivString,
             metadata: encryptedMeta.toString("base64"),
             nonce: getRandomAlphaNumeric(32),
-            redirect_uri: redirectUri,
             symmetrical_key: encryptedKey.toString("base64"),
             timestamp: Date.now(),
         },
@@ -188,7 +187,7 @@ const pushByStream = async (options: TriggerPushProps, sdkConfig: SDKConfigurati
         throw new TypeError("fileData needs to be a readable stream");
     }
 
-    const { contractId, privateKey, redirectUri } = contractDetails;
+    const { contractId, privateKey } = contractDetails;
     const key: string = getRandomHex(64);
     const rsa: NodeRSA = new NodeRSA(publicKey, "pkcs1-public");
     const encryptedKey: Buffer = rsa.encrypt(Buffer.from(key, "hex"));
@@ -208,7 +207,6 @@ const pushByStream = async (options: TriggerPushProps, sdkConfig: SDKConfigurati
             iv: ivString,
             metadata: encryptedMeta.toString("base64"),
             nonce: getRandomAlphaNumeric(32),
-            redirect_uri: redirectUri,
             symmetrical_key: encryptedKey.toString("base64"),
             timestamp: Date.now(),
         },

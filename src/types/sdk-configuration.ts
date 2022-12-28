@@ -13,7 +13,7 @@ export interface SDKConfiguration {
     applicationId: string;
 
     /**
-     * Root URL for the digi.me API. Default is https://api.digi.me/v1.6/
+     * Root URL for the digi.me API. Default is https://api.digi.me/v1.7/
      */
     baseUrl?: string;
 

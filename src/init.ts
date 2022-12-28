@@ -18,7 +18,7 @@ import { deleteUser, DeleteUserOptions } from "./delete-user";
 import { TypeValidationError } from "./errors";
 import { DigimeSDK } from "./sdk";
 
-const DEFAULT_BASE_URL = "https://api.digi.me/v1.6/";
+const DEFAULT_BASE_URL = "https://api.digi.me/v1.7/";
 const DEFAULT_ONBOARD_URL = "https://api.digi.me/apps/saas/";
 const DEFAULT_RETRIES_OPTIONS = {
     retries: 5,

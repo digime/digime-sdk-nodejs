@@ -9,9 +9,7 @@ import { FileDecryptionError } from "./errors";
 const BYTES = {
     DSK: [0, 256],
     DIV: [256, 272],
-    HASH_DATA: [272],
-    HASH: [0, 64],
-    DATA: [64],
+    DATA: [272],
 };
 
 const ALPHA_LOWER = `abcdefghijklmnopqrstuvwxyz`;
@@ -21,7 +19,7 @@ const ALPHA_NUMERIC = `${ALPHA_LOWER}${ALPHA_UPPER}${NUMERIC}`;
 
 const isValidSize = (data: Buffer): boolean => {
     const bytes = data.length;
-    return bytes >= 352 && bytes % 16 === 0;
+    return bytes >= 288 && bytes % 16 === 0;
 };
 
 const decryptData = (key: NodeRSA, file: Buffer): Buffer => {
@@ -36,18 +34,7 @@ const decryptData = (key: NodeRSA, file: Buffer): Buffer => {
 
     // Recover concated hash and data
     const decipher = crypto.createDecipheriv("aes-256-cbc", dsk, div);
-    const hashAndData = Buffer.concat([decipher.update(file.slice(...BYTES.HASH_DATA)), decipher.final()]);
-
-    // Separate hash and data
-    const hash: Buffer = hashAndData.slice(...BYTES.HASH);
-    const data: Buffer = hashAndData.slice(...BYTES.DATA);
-
-    // Validate data
-    const dataHash: Buffer = crypto.createHash("sha512").update(data).digest();
-
-    if (!dataHash.equals(hash)) {
-        throw new FileDecryptionError("Hash is not valid");
-    }
+    const data = Buffer.concat([decipher.update(file.slice(...BYTES.DATA)), decipher.final()]);
 
     return data;
 };
