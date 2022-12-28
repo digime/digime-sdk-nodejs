@@ -41,7 +41,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
     ["Default exported SDK", SDK, TEST_BASE_URL, TEST_ONBOARD_URL],
     ["Custom SDK", customSDK, TEST_CUSTOM_BASE_URL, TEST_CUSTOM_ONBOARD_URL],
 ])("%s", (_title, sdk, baseUrl, saasUrl) => {
-    describe("getAuthorizationUrl", () => {
+    describe("getAuthorizeUrl", () => {
         const CONTRACT_DETAILS: ContractDetails = {
             contractId: "test-contract-id",
             redirectUri: "test-redirect-url",

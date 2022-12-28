@@ -13,6 +13,7 @@ import { ContractDetails, ContractDetailsCodec, PullSessionOptions, PullSessionO
 import * as t from "io-ts";
 import { TypeValidationError } from "./errors";
 import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
+import sdkVersion from "./sdk-version";
 
 export interface ReadSessionOptions {
     contractDetails: ContractDetails;
@@ -45,13 +46,12 @@ const _readSession = async (options: ReadSessionOptions, sdkConfig: SDKConfigura
 
     const { contractDetails, userAccessToken, sessionOptions } = options;
 
-    const { contractId, privateKey, redirectUri } = contractDetails;
+    const { contractId, privateKey } = contractDetails;
     const jwt: string = sign(
         {
             access_token: userAccessToken.accessToken.value,
             client_id: `${sdkConfig.applicationId}_${contractId}`,
             nonce: getRandomAlphaNumeric(32),
-            redirect_uri: redirectUri,
             timestamp: Date.now(),
         },
         privateKey.toString(),
@@ -68,7 +68,18 @@ const _readSession = async (options: ReadSessionOptions, sdkConfig: SDKConfigura
             Authorization: `Bearer ${jwt}`,
             "Content-Type": "application/json", // NOTE: we might not need this
         },
-        json: sessionOptions,
+        json: {
+            ...sessionOptions,
+            agent: {
+                sdk: {
+                    name: "nodejs",
+                    version: sdkVersion,
+                    meta: {
+                        node: process.version,
+                    },
+                },
+            },
+        },
         responseType: "json",
     });
 

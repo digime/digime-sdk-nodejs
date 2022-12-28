@@ -210,7 +210,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
             const scope = nock(`${new URL(baseUrl).origin}`)
                 .post(`${new URL(baseUrl).pathname}permission-access/trigger`, (body) =>
-                    isEqual(body, optionsWithExtras)
+                    isEqual({ extra: body.extra }, optionsWithExtras)
                 )
                 .reply(202, {
                     session,

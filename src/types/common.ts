@@ -20,7 +20,7 @@ export interface ContractDetails {
      * An accepted uri to redirect to after authorization
      * The url must be whitelisted on the contract
      */
-    redirectUri: string;
+    redirectUri?: string;
 }
 
 export interface CAScope {
@@ -89,11 +89,15 @@ export interface TimeRange {
     to?: number;
 }
 
-const ContractDetailsRawCodec: t.Type<ContractDetails> = t.type({
-    contractId: t.string,
-    privateKey: t.string,
-    redirectUri: t.string,
-});
+export const ContractDetailsRawCodec: t.Type<ContractDetails> = t.intersection([
+    t.type({
+        contractId: t.string,
+        privateKey: t.string,
+    }),
+    t.partial({
+        redirectUri: t.string,
+    }),
+]);
 
 export const ContractDetailsCodec = new t.Type<ContractDetails, ContractDetails, unknown>(
     "ContractDetails",

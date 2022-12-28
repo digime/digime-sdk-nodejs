@@ -18,13 +18,12 @@ export interface RefreshTokenOptions {
 
 const refreshToken = async (options: RefreshTokenOptions, sdkConfig: SDKConfiguration): Promise<UserAccessToken> => {
     const { contractDetails, userAccessToken } = options;
-    const { contractId, privateKey, redirectUri } = contractDetails;
+    const { contractId, privateKey } = contractDetails;
     const jwt: string = sign(
         {
             client_id: `${sdkConfig.applicationId}_${contractId}`,
             grant_type: "refresh_token",
             nonce: getRandomAlphaNumeric(32),
-            redirect_uri: redirectUri,
             refresh_token: userAccessToken.refreshToken.value,
             timestamp: Date.now(),
         },

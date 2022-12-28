@@ -11,7 +11,7 @@ import { URL } from "url";
 import * as SDK from ".";
 import { fileContentToCAFormat, loadScopeDefinitions } from "../utils/test-utils";
 import { TypeValidationError } from "./errors";
-import { TEST_BASE_URL, TEST_CUSTOM_BASE_URL, TEST_CUSTOM_ONBOARD_URL } from "../utils/test-constants";
+import { SAMPLE_TOKEN, TEST_BASE_URL, TEST_CUSTOM_BASE_URL, TEST_CUSTOM_ONBOARD_URL } from "../utils/test-constants";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -51,6 +51,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             const { stopPolling, filePromise } = sdk.readAllFiles({
                 sessionKey: "test-session-key",
                 privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                contractId: "test-contract-id",
+                userAccessToken: SAMPLE_TOKEN,
                 onFileData: () => null,
                 onFileError: () => null,
             });
@@ -77,6 +79,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 const { filePromise } = sdk.readAllFiles({
                     sessionKey: "test-session-key",
                     privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                    contractId: "test-contract-id",
+                    userAccessToken: SAMPLE_TOKEN,
                     onFileData: () => null,
                     onFileError: () => null,
                 });
@@ -108,6 +112,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             const { filePromise } = sdk.readAllFiles({
                 sessionKey: "test-session-key",
                 privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                contractId: "test-contract-id",
+                userAccessToken: SAMPLE_TOKEN,
                 onFileData: () => null,
                 onFileError: () => null,
             });
@@ -160,6 +166,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     const { filePromise } = sdk.readAllFiles({
                         sessionKey: "test-session-key",
                         privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                        contractId: "test-contract-id",
+                        userAccessToken: SAMPLE_TOKEN,
                         onFileData: successCallback,
                         onFileError: () => null,
                     });
@@ -225,6 +233,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             const { filePromise } = sdk.readAllFiles({
                 sessionKey: "test-session-key",
                 privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                contractId: "test-contract-id",
+                userAccessToken: SAMPLE_TOKEN,
                 onFileData,
                 onFileError: () => null,
             });
@@ -288,6 +298,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             const { filePromise } = sdk.readAllFiles({
                 sessionKey: "test-session-key",
                 privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                contractId: "test-contract-id",
+                userAccessToken: SAMPLE_TOKEN,
                 onFileData,
                 onFileError: () => null,
             });
@@ -329,6 +341,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             const { filePromise, stopPolling } = sdk.readAllFiles({
                 sessionKey: "test-session-key",
                 privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                contractId: "test-contract-id",
+                userAccessToken: SAMPLE_TOKEN,
                 onFileData,
                 onFileError: () => null,
             });
@@ -348,6 +362,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         sdk.readAllFiles({
                             sessionKey,
                             privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                            contractId: "test-contract-id",
+                            userAccessToken: SAMPLE_TOKEN,
                             onFileData: () => null,
                             onFileError: () => null,
                         })
@@ -384,9 +400,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     true,
                     false,
                 ],
-                ["FileDecryptionError", "the hash validation fails", "valid-files.json", testKeyPair, false, true],
                 // tslint:enable:max-line-length
-            ])("With %p error when %s", async (errorName, _label2, file, keyPair, corruptLength, corruptHash) => {
+            ])("With %p error when %s", async (errorName, _label2, file, keyPair, corruptLength) => {
                 const fileList = [
                     { name: "file1.json", updatedDate: 1568716294874 },
                     { name: "file2.json", updatedDate: 1568716294874 },
@@ -421,7 +436,6 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 const caFormatted = fileContentToCAFormat(fileDefs, keyPair, {
                     overrideCompression: "no-compression",
                     corruptLength,
-                    corruptHash,
                 });
 
                 nock.define(caFormatted);
@@ -431,6 +445,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 const { filePromise } = sdk.readAllFiles({
                     sessionKey: "test-session-key",
                     privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
+                    contractId: "test-contract-id",
+                    userAccessToken: SAMPLE_TOKEN,
                     onFileData: () => null,
                     onFileError,
                 });

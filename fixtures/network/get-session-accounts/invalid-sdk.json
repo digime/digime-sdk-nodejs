@@ -2,7 +2,7 @@
     {
         "scope": "https://api.digi.me",
         "method": "GET",
-        "path": "/v1.6/permission-access/query/test-session-key/accounts.json",
+        "path": "/v1.7/permission-access/query/test-session-key/accounts.json",
         "status": 400,
         "response": {
             "error": {

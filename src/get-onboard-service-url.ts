@@ -16,6 +16,7 @@ import { SDKConfiguration } from "./types/sdk-configuration";
 import { ContractDetails, ContractDetailsCodec } from "./types/common";
 import { TypeValidationError } from "./errors";
 import { isNonEmptyString } from "./utils/basic-utils";
+import sdkVersion from "./sdk-version";
 
 export interface GetOnboardServiceUrlOptions {
     contractDetails: ContractDetails;
@@ -68,12 +69,23 @@ const _getOnboardServiceUrl = async (
             Authorization: `Bearer ${jwt}`,
             "Content-Type": "application/json",
         },
+        json: {
+            agent: {
+                sdk: {
+                    name: "nodejs",
+                    version: sdkVersion,
+                    meta: {
+                        node: process.version,
+                    },
+                },
+            },
+        },
         responseType: "json",
     });
 
     const payload = await getPayloadFromToken(get(response.body, "token"), sdkConfig);
     const code = get(payload, ["reference_code"]);
-    const session = get(response.body, "session");
+    const session = get(response.body, "session", {} as GetOnboardServiceUrlResponse["session"]);
 
     const result: URL = new URL(`${sdkConfig.onboardUrl}onboard`);
     result.search = new URLSearchParams({

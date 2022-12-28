@@ -9,7 +9,7 @@ import { createCAData, loadDefinitions } from "../utils/test-utils";
 import { ServerError, TypeValidationError } from "./errors";
 import base64url from "base64url";
 import { init } from "./init";
-import { TEST_BASE_URL, TEST_CUSTOM_BASE_URL, TEST_CUSTOM_ONBOARD_URL } from "../utils/test-constants";
+import { SAMPLE_TOKEN, TEST_BASE_URL, TEST_CUSTOM_BASE_URL, TEST_CUSTOM_ONBOARD_URL } from "../utils/test-constants";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -55,6 +55,8 @@ describe.each<[string, ReturnType<typeof init>, string]>([
             const result = await sdk.readAccounts({
                 sessionKey: "test-session-key",
                 privateKey: testKeyPair.exportKey("pkcs1-private"),
+                contractId: "test-contract-id",
+                userAccessToken: SAMPLE_TOKEN,
             });
 
             expect(result).toEqual(expected);
@@ -69,6 +71,8 @@ describe.each<[string, ReturnType<typeof init>, string]>([
                         sdk.readAccounts({
                             sessionKey,
                             privateKey: testKeyPair.exportKey("pkcs1-private"),
+                            contractId: "test-contract-id",
+                            userAccessToken: SAMPLE_TOKEN,
                         })
                     ).rejects.toThrow(TypeValidationError);
                 }
@@ -84,6 +88,8 @@ describe.each<[string, ReturnType<typeof init>, string]>([
                     await sdk.readAccounts({
                         sessionKey: "test-session-key",
                         privateKey: testKeyPair.exportKey("pkcs1-private"),
+                        contractId: "test-contract-id",
+                        userAccessToken: SAMPLE_TOKEN,
                     });
                 } catch (e) {
                     if (!(e instanceof Error)) {

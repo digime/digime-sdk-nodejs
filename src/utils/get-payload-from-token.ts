@@ -10,7 +10,11 @@ import isString from "lodash.isstring";
 import { isJWKS } from "../types/api/jwks";
 import { SDKConfiguration } from "../types/sdk-configuration";
 
-const getPayloadFromToken = async (token: string, options: SDKConfiguration): Promise<unknown> => {
+const getPayloadFromToken = async (token: string | undefined, options: SDKConfiguration): Promise<unknown> => {
+    if (!token) {
+        throw new TypeValidationError("Token passed in to getPayloadFromToken must be defined.");
+    }
+
     const decodedToken = decode(token, { complete: true });
 
     if (!isPlainObject(decodedToken)) {

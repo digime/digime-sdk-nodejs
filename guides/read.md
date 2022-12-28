@@ -34,7 +34,7 @@ To start reading user data, we first need to obtain a session:
 import { init } from "@digime/digime-sdk-nodejs";
 const sdk = init({ applicationId });
 
-// contractDetails - The same one used in getAuthorizeUrl().
+// contractDetails - The same one used in getAuthorizeUrl, redirect_uri is not needed in this case.
 // userAccessToken - The user access token from the authorization step.
 // sessionOptions - (Optional) An limits or scopes to set for this session.
 
@@ -56,12 +56,16 @@ Using the session received above, we can trigger [readAllFiles()](../../interfac
 
 // session - The session we received from readSession().
 // privateKey - The private key for this contract.
+// contractId - Your contract id
+// userAccessToken - The user access token from the authorization step.
 // onFileData - A function that will be called when a file is successfully downloaded.
 // onFileError - A function that will be called when an error occurs when downloading a file.
 
 const { stopPolling, filePromise } = await sdk.readAllFiles({
     sessionKey: session.key,
     privateKey: <private-key-of-contract>,
+    contractId: <your-contract-id>,
+    userAccessToken,
     onFileData: ({fileData, fileName, fileMetadata}) => {
         // This is where you deal with any data you receive from digi.me,
         const data = JSON.parse(fileData.toString("utf8"));
@@ -96,12 +100,16 @@ You can then download the files manually using [readFile()](../../interfaces/sdk
 ```typescript
 // ... initialize the SDK
 // session - The session we received from readSession().
-// file - The file object from getFileList() that you want to download.
+// fileName - The file object from getFileList() that you want to download.
 // privateKey - private key of your contract.
+// contractId - Your contract id
+// userAccessToken - The user access token from the authorization step.
 
 const data = await readFile({
     sessionKey: session.key,
     fileName: file.name,
     privateKey,
+    contractId,
+    userAccessToken,
 });
 ```
