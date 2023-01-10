@@ -53,7 +53,7 @@ const contractDetails = {
 
 // callback - A URL to call if there are any errors during authorization. If successful, the callback used will be the redirectUrl in contractDetails above.
 // serviceId - (Optional) During authorization, we can also ask user to onboard a service. ID can be found from getAvailableServices()
-// state - (Optional) Put anything here to identify the user when authorization completes. This will be passed back in the callback.
+// state - Put anything here to identify the user when authorization completes. This will be passed back in the callback.
 // userAccessToken - (Optional) User access token you may already have for this user from another contract.
 // sessionOptions - (Optional) An limits or scopes to set for this session.
 
