@@ -49,18 +49,18 @@ export interface GetAuthorizeUrlOptions {
     /**
      * Any extra data you want to be passed back after a authorization flow.
      */
-    state?: string;
+    state: string;
 }
 
 export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.intersection([
     t.type({
         contractDetails: ContractDetailsCodec,
         callback: t.string,
+        state: t.string,
     }),
     t.partial({
         serviceId: t.number,
         userAccessToken: UserAccessTokenCodec,
-        state: t.string,
         sessionOptions: t.partial({
             pull: PullSessionOptionsCodec,
         }),

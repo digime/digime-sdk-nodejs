@@ -57,6 +57,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     const promise = sdk.getAuthorizeUrl({
                         contractDetails,
                         callback: CALLBACK_URL,
+                        state: "test-state",
                     });
 
                     return expect(promise).rejects.toThrowError(TypeValidationError);
@@ -76,6 +77,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     const promise = sdk.getAuthorizeUrl({
                         contractDetails,
                         callback: CALLBACK_URL,
+                        state: "test-state",
                     });
 
                     return expect(promise).rejects.toThrowError(TypeValidationError);
@@ -95,6 +97,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     const promise = sdk.getAuthorizeUrl({
                         contractDetails,
                         callback: CALLBACK_URL,
+                        state: "test-state",
                     });
 
                     return expect(promise).rejects.toThrowError(TypeValidationError);
@@ -114,6 +117,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     const promise = sdk.getAuthorizeUrl({
                         contractDetails,
                         callback: CALLBACK_URL,
+                        state: "test-state",
                     });
 
                     return expect(promise).rejects.toThrowError(TypeValidationError);
@@ -128,6 +132,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     const promise = sdk.getAuthorizeUrl({
                         contractDetails: CONTRACT_DETAILS,
                         callback,
+                        state: "test-state",
                     });
 
                     return expect(promise).rejects.toThrowError(TypeValidationError);
@@ -143,6 +148,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         contractDetails: CONTRACT_DETAILS,
                         callback: CALLBACK_URL,
                         sessionOptions,
+                        state: "test-state",
                     });
 
                     return expect(promise).rejects.toThrowError(TypeValidationError);
@@ -167,6 +173,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                             scope,
                         },
                     },
+                    state: "test-state",
                 });
 
                 return expect(promise).rejects.toThrowError(TypeValidationError);
@@ -210,6 +217,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                 response = await sdk.getAuthorizeUrl({
                     contractDetails: CONTRACT_DETAILS,
                     callback: CALLBACK_URL,
+                    state: "test-state",
                 });
             });
 
@@ -277,6 +285,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     contractDetails: CONTRACT_DETAILS,
                     callback: CALLBACK_URL,
                     serviceId: 30,
+                    state: "test-state",
                 });
             });
 
@@ -304,6 +313,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         contractDetails: CONTRACT_DETAILS,
                         callback: CALLBACK_URL,
                         serviceId: 30,
+                        state: "test-state",
                     });
                 } catch (e) {
                     if (!(e instanceof Error)) {
@@ -343,6 +353,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         contractDetails: CONTRACT_DETAILS,
                         callback: CALLBACK_URL,
                         serviceId: 30,
+                        state: "test-state",
                     });
                 } catch (e) {
                     if (!(e instanceof Error)) {
@@ -412,6 +423,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     contractDetails: CONTRACT_DETAILS,
                     callback: CALLBACK_URL,
                     sessionOptions: actionsToSend as any,
+                    state: "test-state",
                 });
             });
 
@@ -483,6 +495,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     contractDetails: CONTRACT_DETAILS,
                     callback: CALLBACK_URL,
                     sessionOptions: actionsToSend as any,
+                    state: "test-state",
                 });
             });
 
