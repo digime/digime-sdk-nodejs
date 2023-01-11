@@ -5,10 +5,23 @@
 import * as t from "io-ts";
 import { codecAssertion, CodecAssertion } from "../../utils/codec-assertion";
 
-interface DiscoveryService {
+interface DiscoveryResource {
+    height?: number;
+    mimetype: string;
+    type: number;
+    url: string;
+    width?: number;
+}
+
+export interface DiscoveryService {
     id: number;
     name: string;
     serviceGroups: Array<{ id: number }>;
+    publishedStatus: string;
+    publishedDate: number;
+    resources: DiscoveryResource[];
+    countries?: Array<{ id: number }>;
+    [key: string]: unknown;
 }
 
 export interface DiscoveryServiceCountry {
@@ -28,15 +41,39 @@ export interface DiscoveryApiServicesData {
     services: DiscoveryService[];
 }
 
-export const DiscoveryServiceCodec: t.Type<DiscoveryService> = t.strict({
-    id: t.number,
-    name: t.string,
-    serviceGroups: t.array(
-        t.strict({
-            id: t.number,
-        })
-    ),
-});
+const DiscoveryResourceCodec: t.Type<DiscoveryResource> = t.intersection([
+    t.type({
+        url: t.string,
+        mimetype: t.string,
+        type: t.number,
+    }),
+    t.partial({
+        height: t.number,
+        width: t.number,
+    }),
+]);
+
+export const DiscoveryServiceCodec: t.Type<DiscoveryService> = t.intersection([
+    t.type({
+        id: t.number,
+        name: t.string,
+        serviceGroups: t.array(
+            t.strict({
+                id: t.number,
+            })
+        ),
+        publishedStatus: t.string,
+        publishedDate: t.number,
+        resources: t.array(DiscoveryResourceCodec),
+    }),
+    t.partial({
+        countries: t.array(
+            t.strict({
+                id: t.number,
+            })
+        ),
+    }),
+]);
 
 export const DiscoveryServiceCountryCodec: t.Type<DiscoveryServiceCountry> = t.strict({
     code: t.string,

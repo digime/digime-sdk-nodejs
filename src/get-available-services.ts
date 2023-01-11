@@ -3,27 +3,22 @@
  */
 
 import { net } from "./net";
-import { assertIsDiscoveryApiServicesData, DiscoveryServiceCountry } from "./types/api/get-discovery-api-services";
+import {
+    assertIsDiscoveryApiServicesData,
+    DiscoveryServiceCountry,
+    DiscoveryServiceGroup,
+    DiscoveryService,
+} from "./types/api/get-discovery-api-services";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { TypeValidationError } from "./errors";
 import { isNonEmptyString } from "./utils/basic-utils";
 import omit from "lodash.omit";
+export type { DiscoveryService } from "./types/api/get-discovery-api-services";
 
 export interface GetAvailableServicesResponse {
     countries: DiscoveryServiceCountry[];
     serviceGroups: DiscoveryServiceGroup[];
     services: DiscoveryService[];
-}
-
-export interface DiscoveryService {
-    id: number;
-    name: string;
-    serviceGroups: Array<{ id: number }>;
-}
-
-interface DiscoveryServiceGroup {
-    id: number;
-    name: string;
 }
 
 const getAvailableServices = async (
