@@ -18,8 +18,6 @@ const CONTRACT_DETAILS: ContractDetails = {
 
 export const defaultValidDataPush: WriteOptions = {
     contractDetails: CONTRACT_DETAILS,
-    postboxId: "test-postbox-id",
-    publicKey: testKeyPair.exportKey("pkcs1-public"),
     userAccessToken: SAMPLE_TOKEN,
     data: {
         fileData: Buffer.from(JSON.stringify("test-data")),
@@ -43,7 +41,7 @@ export const validFileMeta = {
         },
     },
     FILE_JSON: {
-        fileData: fs.readFileSync(process.cwd() + "/fixtures/postbox/test.json"),
+        fileData: fs.readFileSync(process.cwd() + "/fixtures/write/test.json"),
         fileName: "file-name",
         fileDescriptor: {
             mimeType: "text/plain",
@@ -51,7 +49,7 @@ export const validFileMeta = {
         },
     },
     FILE_PDF: {
-        fileData: fs.readFileSync(process.cwd() + "/fixtures/postbox/test.pdf"),
+        fileData: fs.readFileSync(process.cwd() + "/fixtures/write/test.pdf"),
         fileName: "file-name",
         fileDescriptor: {
             mimeType: "application/pdf",
@@ -59,7 +57,7 @@ export const validFileMeta = {
         },
     },
     FILE_JPG: {
-        fileData: fs.readFileSync(process.cwd() + "/fixtures/postbox/test.jpg"),
+        fileData: fs.readFileSync(process.cwd() + "/fixtures/write/test.jpg"),
         fileName: "file-name",
         fileDescriptor: {
             mimeType: "image/jpeg",
@@ -68,39 +66,24 @@ export const validFileMeta = {
     },
 };
 
-export const validFileMetaStream = {
-    PLAIN_TEXT: {
-        fileData: fs.createReadStream(process.cwd() + "/fixtures/postbox/test.txt"),
+const validFileMetaStreamData = {
+    PLAIN_TEXT: [process.cwd() + "/fixtures/write/test.txt", "text/plain"],
+    FILE_JSON: [process.cwd() + "/fixtures/write/test.json", "text/plain"],
+    FILE_PDF: [process.cwd() + "/fixtures/write/test.pdf", "application/pdf"],
+    FILE_JPG: [process.cwd() + "/fixtures/write/test.jpg", "image/jpeg"],
+} as const;
+
+export const validFileMetaStream = (type: keyof typeof validFileMetaStreamData) => {
+    const [path, mimeType] = validFileMetaStreamData[type];
+
+    return {
+        fileData: fs.createReadStream(path),
         fileName: "file-name",
         fileDescriptor: {
-            mimeType: "text/plain",
+            mimeType,
             accounts: [],
         },
-    },
-    FILE_JSON: {
-        fileData: fs.createReadStream(process.cwd() + "/fixtures/postbox/test.json"),
-        fileName: "file-name",
-        fileDescriptor: {
-            mimeType: "text/plain",
-            accounts: [],
-        },
-    },
-    FILE_PDF: {
-        fileData: fs.createReadStream(process.cwd() + "/fixtures/postbox/test.pdf"),
-        fileName: "file-name",
-        fileDescriptor: {
-            mimeType: "application/pdf",
-            accounts: [],
-        },
-    },
-    FILE_JPG: {
-        fileData: fs.createReadStream(process.cwd() + "/fixtures/postbox/test.jpg"),
-        fileName: "file-name",
-        fileDescriptor: {
-            mimeType: "image/jpeg",
-            accounts: [],
-        },
-    },
+    };
 };
 
 export const invalidFileMeta = {
@@ -113,7 +96,7 @@ export const invalidFileMeta = {
         },
     },
     BASE_64_FILE_DATA: {
-        fileData: fs.readFileSync(process.cwd() + "/fixtures/postbox/test.jpg").toString("base64"),
+        fileData: fs.readFileSync(process.cwd() + "/fixtures/write/test.jpg").toString("base64"),
         fileName: "file-name",
         fileDescriptor: {
             mimeType: "mimeType",
@@ -121,14 +104,14 @@ export const invalidFileMeta = {
         },
     },
     MISSING_FILE_NAME: {
-        fileData: fs.readFileSync(process.cwd() + "/fixtures/postbox/test.json"),
+        fileData: fs.readFileSync(process.cwd() + "/fixtures/write/test.json"),
         fileDescriptor: {
             mimeType: "text/plain",
             accounts: [],
         },
     },
     MISSING_FILE_DESCRIPTOR: {
-        fileData: fs.readFileSync(process.cwd() + "/fixtures/postbox/test.pdf"),
+        fileData: fs.readFileSync(process.cwd() + "/fixtures/write/test.pdf"),
         fileName: "file-name",
     },
 };

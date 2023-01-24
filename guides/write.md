@@ -25,22 +25,18 @@ Before we can be write data to the user, we should already have a user access to
 
 If not, you'll need to [authorize them](./authorize.html) first. Make sure the user access token is for a [write contract](../fundamentals/contracts.html).
 
-Once you have authorized a write contract, you should have the `postboxId`, `publicKey` and the `userAccessToken` for this user.
+Once you have authorized a write contract, you should have the `userAccessToken` for this user.
 
 ```typescript
 // ... initialize the SDK
 
 // contractDetails - The same one used in getAuthorizeUrl().
 // userAccessToken - The user access token from the authorization step.
-// postboxId - The postboxId from the authorization step.
-// publicKey - The public key from the authorization step.
 // data - An object containing the buffer of the file to upload and some meta data.
 
 const result = await sdk.write({
     contractDetails,
     userAccessToken,
-    postboxId,
-    publicKey,
     data: {
         fileData: req.file.buffer,
         fileName: req.file.originalname,
@@ -50,8 +46,7 @@ const result = await sdk.write({
 
 
 ```
-A status of `delivered` will be returned if it is written to the user's digi.me.
-An user access token that was successfully used will also be returned. The SDK might have refreshed the one that was passed in.
+If the promise resolves successfully, the data has been written to the user's digi.me.
 
 ## FileMeta
 This is how you should format the `data` property:

@@ -3,12 +3,11 @@
  */
 
 import * as t from "io-ts";
-import get from "lodash.get";
-import { Stream } from "stream";
+import { Readable } from "stream";
 import { codecAssertion, CodecAssertion } from "../utils/codec-assertion";
 
 export interface PushedFileMeta {
-    fileData: NodeJS.ReadableStream | Buffer;
+    fileData: Readable | Buffer;
     fileName: string;
     fileDescriptor: {
         mimeType: string;
@@ -30,19 +29,15 @@ const buffer = new t.Type<Buffer, Buffer, unknown>(
     t.identity
 );
 
-const readableStream = new t.Type<NodeJS.ReadableStream, NodeJS.ReadableStream, unknown>(
-    "ReadableStream",
-    (input: unknown): input is NodeJS.ReadableStream => isReadableStream(input),
+const readableStream = new t.Type<Readable, Readable, unknown>(
+    "Readable",
+    (input: unknown): input is Readable => input instanceof Readable,
     // `t.success` and `t.failure` are helpers used to build `Either` instances
     (input, context) =>
-        isReadableStream(input) ? t.success(input) : t.failure(input, context, "Cannot parse into Readable"),
+        input instanceof Readable ? t.success(input) : t.failure(input, context, "Cannot parse into Readable"),
     // `A` and `O` are the same, so `encode` is just the identity function
     t.identity
 );
-
-export const isReadableStream = (obj: unknown): obj is NodeJS.ReadableStream => {
-    return obj instanceof Stream && typeof get(obj, "read") === "function";
-};
 
 export const PushedFileMetaCodec: t.Type<PushedFileMeta> = t.type({
     fileData: t.union([readableStream, buffer]),

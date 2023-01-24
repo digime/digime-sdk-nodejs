@@ -93,8 +93,8 @@ On *success*, the `redirectUri` provided above will be called with the follow ex
 | `success` | Whether the call was successful. `true` or `false` | Yes |
 | `state` | The same string that was passed in to the `getAuthorizationUrl` call. | Yes |
 | `code` | Authorization Code. Only returned when the authorization successful. | Yes |
-| `postboxId` | Returned only when authorizing a write contract. | No |
-| `publicKey` | Returned only when authorizing a write contract. | No |
+| `postboxId` | __*Only used with SDK versions lower than v9.x.*__ Returned only when authorizing a write contract.  | No |
+| `publicKey` | __*Only used with SDK versions lower than v9.x.*__ Returned only when authorizing a write contract. | No |
 
 On *failure*, the `callbackUrl` provided will be called with the follow extra query parameters:
 
