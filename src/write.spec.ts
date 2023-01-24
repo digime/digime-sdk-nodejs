@@ -10,12 +10,11 @@ import {
     invalidFileMeta,
     validFileMeta,
     validFileMetaStream,
-} from "../fixtures/postbox/example-data-pushes";
-import { SAMPLE_TOKEN, TEST_BASE_URL, TEST_CUSTOM_BASE_URL, TEST_CUSTOM_ONBOARD_URL } from "../utils/test-constants";
+} from "../fixtures/write/example-data-pushes";
+import { TEST_BASE_URL, TEST_CUSTOM_BASE_URL, TEST_CUSTOM_ONBOARD_URL } from "../utils/test-constants";
 import NodeRSA from "node-rsa";
 import { ContractDetails } from "./types/common";
 import { URL } from "url";
-import { WriteResponse } from "./write";
 import { sign } from "jsonwebtoken";
 import { HTTPError } from "got/dist/source";
 
@@ -93,26 +92,6 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 });
             });
 
-            describe("When postboxId is", () => {
-                it.each(invalidInputs)("%p", (postboxId: any) => {
-                    const promise = sdk.write({
-                        ...defaultValidDataPush,
-                        postboxId,
-                    });
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
-                });
-            });
-
-            describe("When publicKey is", () => {
-                it.each(invalidInputs)("%p", (publicKey: any) => {
-                    const promise = sdk.write({
-                        ...defaultValidDataPush,
-                        publicKey,
-                    });
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
-                });
-            });
-
             describe("When fileData is", () => {
                 const invalidFileDataInput = [...invalidInputs, "non empty strings"];
                 it.each(invalidFileDataInput)("%p", (fileData: any) => {
@@ -153,7 +132,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 ["JPG file", validFileMeta.FILE_JPG],
             ])("%p", async (_label, data: any) => {
                 nock(`${new URL(baseUrl).origin}`)
-                    .post(`${new URL(baseUrl).pathname}permission-access/postbox/test-postbox-id`)
+                    .post(`${new URL(baseUrl).pathname}permission-access/import`)
                     .reply(200, {
                         status: "delivered",
                         expires: 200000,
@@ -164,65 +143,46 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     data,
                 });
 
-                expect(response).toBeDefined();
+                expect(response).toBeUndefined();
             });
         });
 
         describe("No errors are thrown when passed in valid data as stream", () => {
             it.each<[string, any]>([
-                ["plain text", validFileMetaStream.PLAIN_TEXT],
-                ["JSON file", validFileMetaStream.FILE_JSON],
-                ["PDF file", validFileMetaStream.FILE_PDF],
-                ["JPG file", validFileMetaStream.FILE_JPG],
+                ["plain text", validFileMetaStream("PLAIN_TEXT")],
+                ["JSON file", validFileMetaStream("FILE_JSON")],
+                ["PDF file", validFileMetaStream("FILE_PDF")],
+                ["JPG file", validFileMetaStream("FILE_JPG")],
             ])("%p", async (_label, data: any) => {
                 nock(`${new URL(baseUrl).origin}`)
-                    .post(`${new URL(baseUrl).pathname}permission-access/postbox/test-postbox-id`)
-                    .reply(200, {
-                        status: "delivered",
-                        expires: 200000,
-                    });
+                    .post(`${new URL(baseUrl).pathname}permission-access/import`)
+                    .reply(201);
 
                 const response = await sdk.write({
                     ...defaultValidDataPush,
                     data,
                 });
 
-                expect(response).toBeDefined();
+                expect(response).toBeUndefined();
             });
         });
 
         describe("When given valid input", () => {
-            let response: WriteResponse;
             const callback = jest.fn();
 
             beforeAll(async () => {
                 const scope = nock(`${new URL(baseUrl).origin}`)
-                    .post(`${new URL(baseUrl).pathname}permission-access/postbox/test-postbox-id`)
-                    .reply(200, {
-                        status: "delivered",
-                        expires: 200000,
-                    });
+                    .post(`${new URL(baseUrl).pathname}permission-access/import`)
+                    .reply(201);
 
                 // Request event only fires when the scope target has been hit
                 scope.on("request", callback);
 
-                response = await sdk.write(defaultValidDataPush);
+                await sdk.write(defaultValidDataPush);
             });
 
             it(`Requests target API host and version: ${baseUrl}`, () => {
                 expect(callback).toHaveBeenCalledTimes(1);
-            });
-
-            it(`Returns push status in the response`, () => {
-                expect(response.status).toEqual("delivered");
-            });
-
-            it(`Returns user access token to be returned in the response`, () => {
-                expect(response.userAccessToken).toEqual(SAMPLE_TOKEN);
-            });
-
-            it(`Returns expiry in the response`, () => {
-                expect(response.expires).toEqual(200000);
             });
         });
 
@@ -230,20 +190,13 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             const refreshCallback = jest.fn();
             const jkuCallback = jest.fn();
             const pushCallback = jest.fn();
-            let response: unknown;
 
             beforeAll(async () => {
                 const pushScope = nock(`${new URL(baseUrl).origin}`)
-                    .post(`${new URL(baseUrl).pathname}permission-access/postbox/${defaultValidDataPush.postboxId}`)
-                    .reply(200, {
-                        status: "pending",
-                        expires: 200000,
-                    })
-                    .post(`${new URL(baseUrl).pathname}permission-access/postbox/${defaultValidDataPush.postboxId}`)
-                    .reply(200, {
-                        status: "delivered",
-                        expires: 200000,
-                    });
+                    .post(`${new URL(baseUrl).pathname}permission-access/import`)
+                    .reply(401)
+                    .post(`${new URL(baseUrl).pathname}permission-access/import`)
+                    .reply(201);
 
                 const jwt: string = sign(
                     {
@@ -289,7 +242,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 refreshScope.on("request", refreshCallback);
                 verifyJKUScope.on("request", jkuCallback);
 
-                response = await sdk.write(defaultValidDataPush);
+                await sdk.write(defaultValidDataPush);
             });
 
             it(`Refresh endpoint is called`, async () => {
@@ -303,23 +256,6 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             it(`jku verification endpoint is called`, async () => {
                 expect(jkuCallback).toHaveBeenCalledTimes(1);
             });
-
-            it(`Returns push status and new user tokens in the response`, async () => {
-                expect(response).toEqual({
-                    status: "delivered",
-                    expires: 200000,
-                    userAccessToken: {
-                        accessToken: {
-                            expiry: 1000000,
-                            value: "refreshed-sample-token",
-                        },
-                        refreshToken: {
-                            expiry: 1000000,
-                            value: "refreshed-refresh-token",
-                        },
-                    },
-                });
-            });
         });
 
         describe(`Handles unexpected server side errors`, () => {
@@ -327,7 +263,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
             beforeAll(async () => {
                 nock(`${new URL(baseUrl).origin}`)
-                    .post(`${new URL(baseUrl).pathname}permission-access/postbox/test-postbox-id`)
+                    .post(`${new URL(baseUrl).pathname}permission-access/import`)
                     .reply(404);
 
                 try {
@@ -350,7 +286,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
             beforeAll(async () => {
                 nock(`${new URL(baseUrl).origin}`)
-                    .post(`${new URL(baseUrl).pathname}permission-access/postbox/test-postbox-id`)
+                    .post(`${new URL(baseUrl).pathname}permission-access/import`)
                     .reply(404, {
                         error: {
                             code: "InvalidRedirectUri",

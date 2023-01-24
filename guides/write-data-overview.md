@@ -72,13 +72,14 @@ https://api.digi.me/apps/saas/authorize?code=<code>&callback=<callback>
 ### Redirect back to your application
 
 After the user has onboarded and finished with the authorization, the `redirectUri` provided in `contractDetails` will be called.
-For a write contract, a `postboxId` and a `publicKey` will also be returned which will need to be stored.
 
 An example URL might be:
 
 ```
 https://your-website.com/return?success=true&code=<authorization-code>&state=<state-passed-in-from-before>&postboxId=<postbox-id>&publicKey=<public-key>
 ```
+
+<small>*(`postboxId` and `publicKey` are only used with SDK versions lower than v9.x.x)*</small>
 
 
 ## 2. Exchange for an User Access Token
@@ -101,7 +102,7 @@ const userAccessToken = await sdk.exchangeCodeForToken({
 ```
 
 ## 3. Write Data
-Once you have the `postboxId`, `publicKey` and the `userAccessToken` from the steps above, we can push data!
+Once you have the `userAccessToken` from the steps above, we can push data!
 
 Please take a look at write data to find out more about how to format the data to push.
 
@@ -110,15 +111,11 @@ Please take a look at write data to find out more about how to format the data t
 
 // contractDetails - The same one used in getAuthorizeUrl().
 // userAccessToken - The user access token from the authorization step.
-// postboxId - The postboxId from the authorization step.
-// publicKey - The public key from the authorization step.
 // data - An object containing the buffer of the file to upload and some meta data.
 
 const result = await sdk.write({
     contractDetails,
     userAccessToken,
-    postboxId,
-    publicKey,
     data: {
         fileData: req.file.buffer,
         fileName: req.file.originalname,
