@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2022 digi.me Limited. All rights reserved.
+ * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
 /**
@@ -14,7 +14,7 @@
  *
  * Therefore I believe updating both in sync when appropriate is the most reasonable option.
  */
-const copyrightYearTo = "2022";
+const copyrightYearTo = "2023";
 
 module.exports = {
     env: {
@@ -34,8 +34,8 @@ module.exports = {
             "error",
             "block",
             {
-                pattern: `^\\!\\r?\\n \\* Copyright \\(c\\) 2009-${copyrightYearTo} digi\\.me Limited\\. All rights reserved\\.\\r?\\n( \\* ?\\r?\\n( \\*(.*)?\\r?\\n)*)? $`,
-                template: `!\n * Copyright (c) 2009-${copyrightYearTo} digi.me Limited. All rights reserved.\n `,
+                pattern: `^\\!\\r?\\n \\* Copyright \\(c\\) 2009-${copyrightYearTo} World Data Exchange Holdings Pty Limited \\(WDXH\\)\\. All rights reserved\\.\\r?\\n( \\* ?\\r?\\n( \\*(.*)?\\r?\\n)*)? $`,
+                template: `!\n * Copyright (c) 2009-${copyrightYearTo} World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.\n `,
             },
             2,
         ],

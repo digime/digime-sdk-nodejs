@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2022 digi.me Limited. All rights reserved.
+ * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
 import fs from "fs";
