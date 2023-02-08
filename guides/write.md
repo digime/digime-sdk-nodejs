@@ -34,7 +34,7 @@ Once you have authorized a write contract, you should have the `userAccessToken`
 // userAccessToken - The user access token from the authorization step.
 // data - An object containing the buffer of the file to upload and some meta data.
 
-const result = await sdk.write({
+await sdk.write({
     contractDetails,
     userAccessToken,
     data: {
@@ -43,8 +43,6 @@ const result = await sdk.write({
         fileDescriptor: JSON.parse(fileMeta),
     },
 });
-
-
 ```
 If the promise resolves successfully, the data has been written to the user's digi.me.
 
