@@ -25,7 +25,7 @@ export interface GetAuthorizeUrlOptions {
     contractDetails: ContractDetails;
 
     /**
-     * A URL to call if an error occurs. The redirect URL in contractDetails will be called if the authorization was successful.
+     * A URL to call to be called after authorization is done.
      */
     callback: string;
 
@@ -105,7 +105,6 @@ const getAuthorizeUrl = async (
     const result: URL = new URL(`${sdkConfig.onboardUrl}authorize`);
     result.search = new URLSearchParams({
         code,
-        callback: props.callback,
         ...(serviceId && { service: serviceId.toString() }),
     }).toString();
 
@@ -123,10 +122,10 @@ interface AuthorizeResponse {
 }
 
 const _authorize = async (
-    { contractDetails, sessionOptions, state, userAccessToken }: GetAuthorizeUrlOptions,
+    { contractDetails, sessionOptions, state, userAccessToken, callback }: GetAuthorizeUrlOptions,
     sdkConfig: SDKConfiguration
 ): Promise<AuthorizeResponse> => {
-    const { contractId, privateKey, redirectUri } = contractDetails;
+    const { contractId, privateKey } = contractDetails;
 
     const codeVerifier: string = base64url(getRandomAlphaNumeric(32));
     const jwt: string = sign(
@@ -136,7 +135,7 @@ const _authorize = async (
             code_challenge: base64url(hashSha256(codeVerifier)),
             code_challenge_method: "S256",
             nonce: getRandomAlphaNumeric(32),
-            redirect_uri: redirectUri,
+            redirect_uri: callback,
             response_mode: "query",
             response_type: "code",
             state,

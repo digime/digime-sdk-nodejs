@@ -34,7 +34,6 @@ const testKeyPair: NodeRSA = new NodeRSA({ b: 2048 });
 
 const CONTRACT_DETAILS: ContractDetails = {
     contractId: "test-contract-id",
-    redirectUri: "test-redirect-url",
     privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
 };
 
@@ -57,20 +56,6 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         contractDetails: {
                             ...CONTRACT_DETAILS,
                             contractId,
-                        },
-                    });
-
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
-                });
-            });
-
-            describe("Throws TypeValidationError when redirectUri is ", () => {
-                it.each(invalidInputs)("%p", async (redirectUri: any) => {
-                    const promise = sdk.write({
-                        ...defaultValidDataPush,
-                        contractDetails: {
-                            ...CONTRACT_DETAILS,
-                            redirectUri,
                         },
                     });
 

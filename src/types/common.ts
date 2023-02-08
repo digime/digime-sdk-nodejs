@@ -15,12 +15,6 @@ export interface ContractDetails {
      * A string of the private key in PKCS1 format
      */
     privateKey: string;
-
-    /**
-     * An accepted uri to redirect to after authorization
-     * The url must be whitelisted on the contract
-     */
-    redirectUri?: string;
 }
 
 export interface CAScope {
@@ -89,15 +83,10 @@ export interface TimeRange {
     to?: number;
 }
 
-export const ContractDetailsRawCodec: t.Type<ContractDetails> = t.intersection([
-    t.type({
-        contractId: t.string,
-        privateKey: t.string,
-    }),
-    t.partial({
-        redirectUri: t.string,
-    }),
-]);
+export const ContractDetailsRawCodec: t.Type<ContractDetails> = t.type({
+    contractId: t.string,
+    privateKey: t.string,
+});
 
 export const ContractDetailsCodec = new t.Type<ContractDetails, ContractDetails, unknown>(
     "ContractDetails",
@@ -110,11 +99,7 @@ export const ContractDetailsCodec = new t.Type<ContractDetails, ContractDetails,
 
 const isValidContractDetails = (input: unknown): input is ContractDetails => {
     if (ContractDetailsRawCodec.is(input)) {
-        return (
-            isNonEmptyString(input.contractId) &&
-            isNonEmptyString(input.privateKey) &&
-            isNonEmptyString(input.redirectUri)
-        );
+        return isNonEmptyString(input.contractId) && isNonEmptyString(input.privateKey);
     }
 
     return false;

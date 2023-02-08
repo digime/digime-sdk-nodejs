@@ -12,6 +12,7 @@ import { ExchangeCodeForTokenOptions } from "./exchange-code-for-token";
 import { GetAuthorizeUrlResponse, GetAuthorizeUrlOptions } from "./get-authorize-url";
 import { GetAvailableServicesResponse } from "./get-available-services";
 import { GetOnboardServiceUrlOptions, GetOnboardServiceUrlResponse } from "./get-onboard-service-url";
+import { GetReauthorizeAccountUrlOptions, GetReauthorizeAccountUrlResponse } from "./get-reauthorize-account-url";
 import { ReadAccountsOptions, ReadAccountsResponse } from "./read-accounts";
 import { ReadAllFilesOptions, ReadAllFilesResponse } from "./read-all-files";
 import { ReadFileOptions, ReadFileResponse } from "./read-file";
@@ -42,6 +43,13 @@ export interface DigimeSDK {
      * @category Authorization
      */
     getOnboardServiceUrl: (props: GetOnboardServiceUrlOptions) => Promise<GetOnboardServiceUrlResponse>;
+
+    /**
+     * This is called when we need to reauthorize specific account due to Service authorization required error
+     *
+     * @category Authorization
+     */
+    getReauthorizeAccountUrl: (props: GetReauthorizeAccountUrlOptions) => Promise<GetReauthorizeAccountUrlResponse>;
 
     /**
      * This is called when authorization flow successfully completed, and you have been given an authorization code. We can then use this function to exchange for an access token.

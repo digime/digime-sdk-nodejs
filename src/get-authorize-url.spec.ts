@@ -44,7 +44,6 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
     describe("getAuthorizeUrl", () => {
         const CONTRACT_DETAILS: ContractDetails = {
             contractId: "test-contract-id",
-            redirectUri: "test-redirect-url",
             privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
         };
 
@@ -72,26 +71,6 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     const contractDetails = {
                         ...CONTRACT_DETAILS,
                         contractId,
-                    };
-
-                    const promise = sdk.getAuthorizeUrl({
-                        contractDetails,
-                        callback: CALLBACK_URL,
-                        state: "test-state",
-                    });
-
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
-                }
-            );
-        });
-
-        describe("Throws TypeValidationError when redirectUri is ", () => {
-            it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
-                "%p",
-                async (redirectUri: any) => {
-                    const contractDetails = {
-                        ...CONTRACT_DETAILS,
-                        redirectUri,
                     };
 
                     const promise = sdk.getAuthorizeUrl({
@@ -232,10 +211,6 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
 
             it("returned link uses the onboard url as origin", () => {
                 expect(new URL(response.url).origin).toEqual(new URL(saasUrl).origin);
-            });
-
-            it("returned link contains callback as a query", () => {
-                expect(new URL(response.url).searchParams.get("callback")).toEqual(CALLBACK_URL);
             });
 
             it("returned link contains correct code", () => {
@@ -440,10 +415,6 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                 expect(new URL(response.url).origin).toEqual(new URL(saasUrl).origin);
             });
 
-            it("returned link contains callback as a query", () => {
-                expect(new URL(response.url).searchParams.get("callback")).toEqual(CALLBACK_URL);
-            });
-
             it("returned link contains correct code", () => {
                 expect(new URL(response.url).searchParams.get("code")).toEqual("test-preauth-code");
             });
@@ -510,10 +481,6 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
 
             it("returned link uses the onboard url as origin", () => {
                 expect(new URL(response.url).origin).toEqual(new URL(saasUrl).origin);
-            });
-
-            it("returned link contains callback as a query", () => {
-                expect(new URL(response.url).searchParams.get("callback")).toEqual(CALLBACK_URL);
             });
 
             it("returned link contains correct code", () => {

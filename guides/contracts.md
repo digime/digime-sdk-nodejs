@@ -19,8 +19,6 @@
 
 <br>
 
-# Contracts
-
 To access the digi.me platform, you need to obtain a custom application ID as well as a valid contract ID.
 
 To get your own application ID, you can get yours by filling out the [registration form here](https://go.digi.me/developers/register).

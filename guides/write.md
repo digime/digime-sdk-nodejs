@@ -19,8 +19,6 @@
 
 <br>
 
-# Writing Data
-
 Before we can be write data to the user, we should already have a user access token for this user.
 
 If not, you'll need to [authorize them](./authorize.html) first. Make sure the user access token is for a [write contract](../fundamentals/contracts.html).

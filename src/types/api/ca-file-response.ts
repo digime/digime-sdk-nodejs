@@ -10,6 +10,7 @@ export interface MappedFileMetadata {
     objectType: string;
     serviceGroup: string;
     serviceName: string;
+    objectVersion: string;
 }
 
 export interface RawFileMetadata {
@@ -36,6 +37,7 @@ const MappedFileMetadataCodec: t.Type<MappedFileMetadata> = t.type({
     objectType: t.string,
     serviceGroup: t.string,
     serviceName: t.string,
+    objectVersion: t.string,
 });
 
 const RawFileMetadataCodec: t.Type<RawFileMetadata> = t.intersection([

@@ -19,8 +19,6 @@
 
 <br>
 
-# Reading data
-
 Before data can be read, we should already have a user access token for this user.
 
 If not, you'll need to [authorize them](./authorize.html) first, and ask them to [onboard any extra services](./onboard.html) to provide the data you're requesting.
@@ -34,7 +32,7 @@ To start reading user data, we first need to obtain a session:
 import { init } from "@digime/digime-sdk-nodejs";
 const sdk = init({ applicationId });
 
-// contractDetails - The same one used in getAuthorizeUrl, redirect_uri is not needed in this case.
+// contractDetails - The same one used in getAuthorizeUrl().
 // userAccessToken - The user access token from the authorization step.
 // sessionOptions - (Optional) An limits or scopes to set for this session.
 
@@ -90,7 +88,7 @@ If you'd like more control over the downloading of the files, we can call [readF
 // ... initialize the SDK
 // session - The session we received from readSession().
 
-const response = await readFileList({ sessionKey: session.key });
+const response = await sdk.readFileList({ sessionKey: session.key });
 ```
 
 [Response](../../interfaces/Types.ReadFileListResponse.html) contains a `fileList` and `status` of each user service onboarded.
@@ -105,7 +103,7 @@ You can then download the files manually using [readFile()](../../interfaces/SDK
 // contractId - Your contract id
 // userAccessToken - The user access token from the authorization step.
 
-const data = await readFile({
+const data = await sdk.readFile({
     sessionKey: session.key,
     fileName: file.name,
     privateKey,

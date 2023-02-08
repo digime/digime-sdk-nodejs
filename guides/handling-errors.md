@@ -19,8 +19,6 @@
 
 <br>
 
-# Handling Errors
-
 By default, the SDK retries to make calls twice before giving up. This is something that can be configured when the SDK is [initialised](./initialise-sdk.html).
 
 ## Errors Returned From digi.me API
@@ -62,6 +60,8 @@ Some common errors returned from digi.me:
 | `InsufficientScope` | `The request requires higher privileges than provided by the access token` | The contract used is only for one off read. |
 | `SDKVersion` | | This SDK is not recognised. |
 | `SDKVersionInvalid` | | This SDK version is no longer supported. |
+| `ServiceAuthorizationError` | Service authorization required | This account needs to be [reauthroized](./reauthorize.html) |
+
 
 
 ## Type Validation Errors

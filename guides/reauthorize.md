@@ -19,37 +19,61 @@
 
 <br>
 
-Once a user is authorized, you can onboard additional services to their library before reading them all at once.
+Reauthorization is needed if user receives error during reading of data similar to this:
 
-To trigger a new service onboard, you can do the following:
+```typescript
+{
+  "1_1xxxxxxxxx": {
+    "state": "partial",
+    "error": {
+      "code": "ServiceAuthorizationError",
+      "error": {
+        "message": "Service authorization required",
+        "reauth": true
+      },
+      "statuscode": 511
+    }
+  }
+}
+```
+
+This error is shown if account marked with accountId `1_1xxxxxxxxx` in above example lost authorization rights for 3rd party service.
+
+Account ids can also be used from the list of all user accounts that can be fetched using [readAccounts](./read-accounts.html).
+
+To trigger account reauthorization you need to do the following:
 ```typescript
 // Initialize the SDK
-import {init} from "@digime/digime-sdk-nodejs";
+import { init } from "@digime/digime-sdk-nodejs";
 
 const sdk = init({ applicationId: <you-application-id> });
 
-// callback - The URL to call after user is onboarded.
+const contractDetails = {
+    contractId: <your-contract-id>,
+    privateKey: <private-key-for-contract-id>,
+}
+
+// callback - The URL to call after reauthorization is done.
 // contractDetails - The same one used in getAuthorizeUrl().
-// serviceId - The service to onboard
+// accountId - accountId returned in error from above example
 // userAccessToken - The user access token from the authorization step.
 
-const { url } = await sdk.getOnboardServiceUrl({
+const { url } = await sdk.getReauthorizeAccountUrl({
     callback,
     contractDetails,
-    serviceId,
+    accountId,
     userAccessToken,
 });
 
-// Redirect the user to the url returned and this will kick start the onboarding process.
 ```
 
 The `url` returned might look something like this:
 
 ```
-https://api.digi.me/apps/saas/onboard?code=<code>&callback=<callback>&service=<service-id>
+https://api.digi.me/apps/saas/reauthorize?code=<code>&accountRef=<accountRef>
 ```
 
-Redirect the user to this URL, and they will be asked to onboard the service and consent to share the requested data.
+Redirect the user to this URL and they will be asked to give permissions to 3rd party service.
 
 At the end of the process, the `callback` provided above will be called with the follow extra query parameters:
 

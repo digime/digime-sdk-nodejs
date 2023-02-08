@@ -19,8 +19,6 @@
 
 <br>
 
-# Getting Started
-
 ## Requirements
 
 - Node 14.0 or above

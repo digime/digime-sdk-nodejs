@@ -15,9 +15,7 @@ import {
 import { ServerError, TypeValidationError } from "./errors";
 import { init } from "./init";
 import { ContractDetails } from "./types/common";
-import { sign } from "jsonwebtoken";
 import { HTTPError } from "got/dist/source";
-import { GetOnboardServiceUrlResponse } from "./get-onboard-service-url";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -40,8 +38,8 @@ beforeEach(() => {
 describe.each<[string, ReturnType<typeof init>, string, string]>([
     ["Default exported SDK", SDK, TEST_BASE_URL, TEST_ONBOARD_URL],
     ["Custom SDK", customSDK, TEST_CUSTOM_BASE_URL, TEST_CUSTOM_ONBOARD_URL],
-])("%s", (_title, sdk, baseUrl, saasUrl) => {
-    describe("getOnboardServiceUrl", () => {
+])("%s", (_title, sdk, baseUrl) => {
+    describe("getReauthorizeAccountUrl", () => {
         const CONTRACT_DETAILS: ContractDetails = {
             contractId: "test-contract-id",
             privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
@@ -53,9 +51,9 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
             it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (contractDetails: any) => {
-                    const promise = sdk.getOnboardServiceUrl({
+                    const promise = sdk.getReauthorizeAccountUrl({
                         contractDetails,
-                        serviceId: 99,
+                        accountId: "test-account-id",
                         userAccessToken: SAMPLE_TOKEN,
                         callback: CALLBACK_URL,
                     });
@@ -74,9 +72,9 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         contractId,
                     };
 
-                    const promise = sdk.getOnboardServiceUrl({
+                    const promise = sdk.getReauthorizeAccountUrl({
                         contractDetails,
-                        serviceId: 99,
+                        accountId: "test-account-id",
                         userAccessToken: SAMPLE_TOKEN,
                         callback: CALLBACK_URL,
                     });
@@ -95,9 +93,9 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         privateKey,
                     };
 
-                    const promise = sdk.getOnboardServiceUrl({
+                    const promise = sdk.getReauthorizeAccountUrl({
                         contractDetails,
-                        serviceId: 99,
+                        accountId: "test-account-id",
                         userAccessToken: SAMPLE_TOKEN,
                         callback: CALLBACK_URL,
                     });
@@ -111,9 +109,9 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
             it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (callback: any) => {
-                    const promise = sdk.getOnboardServiceUrl({
+                    const promise = sdk.getReauthorizeAccountUrl({
                         contractDetails: CONTRACT_DETAILS,
-                        serviceId: 99,
+                        accountId: "test-account-id",
                         userAccessToken: SAMPLE_TOKEN,
                         callback,
                     });
@@ -123,13 +121,13 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
             );
         });
 
-        describe("Throws TypeValidationError when serviceId is ", () => {
+        describe("Throws TypeValidationError when accountId is ", () => {
             it.each([true, false, null, undefined, {}, [], NaN, "", () => null, Symbol("test")])(
                 "%p",
-                async (serviceId: any) => {
-                    const promise = sdk.getOnboardServiceUrl({
+                async (accountId: any) => {
+                    const promise = sdk.getReauthorizeAccountUrl({
                         contractDetails: CONTRACT_DETAILS,
-                        serviceId,
+                        accountId,
                         userAccessToken: SAMPLE_TOKEN,
                         callback: CALLBACK_URL,
                     });
@@ -137,69 +135,6 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     return expect(promise).rejects.toThrowError(TypeValidationError);
                 }
             );
-        });
-
-        describe(`getOnboardServiceUrl with minimum props`, () => {
-            let response: GetOnboardServiceUrlResponse;
-            beforeAll(async () => {
-                const jwt: string = sign(
-                    {
-                        reference_code: "test-reference-code",
-                    },
-                    testKeyPair.exportKey("pkcs1-private-pem").toString(),
-                    {
-                        algorithm: "PS512",
-                        noTimestamp: true,
-                        header: {
-                            alg: "PS512",
-                            jku: `${baseUrl}test-jku-url`,
-                            kid: "test-kid",
-                        },
-                    }
-                );
-
-                nock(`${new URL(baseUrl).origin}`)
-                    .post(`${new URL(baseUrl).pathname}oauth/token/reference`)
-                    .reply(201, {
-                        token: jwt,
-                    })
-                    .get(`${new URL(baseUrl).pathname}test-jku-url`)
-                    .reply(201, {
-                        keys: [
-                            {
-                                kid: "test-kid",
-                                pem: testKeyPair.exportKey("pkcs1-public"),
-                            },
-                        ],
-                    });
-
-                response = await sdk.getOnboardServiceUrl({
-                    contractDetails: CONTRACT_DETAILS,
-                    serviceId: 99,
-                    userAccessToken: SAMPLE_TOKEN,
-                    callback: CALLBACK_URL,
-                });
-            });
-
-            it("returns an object with a link", () => {
-                expect(response.url).toBeDefined();
-            });
-
-            it("returned link uses the onboard url as origin", () => {
-                expect(new URL(response.url).origin).toEqual(new URL(saasUrl).origin);
-            });
-
-            it("returned link contains correct code", () => {
-                expect(new URL(response.url).searchParams.get("code")).toEqual("test-reference-code");
-            });
-
-            it("returned link contains service Id", () => {
-                expect(new URL(response.url).searchParams.get("service")).toEqual("99");
-            });
-
-            it("returns the same user access token", () => {
-                expect(response.userAccessToken).toEqual(SAMPLE_TOKEN);
-            });
         });
 
         describe(`Handles known server side errors`, () => {
@@ -217,9 +152,9 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     });
 
                 try {
-                    await sdk.getOnboardServiceUrl({
+                    await sdk.getReauthorizeAccountUrl({
                         contractDetails: CONTRACT_DETAILS,
-                        serviceId: 99,
+                        accountId: "test-account-id",
                         userAccessToken: SAMPLE_TOKEN,
                         callback: CALLBACK_URL,
                     });
@@ -257,9 +192,9 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     .reply(404);
 
                 try {
-                    await sdk.getOnboardServiceUrl({
+                    await sdk.getReauthorizeAccountUrl({
                         contractDetails: CONTRACT_DETAILS,
-                        serviceId: 99,
+                        accountId: "test-account-id",
                         userAccessToken: SAMPLE_TOKEN,
                         callback: CALLBACK_URL,
                     });
