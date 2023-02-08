@@ -113,7 +113,7 @@ Please take a look at write data to find out more about how to format the data t
 // userAccessToken - The user access token from the authorization step.
 // data - An object containing the buffer of the file to upload and some meta data.
 
-const result = await sdk.write({
+await sdk.write({
     contractDetails,
     userAccessToken,
     data: {
@@ -122,9 +122,6 @@ const result = await sdk.write({
         fileDescriptor: JSON.parse(fileMeta),
     },
 });
-
-// A status will be returned.
-// An update user access token will also be returned if the SDK needed to refresh it.
 ```
 
 If we need to write other files to the users in the future, we can keep writing as long as the user access token is valid.
