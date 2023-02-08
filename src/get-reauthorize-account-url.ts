@@ -5,7 +5,7 @@
 import * as t from "io-ts";
 import get from "lodash.get";
 import { getRandomAlphaNumeric } from "./crypto";
-import { net } from "./net";
+import { handleServerResponse, net } from "./net";
 import { Session } from "./types/api/session";
 import { UserAccessToken, UserAccessTokenCodec } from "./types/user-access-token";
 import { sign } from "jsonwebtoken";
@@ -18,7 +18,7 @@ import { TypeValidationError } from "./errors";
 import { isNonEmptyString } from "./utils/basic-utils";
 import sdkVersion from "./sdk-version";
 
-export interface GetOnboardServiceUrlOptions {
+export interface GetReauthorizeAccountUrlOptions {
     /**
      * Any contract related details here.
      */
@@ -32,30 +32,83 @@ export interface GetOnboardServiceUrlOptions {
      */
     userAccessToken: UserAccessToken;
     /**
-     * Service ID to be added.
+     * AccountID to reauthorize.
      */
-    serviceId: number;
+    accountId: string;
 }
 
-const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.type({
+const GetReauthorizeAccountUrlOptionsCodec: t.Type<GetReauthorizeAccountUrlOptions> = t.type({
     contractDetails: ContractDetailsCodec,
     callback: t.string,
     userAccessToken: UserAccessTokenCodec,
-    serviceId: t.number,
+    accountId: t.string,
 });
 
-export interface GetOnboardServiceUrlResponse {
-    session: Session;
-    userAccessToken: UserAccessToken;
+export interface GetReauthorizeAccountUrlResponse {
+    /**
+     * The URL to redirect users to to trigger the authorization process.
+     */
     url: string;
+
+    /**
+     * User access token
+     */
+    userAccessToken: UserAccessToken;
+
+    /**
+     * A session that can be used to read data. Can only be used after a successful authorization
+     */
+    session: Session;
 }
 
-const _getOnboardServiceUrl = async (
-    props: GetOnboardServiceUrlOptions,
+const _accountReference = async (
+    { accountId, contractDetails }: GetReauthorizeAccountUrlOptions,
     sdkConfig: SDKConfiguration
-): Promise<GetOnboardServiceUrlResponse> => {
-    if (!GetOnboardServiceUrlCodec.is(props) || isNaN(props.serviceId) || !isNonEmptyString(props.callback)) {
-        throw new TypeValidationError("Error on getOnboardServiceUrl(). Incorrect parameters passed in.");
+): Promise<string> => {
+    const { contractId, privateKey } = contractDetails;
+    const jwt: string = sign(
+        {
+            client_id: `${sdkConfig.applicationId}_${contractId}`,
+            nonce: getRandomAlphaNumeric(32),
+            timestamp: Date.now(),
+        },
+        privateKey.toString(),
+        {
+            algorithm: "PS512",
+            noTimestamp: true,
+        }
+    );
+    try {
+        const { body } = await net.post(`${sdkConfig.baseUrl}reference`, {
+            headers: {
+                Authorization: `Bearer ${jwt}`,
+            },
+            json: {
+                type: "accountId",
+                value: accountId,
+            },
+            responseType: "json",
+        });
+
+        const ref = get(body, "id", {} as string);
+
+        return ref;
+    } catch (error) {
+        handleServerResponse(error);
+        throw error;
+    }
+};
+
+const _getReauthorizeAccountUrl = async (
+    props: GetReauthorizeAccountUrlOptions,
+    sdkConfig: SDKConfiguration
+): Promise<GetReauthorizeAccountUrlResponse> => {
+    if (
+        !GetReauthorizeAccountUrlOptionsCodec.is(props) ||
+        !isNonEmptyString(props.accountId) ||
+        !isNonEmptyString(props.callback)
+    ) {
+        throw new TypeValidationError("Error on getReauthorizeAccountUrl(). Incorrect parameters passed in.");
     }
 
     const { userAccessToken, contractDetails, callback } = props;
@@ -97,12 +150,14 @@ const _getOnboardServiceUrl = async (
 
     const payload = await getPayloadFromToken(get(response.body, "token"), sdkConfig);
     const code = get(payload, ["reference_code"]);
-    const session = get(response.body, "session", {} as GetOnboardServiceUrlResponse["session"]);
+    const session = get(response.body, "session", {} as GetReauthorizeAccountUrlResponse["session"]);
 
-    const result: URL = new URL(`${sdkConfig.onboardUrl}onboard`);
+    const accountRef = await _accountReference(props, sdkConfig);
+
+    const result: URL = new URL(`${sdkConfig.onboardUrl}reauthorize`);
     result.search = new URLSearchParams({
         code,
-        service: props.serviceId.toString(),
+        accountRef,
     }).toString();
 
     return {
@@ -112,11 +167,11 @@ const _getOnboardServiceUrl = async (
     };
 };
 
-const getOnboardServiceUrl = async (
-    props: GetOnboardServiceUrlOptions,
+const getReauthorizeAccountUrl = async (
+    props: GetReauthorizeAccountUrlOptions,
     sdkConfiguration: SDKConfiguration
-): Promise<GetOnboardServiceUrlResponse> => {
-    return refreshTokenWrapper(_getOnboardServiceUrl, props, sdkConfiguration);
+): Promise<GetReauthorizeAccountUrlResponse> => {
+    return refreshTokenWrapper(_getReauthorizeAccountUrl, props, sdkConfiguration);
 };
 
-export { getOnboardServiceUrl };
+export { getReauthorizeAccountUrl };

@@ -17,6 +17,7 @@ import { readAccounts, ReadAccountsOptions } from "./read-accounts";
 import { deleteUser, DeleteUserOptions } from "./delete-user";
 import { TypeValidationError } from "./errors";
 import { DigimeSDK } from "./sdk";
+import { getReauthorizeAccountUrl, GetReauthorizeAccountUrlOptions } from "./get-reauthorize-account-url";
 
 const DEFAULT_BASE_URL = "https://api.digi.me/v1.7/";
 const DEFAULT_ONBOARD_URL = "https://api.digi.me/apps/saas/";
@@ -45,6 +46,8 @@ const init = (config: SDKConfiguration): DigimeSDK => {
     return {
         getAuthorizeUrl: (props: GetAuthorizeUrlOptions) => getAuthorizeUrl(props, sdkConfig),
         getOnboardServiceUrl: (props: GetOnboardServiceUrlOptions) => getOnboardServiceUrl(props, sdkConfig),
+        getReauthorizeAccountUrl: (props: GetReauthorizeAccountUrlOptions) =>
+            getReauthorizeAccountUrl(props, sdkConfig),
         exchangeCodeForToken: (props: ExchangeCodeForTokenOptions) => exchangeCodeForToken(props, sdkConfig),
         write: (props: WriteOptions) => write(props, sdkConfig),
         readSession: (props: ReadSessionOptions) => readSession(props, sdkConfig),

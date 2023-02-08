@@ -43,12 +43,11 @@ const sdk = init({ applicationId });
 const contractDetails = {
     contractId: <your-contract-id>,
     privateKey: <private-key-for-contract-id>,
-    redirectUri: <an-url-to-call-when-authorization-is-complete>,
 }
 
 const { url, codeVerifier } = await sdk.getAuthorizeUrl({
     contractDetails,
-    callback: <an-url-to-call-when-an-error-is-encountered>,
+    callback: <an-url-to-call-when-authorization-is-done>,
     serviceId: toNumber(serviceId),
     state: <any-details-to-help-you-identify-user-on-return>,
     userAccessToken: <if-you-already-have-one>
@@ -66,12 +65,12 @@ Don't forget to also store the code verifier against this user as you'll need it
 An authorization URL should look something like:
 
 ```
-https://api.digi.me/apps/saas/authorize?code=<code>&callback=<callback>
+https://api.digi.me/apps/saas/authorize?code=<code>
 ```
 
 ### Redirect back to your application
 
-After the user has onboarded and finished with the authorization, the `redirectUri` provided in `contractDetails` will be called.
+After the user has onboarded and finished with the authorization, the `callback` provided will be called.
 
 An example URL might be:
 
