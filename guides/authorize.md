@@ -71,7 +71,7 @@ const result = await sdk.getAuthorizeUrl({
 // => result will contain a url and a code verifier which you will need for later.
 // Calling the url returned will trigger the authorization process.
 ```
-The [result](../../interfaces/types.getauthorizeurlresponse.html) returned will include a `url` and `codeVerifier`.
+The [result](../../interfaces/Types.GetAuthorizeUrlResponse.html) returned will include a `url` and `codeVerifier`.
 Store the `codeVerifier` against this user as this will be required for later.
 
 More on limits and scoping of raw and mapped data interface can be found [here](../../interfaces/Types.PullSessionOptions.html).
