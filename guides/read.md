@@ -44,12 +44,12 @@ const { session, updatedAccessToken }  = await sdk.readSession({
 });
 ```
 
-The [session](../../interfaces/types.session.html) received can now be used to query data.
+The [session](../../interfaces/Types.Session.html) received can now be used to query data.
 
 More on limits and scoping of raw and mapped data interface can be found [here](../../interfaces/Types.PullSessionOptions.html).
 
 ## Reading All Files
-Using the session received above, we can trigger [readAllFiles()](../../interfaces/sdk.digimesdk.html#readallfiles) to read all available files from this user.
+Using the session received above, we can trigger [readAllFiles()](../../interfaces/SDK.DigimeSDK.html#readAllFiles) to read all available files from this user.
 
 ```typescript
 // ... initialize the SDK
@@ -84,7 +84,7 @@ const { stopPolling, filePromise } = await sdk.readAllFiles({
 The type of FileMetadata that is returned depends on the type of data it is. Please see [here](./read/file-meta.html) for more information.
 
 ## Selecting Files
-If you'd like more control over the downloading of the files, we can call [readFileList()](../../interfaces/sdk.digimesdk.html#readallfiles) to see all available files from this user:
+If you'd like more control over the downloading of the files, we can call [readFileList()](../../interfaces/SDK.DigimeSDK.html#readAllFiles) to see all available files from this user:
 
 ```typescript
 // ... initialize the SDK
@@ -93,9 +93,9 @@ If you'd like more control over the downloading of the files, we can call [readF
 const response = await readFileList({ sessionKey: session.key });
 ```
 
-[Response](../../interfaces/types.readfilelistresponse.html) contains a `fileList` and `status` of each user service onboarded.
+[Response](../../interfaces/Types.ReadFileListResponse.html) contains a `fileList` and `status` of each user service onboarded.
 
-You can then download the files manually using [readFile()](../../interfaces/sdk.digimesdk.html#readfile).
+You can then download the files manually using [readFile()](../../interfaces/SDK.DigimeSDK.html#readFile).
 
 ```typescript
 // ... initialize the SDK

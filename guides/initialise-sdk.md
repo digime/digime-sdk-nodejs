@@ -27,10 +27,10 @@ You can get yours by filling out the registration form [here](https://go.digi.me
 By default, the SDK will point to the production environment of digi.me, but when initialising the SDK, you have the ability to override some default behaviour and specify some options.
 
 #### Configuration Options
-See all possible [configurations](../../interfaces/types.sdkconfiguration.html) when initializing the SDK.
+See all possible [configurations](../../interfaces/Types.SDKConfiguration.html) when initializing the SDK.
 
 #### Returns
-The returned SDK has the following [properties](../../interfaces/sdk.digimesdk.html)
+The returned SDK has the following [properties](../../interfaces/SDK.DigimeSDK.html)
 
 #### Examples
 The most basic initialization:

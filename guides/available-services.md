@@ -25,10 +25,10 @@ The SDK Provides a function which you can use to determine what services can be 
 The Contract you pass in must be a READ contract, which means it's a contract that asks for user's data.
 
 #### Configuration Options
-See all possible [configurations](../../interfaces/types.sdkconfiguration.html) when initializing the SDK.
+See all possible [configurations](../../interfaces/Types.SDKConfiguration.html) when initializing the SDK.
 
 #### Returns
-The [available services](../../interfaces/types.getavailableservicesresponse.html).
+The [available services](../../interfaces/Types.GetAvailableServicesResponse.html).
 
 Service describes the different service groups
 
