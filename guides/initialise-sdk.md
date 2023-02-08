@@ -19,8 +19,6 @@
 
 <br>
 
-# Initializing the SDK
-
 In order to use the JS SDK, you'll first need to initialise it with your unique application ID.
 You can get yours by filling out the registration form [here](https://go.digi.me/developers/register).
 

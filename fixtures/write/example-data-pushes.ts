@@ -12,7 +12,6 @@ export const testKeyPair: NodeRSA = new NodeRSA({ b: 2048 });
 
 const CONTRACT_DETAILS: ContractDetails = {
     contractId: "test-contract-id",
-    redirectUri: "test-redirect-url",
     privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
 };
 

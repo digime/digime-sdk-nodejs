@@ -19,8 +19,6 @@
 
 <br>
 
-# Reading data - Step by step guide
-
 Requesting user data using digi.me is easy!
 
 On this page, we will learn how to receive data from your users using the digi.me Private Share platform.
@@ -61,12 +59,11 @@ Start this process by getting the authorization URL by calling `getAuthorizeUrl`
 const contractDetails = {
     contractId: <your-contract-id>,
     privateKey: <private-key-for-contract-id>,
-    redirectUri: <an-url-to-call-when-authorization-is-complete>,
 }
 
 const { url, codeVerifier, session } = await sdk.getAuthorizeUrl({
     contractDetails,
-    callback: <an-url-to-call-when-an-error-is-encountered>,
+    callback: <an-url-to-call-when-authorization-is-done>,
     serviceId: toNumber(serviceId),
     state: <any-details-to-help-you-identify-user-on-return>,
     userAccessToken: <if-you-already-have-one>
@@ -85,12 +82,12 @@ Don't forget to also store the code verifier against this user as you'll need it
 An authorization URL should look something like:
 
 ```
-https://api.digi.me/apps/saas/authorize?code=<code>&callback=<callback>&service=<service-id>
+https://api.digi.me/apps/saas/authorize?code=<code>&service=<service-id>
 ```
 
 ### Redirect back to your application
 
-After the user has onboarded and finished with the authorization, the `redirectUri` provided in `contractDetails` will be called.
+After the user has onboarded and finished with the authorization, the `callback` will be called.
 An example URL might be:
 
 ```
@@ -107,7 +104,7 @@ The `code` returned in the query parameters in the step above can be used with t
 
 // authorizationCode - The code returned in the query parameter of the returned URL.
 // codeVerifier - The one stored from step above.
-// contractDetails - The same one used in getAuthorizeUrl, redirect_uri is not needed in this case.
+// contractDetails - The same one used in getAuthorizeUrl().
 
 const userAccessToken = await sdk.exchangeCodeForToken({
     codeVerifier,
@@ -159,7 +156,7 @@ When your user has onboarded all the services you require, we can start reading 
 // onFileData - A function that will be called when a file is successfully downloaded.
 // onFileError - A function that will be called when an error occurs when downloading a file.
 
-const { stopPolling, filePromise } = await sdk.readAllFiles({
+const { stopPolling, filePromise } = sdk.readAllFiles({
     sessionKey: session.key,
     privateKey: <private-key-of-contract>,
     contractId: <your-contract-id>,

@@ -19,7 +19,6 @@
 
 <br>
 
-# Authorizing
 In order to write or read data from digi.me, we first need to create an user access token for each user.
 User access tokens are linked to a contract, and it is possible to create multiple tokens that has access to the same digi.me libary.
 Authorization is the process to obtain an user access token for the user.
@@ -48,10 +47,9 @@ const sdk = init({ applicationId: <you-application-id> });
 const contractDetails = {
     contractId: <your-contract-id>,
     privateKey: <private-key-for-contract-id>,
-    redirectUri: <an-url-to-call-when-authorization-is-complete>,
 }
 
-// callback - A URL to call if there are any errors during authorization. If successful, the callback used will be the redirectUrl in contractDetails above.
+// callback - URL to be called after authorization is done.
 // serviceId - (Optional) During authorization, we can also ask user to onboard a service. ID can be found from getAvailableServices()
 // state - Put anything here to identify the user when authorization completes. This will be passed back in the callback.
 // userAccessToken - (Optional) User access token you may already have for this user from another contract.
@@ -59,7 +57,7 @@ const contractDetails = {
 
 const result = await sdk.getAuthorizeUrl({
     contractDetails,
-    callback: <an-url-to-call-when-an-error-is-encountered>,
+    callback: <an-url-to-call-when-authorization-is-done>,
     state: <any-extra-info-to-identify-user>
     serviceId: toNumber(serviceId),
     userAccessToken: <access-token>,
@@ -81,12 +79,12 @@ More on limits and scoping of raw and mapped data interface can be found [here](
 The URL returned is the digi.me web onboard client, and will look something like this.
 
 ```
-https://api.digi.me/apps/saas/authorize?code=<code>&callback=<callback>&service=<service-id>
+https://api.digi.me/apps/saas/authorize?code=<code>&service=<service-id>
 ```
 
 Redirect the user to this URL, and they will be asked to onboard the service and consent to share the requested data.
 
-On *success*, the `redirectUri` provided above will be called with the follow extra query parameters:
+On *success*, the `callback` provided above will be called with the follow extra query parameters:
 
 | Parameter | Description | Returned Always |
 |-|-|-|

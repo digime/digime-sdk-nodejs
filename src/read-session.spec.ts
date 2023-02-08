@@ -33,7 +33,6 @@ beforeEach(() => {
 
 const CONTRACT_DETAILS: ContractDetails = {
     contractId: "test-contract-id",
-    redirectUri: "test-redirect-url",
     privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
 };
 
@@ -62,25 +61,6 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 const contractDetails = {
                     ...CONTRACT_DETAILS,
                     contractId,
-                };
-
-                const promise = sdk.readSession({
-                    contractDetails,
-                    userAccessToken: SAMPLE_TOKEN,
-                });
-
-                return expect(promise).rejects.toThrowError(TypeValidationError);
-            }
-        );
-    });
-
-    describe("Throws TypeValidationError when redirectUri is ", () => {
-        it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
-            "%p",
-            async (redirectUri: any) => {
-                const contractDetails = {
-                    ...CONTRACT_DETAILS,
-                    redirectUri,
                 };
 
                 const promise = sdk.readSession({

@@ -11,6 +11,7 @@ export { ExchangeCodeForTokenOptions } from "./exchange-code-for-token";
 export { GetAuthorizeUrlResponse, GetAuthorizeUrlOptions } from "./get-authorize-url";
 export { GetAvailableServicesResponse, DiscoveryService } from "./get-available-services";
 export { GetOnboardServiceUrlOptions, GetOnboardServiceUrlResponse } from "./get-onboard-service-url";
+export { GetReauthorizeAccountUrlOptions, GetReauthorizeAccountUrlResponse } from "./get-reauthorize-account-url";
 export { ReadAccountsOptions, ReadAccountsResponse } from "./read-accounts";
 export { ReadAllFilesOptions, ReadAllFilesResponse } from "./read-all-files";
 export { ReadFileOptions, ReadFileResponse } from "./read-file";

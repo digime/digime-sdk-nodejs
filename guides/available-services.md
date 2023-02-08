@@ -19,8 +19,6 @@
 
 <br>
 
-# Getting Available Services
-
 The SDK Provides a function which you can use to determine what services can be onboarded for your contract.
 The Contract you pass in must be a READ contract, which means it's a contract that asks for user's data.
 

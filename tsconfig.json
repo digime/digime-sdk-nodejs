@@ -48,11 +48,11 @@
                             "source": "start.md"
                         },
                         {
-                            "title": "Reading Data - Step by step",
+                            "title": "Reading data - Step by step guide",
                             "source": "read-data-overview.md"
                         },
                         {
-                            "title": "Writing Data - Step by step",
+                            "title": "Writing data - Step by step guide",
                             "source": "write-data-overview.md"
                         }
                     ],
@@ -68,7 +68,7 @@
                             "source": "contracts.md"
                         },
                         {
-                            "title": "Initializing SDK",
+                            "title": "Initializing the SDK",
                             "source": "initialise-sdk.md"
                         },
                         {
@@ -83,6 +83,14 @@
                         {
                             "title": "Onboarding Additional Services",
                             "source": "onboard.md"
+                        },
+                        {
+                            "title": "Reauthorizing account",
+                            "source": "reauthorize.md"
+                        },
+                        {
+                            "title": "Read accounts",
+                            "source": "read-accounts.md"
                         },
                         {
                             "title": "Reading Data",

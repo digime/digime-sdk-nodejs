@@ -19,7 +19,6 @@
 
 <br>
 
-# File MetaData
 The type of FileMetadata that is returned depends on the type of data it is.
 
 ### MappedFileMetadata

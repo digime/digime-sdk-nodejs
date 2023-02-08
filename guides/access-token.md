@@ -19,8 +19,6 @@
 
 <br>
 
-# User Access Token
-
 In order to write or read data from the user's digi.me, we will need an user access token to their digi.me.
 Once we have this, we can read up to date data of the services the user has onboarded to their digi.me.
 

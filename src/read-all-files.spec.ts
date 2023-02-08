@@ -467,8 +467,5 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 }
             });
         });
-
-        // NOTE: This is currently messed up, we'll test it when we fix it
-        it.todo("Performs network request retries in case network is not available");
     });
 });
