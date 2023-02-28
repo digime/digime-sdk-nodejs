@@ -38,17 +38,13 @@
 
 <br>
 
-
-<a href="#file-metadata" id="file-metadata" style="color: inherit; text-decoration: none;">
-  <h1>File MetaData</h1>
-</a>
 <p>The type of FileMetadata that is returned depends on the type of data it is.</p>
 
 <a href="#mappedfilemetadata" id="mappedfilemetadata" style="color: inherit; text-decoration: none;">
   <h3>MappedFileMetadata</h3>
 </a>
 <p>When reading data that was sync&#39;d from an external service, data returned will be of type <a href="../../../interfaces/Types.MappedFileMetadata.html">MappedFileMetadata</a>.</p>
-<pre><code><span class="hl-2">interface</span><span class="hl-0"> </span><span class="hl-8">MappedFileMetadata</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-6">objectCount</span><span class="hl-0">: </span><span class="hl-8">number</span><span class="hl-0">;</span><br/><span class="hl-0">    </span><span class="hl-6">objectType</span><span class="hl-0">: </span><span class="hl-8">string</span><span class="hl-0">;</span><br/><span class="hl-0">    </span><span class="hl-6">serviceGroup</span><span class="hl-0">: </span><span class="hl-8">string</span><span class="hl-0">;</span><br/><span class="hl-0">    </span><span class="hl-6">serviceName</span><span class="hl-0">: </span><span class="hl-8">string</span><span class="hl-0">;</span><br/><span class="hl-0">}</span>
+<pre><code><span class="hl-3">interface</span><span class="hl-0"> </span><span class="hl-8">MappedFileMetadata</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-7">objectCount</span><span class="hl-0">: </span><span class="hl-8">number</span><span class="hl-0">;</span><br/><span class="hl-0">    </span><span class="hl-7">objectType</span><span class="hl-0">: </span><span class="hl-8">string</span><span class="hl-0">;</span><br/><span class="hl-0">    </span><span class="hl-7">serviceGroup</span><span class="hl-0">: </span><span class="hl-8">string</span><span class="hl-0">;</span><br/><span class="hl-0">    </span><span class="hl-7">serviceName</span><span class="hl-0">: </span><span class="hl-8">string</span><span class="hl-0">;</span><br/><span class="hl-0">}</span>
 </code></pre>
 <table>
 <thead>
@@ -84,7 +80,7 @@
   <h3>RawFileMetadata</h3>
 </a>
 <p>If it is a file that you wrote to the user, it will be of type <a href="../../../interfaces/Types.RawFileMetadata.html">RawFileMetadata</a>.</p>
-<pre><code><span class="hl-2">interface</span><span class="hl-0"> </span><span class="hl-8">RawFileMetadata</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-6">mimetype</span><span class="hl-0">: </span><span class="hl-8">string</span><span class="hl-0">;</span><br/><span class="hl-0">    </span><span class="hl-6">accounts</span><span class="hl-0">: {</span><br/><span class="hl-0">        </span><span class="hl-6">accountid</span><span class="hl-0">: </span><span class="hl-8">string</span><span class="hl-0">,</span><br/><span class="hl-0">    }[];</span><br/><span class="hl-0">    </span><span class="hl-6">reference</span><span class="hl-0">?: </span><span class="hl-8">string</span><span class="hl-0">[];</span><br/><span class="hl-0">    </span><span class="hl-6">tags</span><span class="hl-0">?: </span><span class="hl-8">string</span><span class="hl-0">[];</span><br/><span class="hl-0">}</span>
+<pre><code><span class="hl-3">interface</span><span class="hl-0"> </span><span class="hl-8">RawFileMetadata</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-7">mimetype</span><span class="hl-0">: </span><span class="hl-8">string</span><span class="hl-0">;</span><br/><span class="hl-0">    </span><span class="hl-7">accounts</span><span class="hl-0">: {</span><br/><span class="hl-0">        </span><span class="hl-7">accountid</span><span class="hl-0">: </span><span class="hl-8">string</span><span class="hl-0">,</span><br/><span class="hl-0">    }[];</span><br/><span class="hl-0">    </span><span class="hl-7">reference</span><span class="hl-0">?: </span><span class="hl-8">string</span><span class="hl-0">[];</span><br/><span class="hl-0">    </span><span class="hl-7">tags</span><span class="hl-0">?: </span><span class="hl-8">string</span><span class="hl-0">[];</span><br/><span class="hl-0">}</span>
 </code></pre>
 <table>
 <thead>
@@ -139,15 +135,17 @@
 <li class="pages-entry pages-entry-menu pages-entry-depth-1"><a>Guides</a>
 <ul>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../../guides/start.html">Getting <wbr/>Started</a></li>
-<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../../guides/read-data-overview.html">Reading <wbr/>Data -<wbr/> <wbr/>Step by step</a></li>
-<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../../guides/write-data-overview.html">Writing <wbr/>Data -<wbr/> <wbr/>Step by step</a></li></ul></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../../guides/read-data-overview.html">Reading data -<wbr/> <wbr/>Step by step guide</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../../guides/write-data-overview.html">Writing data -<wbr/> <wbr/>Step by step guide</a></li></ul></li>
 <li class="current pages-entry pages-entry-menu pages-entry-depth-1"><a>Fundamentals</a>
 <ul>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../contracts.html">Contracts</a></li>
-<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../initialise-sdk.html">Initializing SDK</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../initialise-sdk.html">Initializing the SDK</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../available-services.html">Getting <wbr/>Available <wbr/>Services</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../authorize.html">Authorizing</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../onboard.html">Onboarding <wbr/>Additional <wbr/>Services</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../reauthorize.html">Reauthorizing account</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../read-accounts.html">Read accounts</a></li>
 <li class="current pages-entry pages-entry-page pages-entry-depth-2"><a href="../read.html">Reading <wbr/>Data</a>
 <ul>
 <li class="current selected pages-entry pages-entry-page pages-entry-depth-3"><a href="file-meta.html">File <wbr/>Metadata</a></li></ul></li>

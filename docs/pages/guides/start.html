@@ -38,10 +38,6 @@
 <br>
 
 
-<a href="#getting-started" id="getting-started" style="color: inherit; text-decoration: none;">
-  <h1>Getting Started</h1>
-</a>
-
 <a href="#requirements" id="requirements" style="color: inherit; text-decoration: none;">
   <h2>Requirements</h2>
 </a>
@@ -54,7 +50,7 @@
   <h2>Installation</h2>
 </a>
 <p>Using npm:</p>
-<pre><code class="language-shell"><span class="hl-0">$ npm i @digime/digime-sdk-nodejs</span>
+<pre><code class="language-shell"><span class="hl-0">$ </span><span class="hl-1">npm</span><span class="hl-0"> </span><span class="hl-1">i</span><span class="hl-0"> </span><span class="hl-1">@digime/digime-sdk-nodejs</span>
 </code></pre>
 
 <a href="#obtaining-your-contract-id-application-id-amp-private-key" id="obtaining-your-contract-id-application-id-amp-private-key" style="color: inherit; text-decoration: none;">
@@ -67,7 +63,7 @@
   <h2>Initializing the SDK</h2>
 </a>
 <p>Once you have the above, we can initiate the SDK.</p>
-<pre><code class="language-typescript"><span class="hl-5">import</span><span class="hl-0"> { </span><span class="hl-6">init</span><span class="hl-0"> } </span><span class="hl-5">from</span><span class="hl-0"> </span><span class="hl-7">&quot;@digime/digime-sdk-nodejs&quot;</span><span class="hl-0">;</span><br/><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-3">digimeSDK</span><span class="hl-0"> = </span><span class="hl-4">init</span><span class="hl-0">({ </span><span class="hl-6">applicationId:</span><span class="hl-0"> &lt;</span><span class="hl-8">my</span><span class="hl-0">-</span><span class="hl-8">unique</span><span class="hl-0">-</span><span class="hl-8">application</span><span class="hl-0">-</span><span class="hl-8">id</span><span class="hl-0">&gt; });</span>
+<pre><code class="language-typescript"><span class="hl-6">import</span><span class="hl-0"> { </span><span class="hl-7">init</span><span class="hl-0"> } </span><span class="hl-6">from</span><span class="hl-0"> </span><span class="hl-1">&quot;@digime/digime-sdk-nodejs&quot;</span><span class="hl-0">;</span><br/><br/><span class="hl-3">const</span><span class="hl-0"> </span><span class="hl-4">digimeSDK</span><span class="hl-0"> = </span><span class="hl-5">init</span><span class="hl-0">({ </span><span class="hl-7">applicationId:</span><span class="hl-0"> &lt;</span><span class="hl-8">my</span><span class="hl-0">-</span><span class="hl-8">unique</span><span class="hl-0">-</span><span class="hl-8">application</span><span class="hl-0">-</span><span class="hl-8">id</span><span class="hl-0">&gt; });</span>
 </code></pre>
 <p>To see all the other options when initializing the SDK, please take a look <a href="../fundamentals/initialise-sdk.html">here</a>.</p>
 
@@ -103,15 +99,17 @@
 <li class="current pages-entry pages-entry-menu pages-entry-depth-1"><a>Guides</a>
 <ul>
 <li class="current selected pages-entry pages-entry-page pages-entry-depth-2"><a href="start.html">Getting <wbr/>Started</a></li>
-<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="read-data-overview.html">Reading <wbr/>Data -<wbr/> <wbr/>Step by step</a></li>
-<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="write-data-overview.html">Writing <wbr/>Data -<wbr/> <wbr/>Step by step</a></li></ul></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="read-data-overview.html">Reading data -<wbr/> <wbr/>Step by step guide</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="write-data-overview.html">Writing data -<wbr/> <wbr/>Step by step guide</a></li></ul></li>
 <li class="pages-entry pages-entry-menu pages-entry-depth-1"><a>Fundamentals</a>
 <ul>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/contracts.html">Contracts</a></li>
-<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/initialise-sdk.html">Initializing SDK</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/initialise-sdk.html">Initializing the SDK</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/available-services.html">Getting <wbr/>Available <wbr/>Services</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/authorize.html">Authorizing</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/onboard.html">Onboarding <wbr/>Additional <wbr/>Services</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/reauthorize.html">Reauthorizing account</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/read-accounts.html">Read accounts</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/read.html">Reading <wbr/>Data</a>
 <ul>
 <li class="pages-entry pages-entry-page pages-entry-depth-3"><a href="../fundamentals/read/file-meta.html">File <wbr/>Metadata</a></li></ul></li>

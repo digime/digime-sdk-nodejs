@@ -37,17 +37,13 @@
 
 <br>
 
-
-<a href="#handling-errors" id="handling-errors" style="color: inherit; text-decoration: none;">
-  <h1>Handling Errors</h1>
-</a>
 <p>By default, the SDK retries to make calls twice before giving up. This is something that can be configured when the SDK is <a href="./initialise-sdk.html">initialised</a>.</p>
 
 <a href="#errors-returned-from-digime-api" id="errors-returned-from-digime-api" style="color: inherit; text-decoration: none;">
   <h2>Errors Returned From digi.me API</h2>
 </a>
 <p>These are errors that have been thrown by the digi.me API. These errors will be thrown as <code>ServerError</code> and it will contain an error object specifying the error.</p>
-<pre><code><span class="hl-5">import</span><span class="hl-0"> { </span><span class="hl-6">ServerError</span><span class="hl-0"> } </span><span class="hl-5">from</span><span class="hl-0"> </span><span class="hl-7">&quot;@digime/digime-sdk-nodejs&quot;</span><span class="hl-0">;</span><br/><br/><span class="hl-1">// ... init the sdk</span><br/><br/><span class="hl-5">try</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-3">response</span><span class="hl-0"> = </span><span class="hl-5">await</span><span class="hl-0"> </span><span class="hl-6">sdk</span><span class="hl-0">.</span><span class="hl-4">getAuthorizeUrl</span><span class="hl-0">(</span><span class="hl-6">parameters</span><span class="hl-0">);</span><br/><span class="hl-0">} </span><span class="hl-5">catch</span><span class="hl-0"> (</span><span class="hl-6">e</span><span class="hl-0">) {</span><br/><br/><span class="hl-0">    </span><span class="hl-1">// Check if it&#39;s a server error</span><br/><span class="hl-0">    </span><span class="hl-5">if</span><span class="hl-0"> (</span><span class="hl-6">e</span><span class="hl-0"> </span><span class="hl-2">instanceof</span><span class="hl-0"> </span><span class="hl-8">ServerError</span><span class="hl-0">) {</span><br/><br/><span class="hl-0">        </span><span class="hl-1">// e.error is an object containing a code and a message</span><br/><span class="hl-0">        </span><span class="hl-2">const</span><span class="hl-0"> {</span><span class="hl-3">code</span><span class="hl-0">, </span><span class="hl-3">message</span><span class="hl-0">} = </span><span class="hl-6">e</span><span class="hl-0">.</span><span class="hl-6">error</span><br/><span class="hl-0">        </span><span class="hl-5">return</span><span class="hl-0"> </span><span class="hl-6">res</span><span class="hl-0">.</span><span class="hl-4">status</span><span class="hl-0">(</span><span class="hl-10">500</span><span class="hl-0">).</span><span class="hl-4">json</span><span class="hl-0">({ </span><span class="hl-6">code</span><span class="hl-0">, </span><span class="hl-6">message</span><span class="hl-0"> });</span><br/><br/><span class="hl-0">        </span><span class="hl-1">// For example when the redirect URL is invalid:</span><br/><span class="hl-0">        </span><span class="hl-1">// code: InvalidRedirectUri</span><br/><span class="hl-0">        </span><span class="hl-1">// message: &quot;The redirect_uri (${redirectUri}) is invalid&quot;</span><br/><span class="hl-0">    }</span><br/><br/><span class="hl-0">    </span><span class="hl-6">res</span><span class="hl-0">.</span><span class="hl-4">status</span><span class="hl-0">(</span><span class="hl-10">500</span><span class="hl-0">).</span><span class="hl-4">json</span><span class="hl-0">({ </span><span class="hl-6">error</span><span class="hl-0"> });</span><br/><span class="hl-0">}</span>
+<pre><code><span class="hl-6">import</span><span class="hl-0"> { </span><span class="hl-7">ServerError</span><span class="hl-0"> } </span><span class="hl-6">from</span><span class="hl-0"> </span><span class="hl-1">&quot;@digime/digime-sdk-nodejs&quot;</span><span class="hl-0">;</span><br/><br/><span class="hl-2">// ... init the sdk</span><br/><br/><span class="hl-6">try</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-3">const</span><span class="hl-0"> </span><span class="hl-4">response</span><span class="hl-0"> = </span><span class="hl-6">await</span><span class="hl-0"> </span><span class="hl-7">sdk</span><span class="hl-0">.</span><span class="hl-5">getAuthorizeUrl</span><span class="hl-0">(</span><span class="hl-7">parameters</span><span class="hl-0">);</span><br/><span class="hl-0">} </span><span class="hl-6">catch</span><span class="hl-0"> (</span><span class="hl-7">e</span><span class="hl-0">) {</span><br/><br/><span class="hl-0">    </span><span class="hl-2">// Check if it&#39;s a server error</span><br/><span class="hl-0">    </span><span class="hl-6">if</span><span class="hl-0"> (</span><span class="hl-7">e</span><span class="hl-0"> </span><span class="hl-3">instanceof</span><span class="hl-0"> </span><span class="hl-8">ServerError</span><span class="hl-0">) {</span><br/><br/><span class="hl-0">        </span><span class="hl-2">// e.error is an object containing a code and a message</span><br/><span class="hl-0">        </span><span class="hl-3">const</span><span class="hl-0"> {</span><span class="hl-4">code</span><span class="hl-0">, </span><span class="hl-4">message</span><span class="hl-0">} = </span><span class="hl-7">e</span><span class="hl-0">.</span><span class="hl-7">error</span><br/><span class="hl-0">        </span><span class="hl-6">return</span><span class="hl-0"> </span><span class="hl-7">res</span><span class="hl-0">.</span><span class="hl-5">status</span><span class="hl-0">(</span><span class="hl-10">500</span><span class="hl-0">).</span><span class="hl-5">json</span><span class="hl-0">({ </span><span class="hl-7">code</span><span class="hl-0">, </span><span class="hl-7">message</span><span class="hl-0"> });</span><br/><br/><span class="hl-0">        </span><span class="hl-2">// For example when the redirect URL is invalid:</span><br/><span class="hl-0">        </span><span class="hl-2">// code: InvalidRedirectUri</span><br/><span class="hl-0">        </span><span class="hl-2">// message: &quot;The redirect_uri (${redirectUri}) is invalid&quot;</span><br/><span class="hl-0">    }</span><br/><br/><span class="hl-0">    </span><span class="hl-7">res</span><span class="hl-0">.</span><span class="hl-5">status</span><span class="hl-0">(</span><span class="hl-10">500</span><span class="hl-0">).</span><span class="hl-5">json</span><span class="hl-0">({ </span><span class="hl-7">error</span><span class="hl-0"> });</span><br/><span class="hl-0">}</span>
 </code></pre>
 <p>Some common errors returned from digi.me:</p>
 <table>
@@ -87,6 +83,11 @@
 <td><code>SDKVersionInvalid</code></td>
 <td></td>
 <td>This SDK version is no longer supported.</td>
+</tr>
+<tr>
+<td><code>ServiceAuthorizationError</code></td>
+<td>Service authorization required</td>
+<td>This account needs to be <a href="./reauthorize.html">reauthroized</a></td>
 </tr>
 </tbody></table>
 
@@ -133,15 +134,17 @@
 <li class="pages-entry pages-entry-menu pages-entry-depth-1"><a>Guides</a>
 <ul>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../guides/start.html">Getting <wbr/>Started</a></li>
-<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../guides/read-data-overview.html">Reading <wbr/>Data -<wbr/> <wbr/>Step by step</a></li>
-<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../guides/write-data-overview.html">Writing <wbr/>Data -<wbr/> <wbr/>Step by step</a></li></ul></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../guides/read-data-overview.html">Reading data -<wbr/> <wbr/>Step by step guide</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../guides/write-data-overview.html">Writing data -<wbr/> <wbr/>Step by step guide</a></li></ul></li>
 <li class="current pages-entry pages-entry-menu pages-entry-depth-1"><a>Fundamentals</a>
 <ul>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="contracts.html">Contracts</a></li>
-<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="initialise-sdk.html">Initializing SDK</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="initialise-sdk.html">Initializing the SDK</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="available-services.html">Getting <wbr/>Available <wbr/>Services</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="authorize.html">Authorizing</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="onboard.html">Onboarding <wbr/>Additional <wbr/>Services</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="reauthorize.html">Reauthorizing account</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="read-accounts.html">Read accounts</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="read.html">Reading <wbr/>Data</a>
 <ul>
 <li class="pages-entry pages-entry-page pages-entry-depth-3"><a href="read/file-meta.html">File <wbr/>Metadata</a></li></ul></li>

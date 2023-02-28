@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>User Access Tokens | @digime/digime-sdk-nodejs</title><meta name="description" content="Documentation for @digime/digime-sdk-nodejs"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../../assets/style.css"/><link rel="stylesheet" href="../../assets/highlight.css"/><link rel="stylesheet" href="../../assets/custom.css"/><script async src="../../assets/search.js" id="search-script"></script><link rel="stylesheet" href="../../assets/pages.css"/></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Read accounts | @digime/digime-sdk-nodejs</title><meta name="description" content="Documentation for @digime/digime-sdk-nodejs"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../../assets/style.css"/><link rel="stylesheet" href="../../assets/highlight.css"/><link rel="stylesheet" href="../../assets/custom.css"/><script async src="../../assets/search.js" id="search-script"></script><link rel="stylesheet" href="../../assets/pages.css"/></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container">
 <div class="table-cell" id="tsd-search" data-base="../..">
 <div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
@@ -14,8 +14,8 @@
 <ul class="tsd-breadcrumb">
 <li><a href="../../modules.html">@digime/digime-sdk-nodejs</a></li>
 <li><span>Fundamentals</span></li>
-<li><a href="access-token.html">User Access Tokens</a></li></ul>
-<h1> User Access Tokens</h1></div>
+<li><a href="read-accounts.html">Read accounts</a></li></ul>
+<h1> Read accounts</h1></div>
 <div class="tsd-panel tsd-typography"><p><img src="https://securedownloads.digi.me/partners/digime/SDKReadmeBanner.png" alt=""></p>
 <p align="center">
     <a href="https://developers.digi.me/slack/join">
@@ -37,16 +37,26 @@
 
 <br>
 
-<p>In order to write or read data from the user&#39;s digi.me, we will need an user access token to their digi.me.
-Once we have this, we can read up to date data of the services the user has onboarded to their digi.me.</p>
-<p>User access tokens are obtained once a user successfully goes through a <a href="../fundamentals/authorize.html">authorization process</a>.</p>
-<p>Separate user access tokens are required for each contract, so it is possible to have multiple for one user if you require to read and write data.</p>
+<p>Before data can be read, we should already have a user access token for this user.</p>
+<p>If not, you&#39;ll need to <a href="./authorize.html">authorize them</a> first.</p>
 
-<a href="#access-token-expiry" id="access-token-expiry" style="color: inherit; text-decoration: none;">
-  <h2>Access Token Expiry</h2>
+<a href="#getting-a-read-session" id="getting-a-read-session" style="color: inherit; text-decoration: none;">
+  <h2>Getting a Read Session</h2>
 </a>
-<p>The access token will eventually expire. When you first created it, a timestamp in which it will expire will be returned. The SDK will attempt to refresh it automatically when you use it next. If a refresh is needed, it will return the new access token to you.</p>
-<p>If the refresh is unsuccessful, you&#39;ll need to go through the authorization process again with the user.</p>
+<p>To start reading user data, we first need to obtain a session:</p>
+<pre><code class="language-typescript"><span class="hl-2">// initialize the SDK</span><br/><span class="hl-6">import</span><span class="hl-0"> { </span><span class="hl-7">init</span><span class="hl-0"> } </span><span class="hl-6">from</span><span class="hl-0"> </span><span class="hl-1">&quot;@digime/digime-sdk-nodejs&quot;</span><span class="hl-0">;</span><br/><span class="hl-3">const</span><span class="hl-0"> </span><span class="hl-4">sdk</span><span class="hl-0"> = </span><span class="hl-5">init</span><span class="hl-0">({ </span><span class="hl-7">applicationId</span><span class="hl-0"> });</span><br/><br/><span class="hl-2">// contractDetails - The same one used in getAuthorizeUrl().</span><br/><span class="hl-2">// userAccessToken - The user access token from the authorization step.</span><br/><span class="hl-2">// sessionOptions - (Optional) An limits or scopes to set for this session.</span><br/><br/><span class="hl-3">const</span><span class="hl-0"> { </span><span class="hl-4">session</span><span class="hl-0">, </span><span class="hl-4">updatedAccessToken</span><span class="hl-0"> }  = </span><span class="hl-6">await</span><span class="hl-0"> </span><span class="hl-7">sdk</span><span class="hl-0">.</span><span class="hl-5">readSession</span><span class="hl-0">({</span><br/><span class="hl-0">    </span><span class="hl-7">contractDetails</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-7">userAccessToken</span><span class="hl-0">,</span><br/><span class="hl-0">});</span>
+</code></pre>
+<p>The <a href="../../interfaces/Types.Session.html">session</a> received can now be used to query data.</p>
+
+<a href="#reading-accounts" id="reading-accounts" style="color: inherit; text-decoration: none;">
+  <h2>Reading accounts</h2>
+</a>
+<p>Using the session received above, we can trigger readAccounts to read all user accounts.</p>
+<pre><code class="language-typescript"><span class="hl-2">// ... initialize the SDK</span><br/><span class="hl-2">// session - The session we received from readSession().</span><br/><span class="hl-2">// privateKey - private key of your contract.</span><br/><span class="hl-2">// contractId - Your contract id</span><br/><span class="hl-2">// userAccessToken - The user access token from the authorization step.</span><br/><br/><span class="hl-3">const</span><span class="hl-0"> </span><span class="hl-4">data</span><span class="hl-0"> = </span><span class="hl-6">await</span><span class="hl-0"> </span><span class="hl-7">sdk</span><span class="hl-0">.</span><span class="hl-5">readAccounts</span><span class="hl-0">({</span><br/><span class="hl-0">    </span><span class="hl-7">sessionKey:</span><span class="hl-0"> </span><span class="hl-7">session</span><span class="hl-0">.</span><span class="hl-7">key</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-7">privateKey</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-7">contractId</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-7">userAccessToken</span><span class="hl-0">,</span><br/><span class="hl-0">});</span>
+</code></pre>
+<p>Received <a href="../../types/Types.ReadAccountsResponse.html">response</a> should be something like:</p>
+<pre><code><span class="hl-0">{</span><br/><span class="hl-0">  </span><span class="hl-1">&quot;accounts&quot;</span><span class="hl-0">: [</span><br/><span class="hl-0">    {</span><br/><span class="hl-0">      </span><span class="hl-1">&quot;id&quot;</span><span class="hl-7">:</span><span class="hl-0"> </span><span class="hl-1">&quot;1_serviceid&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">      </span><span class="hl-1">&quot;name&quot;</span><span class="hl-7">:</span><span class="hl-0"> </span><span class="hl-1">&quot;Service 1&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">      </span><span class="hl-1">&quot;service&quot;</span><span class="hl-7">:</span><span class="hl-0"> {</span><br/><span class="hl-0">        </span><span class="hl-1">&quot;logo&quot;</span><span class="hl-7">:</span><span class="hl-0"> </span><span class="hl-1">&quot;LogoUrl&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">        </span><span class="hl-1">&quot;name&quot;</span><span class="hl-7">:</span><span class="hl-0"> </span><span class="hl-1">&quot;Service Name&quot;</span><br/><span class="hl-0">      }</span><br/><span class="hl-0">    },</span><br/><span class="hl-0">    {</span><br/><span class="hl-0">      </span><span class="hl-1">&quot;id&quot;</span><span class="hl-7">:</span><span class="hl-0"> </span><span class="hl-1">&quot;2_serviceid&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">      </span><span class="hl-1">&quot;name&quot;</span><span class="hl-7">:</span><span class="hl-0"> </span><span class="hl-1">&quot;Service 2&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">      </span><span class="hl-1">&quot;service&quot;</span><span class="hl-7">:</span><span class="hl-0"> {</span><br/><span class="hl-0">        </span><span class="hl-1">&quot;logo&quot;</span><span class="hl-7">:</span><span class="hl-0"> </span><span class="hl-1">&quot;LogoUrl&quot;</span><span class="hl-0">,</span><br/><span class="hl-0">        </span><span class="hl-1">&quot;name&quot;</span><span class="hl-7">:</span><span class="hl-0"> </span><span class="hl-1">&quot;Service Name&quot;</span><br/><span class="hl-0">      }</span><br/><span class="hl-0">    }</span><br/><span class="hl-0">  ],</span><br/><span class="hl-0">  </span><span class="hl-1">&quot;consentid&quot;</span><span class="hl-0">: </span><span class="hl-1">&quot;&quot;</span><br/><span class="hl-0">}</span>
+</code></pre>
 </div></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
@@ -81,12 +91,12 @@ Once we have this, we can read up to date data of the services the user has onbo
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="authorize.html">Authorizing</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="onboard.html">Onboarding <wbr/>Additional <wbr/>Services</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="reauthorize.html">Reauthorizing account</a></li>
-<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="read-accounts.html">Read accounts</a></li>
+<li class="current selected pages-entry pages-entry-page pages-entry-depth-2"><a href="read-accounts.html">Read accounts</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="read.html">Reading <wbr/>Data</a>
 <ul>
 <li class="pages-entry pages-entry-page pages-entry-depth-3"><a href="read/file-meta.html">File <wbr/>Metadata</a></li></ul></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="write.html">Writing <wbr/>Data</a></li>
-<li class="current selected pages-entry pages-entry-page pages-entry-depth-2"><a href="access-token.html">User <wbr/>Access <wbr/>Tokens</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="access-token.html">User <wbr/>Access <wbr/>Tokens</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="handling-errors.html">Handling <wbr/>Errors</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="example-applications.html">Example <wbr/>Applications</a></li></ul></li>
 <li class="tsd-kind-module"><a href="../../modules/Errors.html">Errors</a>
