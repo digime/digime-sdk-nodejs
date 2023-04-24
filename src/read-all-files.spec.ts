@@ -128,9 +128,21 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 "retrieves encrypted and %s files",
                 async (_label, file) => {
                     const fileList = [
-                        { name: "file1.json", updatedDate: 1568716294874 },
-                        { name: "file2.json", updatedDate: 1568716294874 },
-                        { name: "file3.json", updatedDate: 1568716294874 },
+                        {
+                            name: "file1.json",
+                            updatedDate: 1568716294874,
+                            schema: { standard: "digime", version: "1.0.0" },
+                        },
+                        {
+                            name: "file2.json",
+                            updatedDate: 1568716294874,
+                            schema: { standard: "digime", version: "1.0.0" },
+                        },
+                        {
+                            name: "file3.json",
+                            updatedDate: 1568716294874,
+                            schema: { standard: "digime", version: "1.0.0" },
+                        },
                     ];
 
                     nock(`${new URL(baseUrl).origin}`)
@@ -209,9 +221,21 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         state: "running",
                     },
                     fileList: [
-                        { name: "file1.json", updatedDate: 1568716294874 },
-                        { name: "file2.json", updatedDate: 1568716294874 },
-                        { name: "file3.json", updatedDate: 1568716294874 },
+                        {
+                            name: "file1.json",
+                            updatedDate: 1568716294874,
+                            schema: { standard: "digime", version: "1.0.0" },
+                        },
+                        {
+                            name: "file2.json",
+                            updatedDate: 1568716294874,
+                            schema: { standard: "digime", version: "1.0.0" },
+                        },
+                        {
+                            name: "file3.json",
+                            updatedDate: 1568716294874,
+                            schema: { standard: "digime", version: "1.0.0" },
+                        },
                     ],
                 })
                 .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
@@ -257,9 +281,9 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         state: "running",
                     },
                     fileList: [
-                        { name: "file1.json", updatedDate: 10 },
-                        { name: "file2.json", updatedDate: 10 },
-                        { name: "file3.json", updatedDate: 10 },
+                        { name: "file1.json", updatedDate: 10, schema: { standard: "digime", version: "1.0.0" } },
+                        { name: "file2.json", updatedDate: 10, schema: { standard: "digime", version: "1.0.0" } },
+                        { name: "file3.json", updatedDate: 10, schema: { standard: "digime", version: "1.0.0" } },
                     ],
                 })
                 .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
@@ -273,9 +297,9 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         state: "running",
                     },
                     fileList: [
-                        { name: "file1.json", updatedDate: 20 },
-                        { name: "file2.json", updatedDate: 20 },
-                        { name: "file3.json", updatedDate: 20 },
+                        { name: "file1.json", updatedDate: 20, schema: { standard: "digime", version: "1.0.0" } },
+                        { name: "file2.json", updatedDate: 20, schema: { standard: "digime", version: "1.0.0" } },
+                        { name: "file3.json", updatedDate: 20, schema: { standard: "digime", version: "1.0.0" } },
                     ],
                 })
                 .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
@@ -323,9 +347,9 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         state: "running",
                     },
                     fileList: [
-                        { name: "file1.json", updatedDate: 10 },
-                        { name: "file2.json", updatedDate: 10 },
-                        { name: "file3.json", updatedDate: 10 },
+                        { name: "file1.json", updatedDate: 10, schema: { standard: "fhir", version: "3.0.0" } },
+                        { name: "file2.json", updatedDate: 10, schema: { standard: "fhir", version: "3.0.0" } },
+                        { name: "file3.json", updatedDate: 10, schema: { standard: "fhir", version: "3.0.0" } },
                     ],
                 });
 
@@ -403,9 +427,21 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 // tslint:enable:max-line-length
             ])("With %p error when %s", async (errorName, _label2, file, keyPair, corruptLength) => {
                 const fileList = [
-                    { name: "file1.json", updatedDate: 1568716294874 },
-                    { name: "file2.json", updatedDate: 1568716294874 },
-                    { name: "file3.json", updatedDate: 1568716294874 },
+                    {
+                        name: "file1.json",
+                        updatedDate: 1568716294874,
+                        schema: { standard: "fhir", version: "3.0.0" },
+                    },
+                    {
+                        name: "file2.json",
+                        updatedDate: 1568716294874,
+                        schema: { standard: "fhir", version: "3.0.0" },
+                    },
+                    {
+                        name: "file3.json",
+                        updatedDate: 1568716294874,
+                        schema: { standard: "fhir", version: "3.0.0" },
+                    },
                 ];
 
                 nock(`${new URL(baseUrl).origin}`)

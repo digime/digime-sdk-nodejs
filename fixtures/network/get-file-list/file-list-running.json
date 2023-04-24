@@ -14,9 +14,9 @@
                 "state":"running"
             },
             "fileList": [
-                {"name":"file1.json","updatedDate":1568716294874},
-                {"name":"file2.json","updatedDate":1568716294874},
-                {"name":"file3.json","updatedDate":1568716294874}
+                {"name":"file1.json","updatedDate":1568716294874, "schema": {"standard": "digime", "version": "1.0.0"}},
+                {"name":"file2.json","updatedDate":1568716294874, "schema": {"standard": "digime", "version": "1.0.0"}},
+                {"name":"file3.json","updatedDate":1568716294874, "schema": {"standard": "digime", "version": "1.0.0"}}
             ]
         }
     },
@@ -35,9 +35,9 @@
                 "state":"running"
             },
             "fileList": [
-                {"name":"file1.json","updatedDate":1568716294874},
-                {"name":"file2.json","updatedDate":1568716294874},
-                {"name":"file3.json","updatedDate":1568716294874}
+                {"name":"file1.json","updatedDate":1568716294874, "schema": {"standard": "digime", "version": "1.0.0"}},
+                {"name":"file2.json","updatedDate":1568716294874, "schema": {"standard": "digime", "version": "1.0.0"}},
+                {"name":"file3.json","updatedDate":1568716294874, "schema": {"standard": "digime", "version": "1.0.0"}}
             ]
         }
     }

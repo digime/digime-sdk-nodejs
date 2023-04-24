@@ -30,7 +30,19 @@ interface MappedFileMetadata {
     objectType: string;
     serviceGroup: string;
     serviceName: string;
+    schema: FileDataSchema;
+    /** @deprecated this will be removed in next major update. New schema prop should be used. */
+    objectVersion: string;
 }
+
+type Schemas = "digime" | "fhir";
+
+interface FileDataSchema {
+    id?: string;
+    standard: Schemas; // Current supported schemas
+    version: string; // SemVer, ie "1.0.0"
+}
+
 ```
 | Property | Description | Data type |
 |-|-|-|
