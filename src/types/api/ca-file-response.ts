@@ -5,11 +5,36 @@
 import * as t from "io-ts";
 import { codecAssertion, CodecAssertion } from "../../utils/codec-assertion";
 
+export type Schemas = "digime" | "fhir";
+
+const SchemasCodec: t.Type<Schemas> = t.keyof({
+    digime: null,
+    fhir: null,
+});
+
+export interface FileDataSchema {
+    id?: string;
+    standard: Schemas;
+    version: string; // SemVer, ie "1.0.0"
+}
+
+export const FileDataSchemaCodec: t.Type<FileDataSchema> = t.intersection([
+    t.type({
+        standard: SchemasCodec,
+        version: t.string,
+    }),
+    t.partial({
+        id: t.string,
+    }),
+]);
+
 export interface MappedFileMetadata {
     objectCount: number;
     objectType: string;
     serviceGroup: string;
     serviceName: string;
+    schema: FileDataSchema;
+    /** @deprecated this will be removed in next major update. New schema prop should be used. */
     objectVersion: string;
 }
 
@@ -37,6 +62,7 @@ const MappedFileMetadataCodec: t.Type<MappedFileMetadata> = t.type({
     objectType: t.string,
     serviceGroup: t.string,
     serviceName: t.string,
+    schema: FileDataSchemaCodec,
     objectVersion: t.string,
 });
 
