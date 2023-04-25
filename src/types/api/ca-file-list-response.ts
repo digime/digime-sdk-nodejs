@@ -38,14 +38,18 @@ const LibrarySyncStatusCodec: t.Type<LibrarySyncStatus> = t.keyof({
 export interface CAFileListEntry {
     name: string;
     updatedDate: number;
-    schema: FileDataSchema;
+    schema?: FileDataSchema;
 }
 
-const CAFileListEntryCodec: t.Type<CAFileListEntry> = t.type({
-    name: t.string,
-    updatedDate: t.number,
-    schema: FileDataSchemaCodec,
-});
+const CAFileListEntryCodec: t.Type<CAFileListEntry> = t.intersection([
+    t.type({
+        name: t.string,
+        updatedDate: t.number,
+    }),
+    t.partial({
+        schema: FileDataSchemaCodec,
+    }),
+]);
 
 /*
  * AccountSyncStatusEntry
