@@ -21,7 +21,7 @@
 
 To access the digi.me platform, you need to obtain a custom application ID as well as a valid contract ID.
 
-To get your own application ID, you can get yours by filling out the [registration form here](https://go.digi.me/developers/register).
+To get your own application ID, you can get yours by filling out the [registration form here](https://digi.me/register).
 
 Contracts represent the data that you are requesting from your users as well as the specifics around terms of use. Each contract has a contract ID, a private key that work together to request, download and decrypt personal data shared with your app.
 
