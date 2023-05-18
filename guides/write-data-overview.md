@@ -125,6 +125,6 @@ If we need to write other files to the users in the future, we can keep writing 
 
 ## 4. Reading files back out
 
-If you've written data to the user, you can read it back out using the [same process for reading user data](./read-data-overview.html). You will need a new contract which reads out raw data, so please contact digi.me [here](https://go.digi.me/developers/register) to get yours.
+If you've written data to the user, you can read it back out using the [same process for reading user data](./read-data-overview.html). You will need a new contract which reads out raw data, so please contact digi.me [here](https://digi.me/register) to get yours.
 
 Make sure you pass in the user access token which you obtained in step 3 above when authorizing the new contract.

@@ -32,7 +32,7 @@ $ npm i @digime/digime-sdk-nodejs
 ```
 
 ## Obtaining your Contract ID, Application ID & Private Key
-To access the digi.me platform, you need to obtain an AppID for your application. You can get yours by filling out the registration form [here](https://go.digi.me/developers/register).
+To access the digi.me platform, you need to obtain an AppID for your application. You can get yours by filling out the registration form [here](https://digi.me/register).
 
 In a production environment, you will also be required to obtain your own Contract ID and Private Key from digi.me support. However, for demo purposes, we provide example values. You can find example keys in our [example application](https://github.com/digime/digime-sdk-nodejs-example).
 
