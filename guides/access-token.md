@@ -31,3 +31,5 @@ Separate user access tokens are required for each contract, so it is possible to
 The access token will eventually expire. When you first created it, a timestamp in which it will expire will be returned. The SDK will attempt to refresh it automatically when you use it next. If a refresh is needed, it will return the new access token to you.
 
 If the refresh is unsuccessful, you'll need to go through the authorization process again with the user.
+
+Note that methods for reading data will also try to do auto refresh, so please add logic for keep this latest tokek that is returned back from SDK.

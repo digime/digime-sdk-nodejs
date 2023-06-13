@@ -155,6 +155,8 @@ When your user has onboarded all the services you require, we can start reading 
 // userAccessToken - The user access token from the authorization step.
 // onFileData - A function that will be called when a file is successfully downloaded.
 // onFileError - A function that will be called when an error occurs when downloading a file.
+// onStatusChange - A function that will be called when file list status is changed.
+// onAccessTokenChange - A function that will be called when AccessToken is changed.
 
 const { stopPolling, filePromise } = sdk.readAllFiles({
     sessionKey: session.key,
@@ -162,7 +164,9 @@ const { stopPolling, filePromise } = sdk.readAllFiles({
     contractId: <your-contract-id>,
     userAccessToken,
     onFileData: onFileDownloaded,
-    onFileError: onFileError
+    onFileError: onFileError,
+    onStatusChange: onStatusChange,
+    onAccessTokenChange: onAccessTokenChange,
 });
 
 // filePromise is a promise that will resolve when data fetching is complete.
@@ -170,5 +174,7 @@ const { stopPolling, filePromise } = sdk.readAllFiles({
 ```
 
 And that's it, you've successfully received data from the user using digi.me!
+
+When user access token is updated onAccessTokenChange will be triggered. Please use onAccessTokenChange to add logic for updating access token.
 
 Next time you want to get data from the same user, you can reuse the User Access Token and go straight to step 5 of the process!

@@ -5,6 +5,7 @@
 import * as t from "io-ts";
 import { codecAssertion, CodecAssertion } from "../../utils/codec-assertion";
 import { FileDataSchema, FileDataSchemaCodec } from "./ca-file-response";
+import { UserAccessToken, UserAccessTokenCodec } from "../user-access-token";
 
 /*
  * AccountSyncStatus
@@ -22,7 +23,7 @@ const AccountSyncStatusCodec: t.Type<AccountSyncStatus> = t.keyof({
  * LibrarySyncStatus
  */
 
-type LibrarySyncStatus = "running" | "partial" | "completed" | "pending";
+export type LibrarySyncStatus = "running" | "partial" | "completed" | "pending";
 
 const LibrarySyncStatusCodec: t.Type<LibrarySyncStatus> = t.keyof({
     running: null,
@@ -73,6 +74,7 @@ export interface CAFileListResponse {
         details?: Record<string, AccountSyncStatusEntry>;
     };
     fileList?: CAFileListEntry[];
+    userAccessToken?: UserAccessToken;
 }
 
 const CAFileListResponseCodec: t.Type<CAFileListResponse> = t.intersection([
@@ -88,6 +90,7 @@ const CAFileListResponseCodec: t.Type<CAFileListResponse> = t.intersection([
     }),
     t.partial({
         fileList: t.array(CAFileListEntryCodec),
+        userAccessToken: UserAccessTokenCodec,
     }),
 ]);
 
