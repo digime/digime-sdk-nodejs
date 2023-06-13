@@ -5,11 +5,12 @@
 import { sign } from "jsonwebtoken";
 import NodeRSA from "node-rsa";
 import { getRandomAlphaNumeric } from "./crypto";
-import { handleServerResponse, net } from "./net";
+import { net } from "./net";
 import { assertIsCAFileListResponse, CAFileListResponse } from "./types/api/ca-file-list-response";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { UserAccessToken } from "./types/user-access-token";
-import { Response } from "got/dist/source";
+import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
+import { ContractDetails } from "./types/common";
 
 interface ReadFileListOptions {
     sessionKey: string;
@@ -18,10 +19,20 @@ interface ReadFileListOptions {
     userAccessToken: UserAccessToken;
 }
 
-const readFileList = async (options: ReadFileListOptions, sdkConfig: SDKConfiguration): Promise<CAFileListResponse> => {
+interface ReadFileListOptionsFormated {
+    sessionKey: string;
+    userAccessToken: UserAccessToken;
+    contractDetails: ContractDetails;
+}
+
+const _readFileList = async (
+    options: ReadFileListOptionsFormated,
+    sdkConfig: SDKConfiguration
+): Promise<CAFileListResponse> => {
     const url = `${sdkConfig.baseUrl}permission-access/query/${options.sessionKey}`;
-    const { contractId, privateKey, userAccessToken } = options;
-    let response: Response<unknown>;
+    const { userAccessToken } = options;
+    const { contractId, privateKey } = options.contractDetails;
+
     const jwt: string = sign(
         {
             access_token: userAccessToken.accessToken.value,
@@ -35,22 +46,35 @@ const readFileList = async (options: ReadFileListOptions, sdkConfig: SDKConfigur
             noTimestamp: true,
         }
     );
-    try {
-        response = await net.get(url, {
-            headers: {
-                Authorization: `Bearer ${jwt}`,
-            },
-            responseType: "json",
-            retry: sdkConfig.retryOptions,
-        });
-    } catch (error) {
-        handleServerResponse(error);
-        throw error;
-    }
+    const response = await net.get(url, {
+        headers: {
+            Authorization: `Bearer ${jwt}`,
+        },
+        responseType: "json",
+        retry: sdkConfig.retryOptions,
+    });
 
     assertIsCAFileListResponse(response.body);
 
-    return response.body;
+    return {
+        ...response.body,
+        userAccessToken,
+    };
+};
+
+const readFileList = async (
+    props: ReadFileListOptions,
+    sdkConfiguration: SDKConfiguration
+): Promise<CAFileListResponse> => {
+    const formatedOptions: ReadFileListOptionsFormated = {
+        sessionKey: props.sessionKey,
+        userAccessToken: props.userAccessToken,
+        contractDetails: {
+            contractId: props.contractId,
+            privateKey: props.privateKey.toString(),
+        },
+    };
+    return refreshTokenWrapper(_readFileList, formatedOptions, sdkConfiguration);
 };
 
 export { readFileList, ReadFileListOptions, CAFileListResponse as ReadFileListResponse };

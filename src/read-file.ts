@@ -5,9 +5,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TypeValidationError } from "./errors";
 import { isNonEmptyString } from "./utils/basic-utils";
-import { handleServerResponse, net } from "./net";
+import { net } from "./net";
 import { decryptData, getRandomAlphaNumeric } from "./crypto";
-import { Response } from "got/dist/source";
 import NodeRSA from "node-rsa";
 import { isDecodedCAFileHeaderResponse, MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
 import * as zlib from "zlib";
@@ -15,6 +14,8 @@ import base64url from "base64url";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { UserAccessToken } from "./types/user-access-token";
 import { sign } from "jsonwebtoken";
+import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
+import { ContractDetails } from "./types/common";
 
 export interface ReadFileOptions {
     sessionKey: string;
@@ -24,16 +25,25 @@ export interface ReadFileOptions {
     userAccessToken: UserAccessToken;
 }
 
+interface ReadFileOptionsFormated {
+    sessionKey: string;
+    fileName: string;
+    userAccessToken: UserAccessToken;
+    contractDetails: ContractDetails;
+}
+
 export type ReadFileMeta = MappedFileMetadata | RawFileMetadata;
 
 export interface ReadFileResponse {
     fileData: Buffer;
     fileName: string;
     fileMetadata: ReadFileMeta;
+    userAccessToken?: UserAccessToken;
 }
 
-const readFile = async (options: ReadFileOptions, sdkConfig: SDKConfiguration): Promise<ReadFileResponse> => {
-    const { sessionKey, fileName, privateKey } = options;
+const _readFile = async (options: ReadFileOptionsFormated, sdkConfig: SDKConfiguration): Promise<ReadFileResponse> => {
+    const { sessionKey, fileName, userAccessToken } = options;
+    const { privateKey } = options.contractDetails;
 
     if (!isNonEmptyString(sessionKey)) {
         throw new TypeValidationError("Parameter sessionKey should be a non empty string");
@@ -54,6 +64,7 @@ const readFile = async (options: ReadFileOptions, sdkConfig: SDKConfiguration): 
         fileData: data,
         fileMetadata,
         fileName,
+        userAccessToken,
     };
 };
 
@@ -63,10 +74,9 @@ interface FetchFileResponse {
     compression?: string;
 }
 
-const fetchFile = async (options: ReadFileOptions, sdkConfig: SDKConfiguration): Promise<FetchFileResponse> => {
-    const { sessionKey, fileName, userAccessToken, contractId, privateKey } = options;
-
-    let response: Response<unknown>;
+const fetchFile = async (options: ReadFileOptionsFormated, sdkConfig: SDKConfiguration): Promise<FetchFileResponse> => {
+    const { sessionKey, fileName, userAccessToken } = options;
+    const { privateKey, contractId } = options.contractDetails;
 
     const jwt: string = sign(
         {
@@ -82,18 +92,13 @@ const fetchFile = async (options: ReadFileOptions, sdkConfig: SDKConfiguration):
         }
     );
 
-    try {
-        response = await net.get(`${sdkConfig.baseUrl}permission-access/query/${sessionKey}/${fileName}`, {
-            headers: {
-                accept: "application/octet-stream",
-                Authorization: `Bearer ${jwt}`,
-            },
-            responseType: "buffer",
-        });
-    } catch (error) {
-        handleServerResponse(error);
-        throw error;
-    }
+    const response = await net.get(`${sdkConfig.baseUrl}permission-access/query/${sessionKey}/${fileName}`, {
+        headers: {
+            accept: "application/octet-stream",
+            Authorization: `Bearer ${jwt}`,
+        },
+        responseType: "buffer",
+    });
 
     const fileContent: Buffer = response.body as Buffer;
     const base64Meta: string = response.headers["x-metadata"] as string;
@@ -106,6 +111,19 @@ const fetchFile = async (options: ReadFileOptions, sdkConfig: SDKConfiguration):
         fileContent,
         fileMetadata: decodedMeta.metadata,
     };
+};
+
+const readFile = async (options: ReadFileOptions, sdkConfig: SDKConfiguration): Promise<ReadFileResponse> => {
+    const formatedOptions: ReadFileOptionsFormated = {
+        sessionKey: options.sessionKey,
+        fileName: options.fileName,
+        userAccessToken: options.userAccessToken,
+        contractDetails: {
+            contractId: options.contractId,
+            privateKey: options.privateKey.toString(),
+        },
+    };
+    return refreshTokenWrapper(_readFile, formatedOptions, sdkConfig);
 };
 
 export { readFile };

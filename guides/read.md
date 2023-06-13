@@ -58,6 +58,8 @@ Using the session received above, we can trigger [readAllFiles()](../../interfac
 // userAccessToken - The user access token from the authorization step.
 // onFileData - A function that will be called when a file is successfully downloaded.
 // onFileError - A function that will be called when an error occurs when downloading a file.
+// onStatusChange - A function that will be called when file list status is changed.
+// onAccessTokenChange - A function that will be called when AccessToken is changed.
 
 const { stopPolling, filePromise } = await sdk.readAllFiles({
     sessionKey: session.key,
@@ -73,6 +75,12 @@ const { stopPolling, filePromise } = await sdk.readAllFiles({
     },
     onFileError: ({fileName, error}) => {
         console.log(`Error retrieving file ${fileName}: ${error.toString()}`);
+    },
+    onStatusChange(response) {
+        console.log("File list status changed: ", response);
+    },
+    onAccessTokenChange(response) {
+        // Add logic to save new access token
     },
 });
 
@@ -111,3 +119,5 @@ const data = await sdk.readFile({
     userAccessToken,
 });
 ```
+
+Note that readAllFiles is helper method that uses readFileList and readFile methods to return entire data set and also help user maintain latest access token and file list status. If readFileList and readFile methods are used please add logic to maintain latest access token since both of these method will try to do refresh of token automatically.
