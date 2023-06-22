@@ -32,17 +32,21 @@ export interface GetOnboardServiceUrlOptions {
      */
     userAccessToken: UserAccessToken;
     /**
-     * Service ID to be added.
+     * Service ID to be added. If serviceId is not passed user will have option to choose service that will be added.
      */
-    serviceId: number;
+    serviceId?: number;
 }
 
-const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.type({
-    contractDetails: ContractDetailsCodec,
-    callback: t.string,
-    userAccessToken: UserAccessTokenCodec,
-    serviceId: t.number,
-});
+const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.intersection([
+    t.type({
+        contractDetails: ContractDetailsCodec,
+        callback: t.string,
+        userAccessToken: UserAccessTokenCodec,
+    }),
+    t.partial({
+        serviceId: t.number,
+    }),
+]);
 
 export interface GetOnboardServiceUrlResponse {
     session: Session;
@@ -54,7 +58,7 @@ const _getOnboardServiceUrl = async (
     props: GetOnboardServiceUrlOptions,
     sdkConfig: SDKConfiguration
 ): Promise<GetOnboardServiceUrlResponse> => {
-    if (!GetOnboardServiceUrlCodec.is(props) || isNaN(props.serviceId) || !isNonEmptyString(props.callback)) {
+    if (!GetOnboardServiceUrlCodec.is(props) || !isNonEmptyString(props.callback)) {
         throw new TypeValidationError("Error on getOnboardServiceUrl(). Incorrect parameters passed in.");
     }
 
@@ -100,10 +104,18 @@ const _getOnboardServiceUrl = async (
     const session = get(response.body, "session", {} as GetOnboardServiceUrlResponse["session"]);
 
     const result: URL = new URL(`${sdkConfig.onboardUrl}onboard`);
-    result.search = new URLSearchParams({
+    let searchParms: Record<string, string> = {
         code,
-        service: props.serviceId.toString(),
-    }).toString();
+    };
+
+    if (props.serviceId) {
+        searchParms = {
+            code,
+            service: props.serviceId.toString(),
+        };
+    }
+
+    result.search = new URLSearchParams(searchParms).toString();
 
     return {
         url: result.toString(),
