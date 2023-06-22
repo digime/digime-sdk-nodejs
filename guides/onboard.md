@@ -30,7 +30,7 @@ const sdk = init({ applicationId: <you-application-id> });
 
 // callback - The URL to call after user is onboarded.
 // contractDetails - The same one used in getAuthorizeUrl().
-// serviceId - The service to onboard
+// serviceId - The service to onboard. If serviceId is not passed user will have option to choose service that will be added.
 // userAccessToken - The user access token from the authorization step.
 
 const { url } = await sdk.getOnboardServiceUrl({

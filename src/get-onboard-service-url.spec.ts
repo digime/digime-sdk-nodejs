@@ -124,19 +124,16 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
         });
 
         describe("Throws TypeValidationError when serviceId is ", () => {
-            it.each([true, false, null, undefined, {}, [], NaN, "", () => null, Symbol("test")])(
-                "%p",
-                async (serviceId: any) => {
-                    const promise = sdk.getOnboardServiceUrl({
-                        contractDetails: CONTRACT_DETAILS,
-                        serviceId,
-                        userAccessToken: SAMPLE_TOKEN,
-                        callback: CALLBACK_URL,
-                    });
+            it.each([true, false, null, {}, [], "", () => null, Symbol("test")])("%p", async (serviceId: any) => {
+                const promise = sdk.getOnboardServiceUrl({
+                    contractDetails: CONTRACT_DETAILS,
+                    serviceId,
+                    userAccessToken: SAMPLE_TOKEN,
+                    callback: CALLBACK_URL,
+                });
 
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
-                }
-            );
+                return expect(promise).rejects.toThrowError(TypeValidationError);
+            });
         });
 
         describe(`getOnboardServiceUrl with minimum props`, () => {
