@@ -47,6 +47,7 @@ Once we have this, we can read up to date data of the services the user has onbo
 </a>
 <p>The access token will eventually expire. When you first created it, a timestamp in which it will expire will be returned. The SDK will attempt to refresh it automatically when you use it next. If a refresh is needed, it will return the new access token to you.</p>
 <p>If the refresh is unsuccessful, you&#39;ll need to go through the authorization process again with the user.</p>
+<p>Note that methods for reading data will also try to do auto refresh, so please add logic for keep this latest tokek that is returned back from SDK.</p>
 </div></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
