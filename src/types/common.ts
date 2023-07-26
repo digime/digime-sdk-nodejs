@@ -17,6 +17,13 @@ export interface ContractDetails {
     privateKey: string;
 }
 
+export type SourceType = "pull" | "push";
+
+export const SourceTypeCodec: t.Type<SourceType> = t.keyof({
+    pull: null,
+    push: null,
+});
+
 export interface CAScope {
     /**
      * Control the scope of mapped data using time ranges
