@@ -14,7 +14,14 @@ import { sign } from "jsonwebtoken";
 import { handleServerResponse, net } from "./net";
 import get from "lodash.get";
 import { SDKConfiguration } from "./types/sdk-configuration";
-import { ContractDetails, ContractDetailsCodec, PullSessionOptions, PullSessionOptionsCodec } from "./types/common";
+import {
+    ContractDetails,
+    ContractDetailsCodec,
+    PullSessionOptions,
+    PullSessionOptionsCodec,
+    SourceType,
+    SourceTypeCodec,
+} from "./types/common";
 import { isNonEmptyString } from "./utils/basic-utils";
 import sdkVersion from "./sdk-version";
 
@@ -50,6 +57,11 @@ export interface GetAuthorizeUrlOptions {
      * Any extra data you want to be passed back after a authorization flow.
      */
     state: string;
+
+    /**
+     * Please use SourceType push to filter out only services that are push type. Default SourceType is set to pull.
+     */
+    sourceType?: SourceType;
 }
 
 export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.intersection([
@@ -64,6 +76,7 @@ export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.int
         sessionOptions: t.partial({
             pull: PullSessionOptionsCodec,
         }),
+        sourceType: SourceTypeCodec,
     }),
 ]);
 
@@ -100,11 +113,12 @@ const getAuthorizeUrl = async (
     }
 
     const { code, codeVerifier, session } = await _authorize(props, sdkConfig);
-    const { serviceId } = props;
+    const { serviceId, sourceType } = props;
 
     const result: URL = new URL(`${sdkConfig.onboardUrl}authorize`);
     result.search = new URLSearchParams({
         code,
+        sourceType: sourceType ? sourceType : "pull",
         ...(serviceId && { service: serviceId.toString() }),
     }).toString();
 
