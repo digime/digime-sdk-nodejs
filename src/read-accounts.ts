@@ -2,44 +2,171 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { DigiMeSDKError } from "./errors";
-import { CAAccountsResponse } from "./types/api/ca-accounts-response";
-import { readFile } from "./read-file";
-import NodeRSA from "node-rsa";
+import { net } from "./net";
+import { sign } from "jsonwebtoken";
+import { getRandomAlphaNumeric } from "./crypto";
+import { UserAccessToken, UserAccessTokenCodec } from "./types/user-access-token";
 import { SDKConfiguration } from "./types/sdk-configuration";
-import { UserAccessToken } from "./types/user-access-token";
+import { ContractDetails, ContractDetailsCodec } from "./types/common";
+import * as t from "io-ts";
+import { DigiMeSDKError, TypeValidationError } from "./errors";
+import { codecAssertion, CodecAssertion } from "./utils/codec-assertion";
 
 export interface ReadAccountsOptions {
-    sessionKey: string;
-    privateKey: NodeRSA.Key;
-    contractId: string;
+    contractDetails: ContractDetails;
     userAccessToken: UserAccessToken;
 }
 
-export type ReadAccountsResponse = Pick<CAAccountsResponse, "accounts">;
+export interface AccessTokenStatus {
+    authorized: boolean;
+    expiresAt?: number;
+}
+
+export type AccountType =
+    | "USER"
+    | "ADMIN"
+    | "EVENT"
+    | "GROUP"
+    | "BANK"
+    | "CREDIT_CARD"
+    | "IMPORTED"
+    | "INVESTMENT"
+    | "INSURANCE"
+    | "LOAN"
+    | "REWARD"
+    | "BILL"
+    | "PUSH";
+
+export interface AccountsResponse {
+    accessTokenStatus?: AccessTokenStatus;
+    accountHash: string;
+    accountId: string;
+    accountType: AccountType;
+    createdDate: number;
+    entityId: string;
+    serviceGroupId: number;
+    serviceGroupName: string;
+    serviceProviderId?: number;
+    serviceProviderName?: string;
+    serviceProviderReference?: string;
+    serviceTypeId: number;
+    serviceTypeName: string;
+    serviceTypeReference: string;
+    sourceId: number;
+    updatedDate: number;
+    username?: string;
+    providerFavIcon?: string;
+    providerLogo?: string;
+}
+
+export type ReadAccountsResponse = AccountsResponse[];
+
+const AccessTokenStatusCodec: t.Type<AccessTokenStatus> = t.intersection([
+    t.type({
+        authorized: t.boolean,
+    }),
+    t.partial({
+        expiresAt: t.number,
+    }),
+]);
+
+const AccountTypeCodec: t.Type<AccountType> = t.keyof({
+    USER: null,
+    ADMIN: null,
+    EVENT: null,
+    GROUP: null,
+    BANK: null,
+    CREDIT_CARD: null,
+    IMPORTED: null,
+    INVESTMENT: null,
+    INSURANCE: null,
+    LOAN: null,
+    REWARD: null,
+    BILL: null,
+    PUSH: null,
+});
+
+export const ReadAccountsResponseCodec: t.Type<ReadAccountsResponse> = t.array(
+    t.intersection([
+        t.type({
+            accountHash: t.string,
+            accountId: t.string,
+            accountType: AccountTypeCodec,
+            createdDate: t.number,
+            entityId: t.string,
+            serviceGroupId: t.number,
+            serviceGroupName: t.string,
+            serviceTypeId: t.number,
+            serviceTypeName: t.string,
+            serviceTypeReference: t.string,
+            sourceId: t.number,
+            updatedDate: t.number,
+        }),
+        t.partial({
+            accessTokenStatus: AccessTokenStatusCodec,
+            serviceProviderId: t.number,
+            serviceProviderName: t.string,
+            serviceProviderReference: t.string,
+            username: t.string,
+            providerFavIcon: t.string,
+            providerLogo: t.string,
+        }),
+    ])
+);
+
+export const assertIsReadAccountsResponse: CodecAssertion<ReadAccountsResponse> =
+    codecAssertion(ReadAccountsResponseCodec);
+
+export const ReadAccountsOptionsCodec: t.Type<ReadAccountsOptions> = t.type({
+    contractDetails: ContractDetailsCodec,
+    userAccessToken: UserAccessTokenCodec,
+});
 
 const readAccounts = async (
     options: ReadAccountsOptions,
     sdkConfig: SDKConfiguration
 ): Promise<ReadAccountsResponse> => {
-    const { sessionKey, privateKey, contractId, userAccessToken } = options;
-    const { fileData } = await readFile(
-        {
-            sessionKey,
-            fileName: "accounts.json",
-            privateKey,
-            contractId,
-            userAccessToken,
-        },
-        sdkConfig
-    );
+    if (!ReadAccountsOptionsCodec.is(options)) {
+        throw new TypeValidationError(
+            "Parameters failed validation. props should be a plain object that contains the properties contractDetails and userAccessToken"
+        );
+    }
+
+    const { contractDetails, userAccessToken } = options;
+    const { contractId, privateKey } = contractDetails;
 
     try {
+        const jwt: string = sign(
+            {
+                access_token: userAccessToken.accessToken.value,
+                client_id: `${sdkConfig.applicationId}_${contractId}`,
+                nonce: getRandomAlphaNumeric(32),
+                timestamp: Date.now(),
+            },
+            privateKey.toString(),
+            {
+                algorithm: "PS512",
+                noTimestamp: true,
+            }
+        );
+
+        const url = `${sdkConfig.baseUrl}permission-access/accounts`;
+
+        const response = await net.get(url, {
+            headers: {
+                Authorization: `Bearer ${jwt}`,
+            },
+            responseType: "json",
+            retry: sdkConfig.retryOptions,
+        });
+
+        assertIsReadAccountsResponse(response.body);
+
         return {
-            accounts: JSON.parse(fileData.toString("utf8")),
+            ...response.body,
         };
     } catch (error) {
-        throw new DigiMeSDKError("Account file is malformed.");
+        throw new DigiMeSDKError("Problem with getting user account list");
     }
 };
 
