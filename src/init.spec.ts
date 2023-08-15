@@ -18,7 +18,7 @@ describe("init", () => {
             "getAuthorizeUrl",
             "getOnboardServiceUrl",
             "exchangeCodeForToken",
-            "write",
+            "pushData",
             "readSession",
             "deleteUser",
             "getAvailableServices",

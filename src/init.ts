@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { write, WriteOptions } from "./write";
+import { pushData, PushDataOptions } from "./push";
 import { assertIsSDKConfiguration, SDKConfiguration } from "./types/sdk-configuration";
 import { getAvailableServices } from "./get-available-services";
 import { getAuthorizeUrl, GetAuthorizeUrlOptions } from "./get-authorize-url";
@@ -49,7 +49,7 @@ const init = (config: SDKConfiguration): DigimeSDK => {
         getReauthorizeAccountUrl: (props: GetReauthorizeAccountUrlOptions) =>
             getReauthorizeAccountUrl(props, sdkConfig),
         exchangeCodeForToken: (props: ExchangeCodeForTokenOptions) => exchangeCodeForToken(props, sdkConfig),
-        write: (props: WriteOptions) => write(props, sdkConfig),
+        pushData: (props: PushDataOptions) => pushData(props, sdkConfig),
         readSession: (props: ReadSessionOptions) => readSession(props, sdkConfig),
         deleteUser: (props: DeleteUserOptions) => deleteUser(props, sdkConfig),
         getAvailableServices: (contractId?: string) => getAvailableServices(sdkConfig, contractId),

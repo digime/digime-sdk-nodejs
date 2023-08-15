@@ -19,7 +19,7 @@ import { ReadFileOptions, ReadFileResponse } from "./read-file";
 import { ReadFileListOptions, ReadFileListResponse } from "./read-file-list";
 import { ReadSessionOptions, ReadSessionResponse } from "./read-session";
 import { UserAccessToken } from "./types/user-access-token";
-import { WriteOptions, WriteResponse } from "./write";
+import { PushDataOptions } from "./push";
 
 export interface DigimeSDK {
     /**
@@ -59,11 +59,11 @@ export interface DigimeSDK {
     exchangeCodeForToken: (props: ExchangeCodeForTokenOptions) => Promise<UserAccessToken>;
 
     /**
-     * Write something to the user's digi.me
+     * Push something to the user's digi.me library or to provider
      *
      * @category Write
      */
-    write: (props: WriteOptions) => Promise<WriteResponse>;
+    pushData: (props: PushDataOptions) => Promise<void>;
 
     /**
      * Start a new read session. When we already have an user access token.

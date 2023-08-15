@@ -17,7 +17,7 @@ export { ReadAllFilesOptions, ReadAllFilesResponse } from "./read-all-files";
 export { ReadFileOptions, ReadFileResponse } from "./read-file";
 export { ReadFileListOptions, ReadFileListResponse } from "./read-file-list";
 export { ReadSessionOptions, ReadSessionResponse } from "./read-session";
-export { WriteOptions, WriteResponse } from "./write";
+export { PushDataOptions } from "./push";
 export { SDKConfiguration } from "./types/sdk-configuration";
 export { Session } from "./types/api/session";
 export { MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";

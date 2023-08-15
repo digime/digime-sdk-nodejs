@@ -45,17 +45,17 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
     ["Default exported SDK", digime, TEST_BASE_URL],
     ["Custom SDK", customSDK, TEST_CUSTOM_BASE_URL],
 ])("%s", (_title, sdk, baseUrl) => {
-    describe("write", () => {
+    describe("pushData", () => {
         describe("Throws TypeValidationErrors", () => {
             const invalidInputs = [true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")];
 
             describe("Throws TypeValidationError when contractId is ", () => {
                 it.each(invalidInputs)("%p", async (contractId: any) => {
-                    const promise = sdk.write({
+                    const promise = sdk.pushData({
                         ...defaultValidDataPush,
                         contractDetails: {
-                            ...CONTRACT_DETAILS,
-                            contractId,
+                            contractId: contractId,
+                            privateKey: defaultValidDataPush.contractDetails.privateKey,
                         },
                     });
 
@@ -65,7 +65,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
             describe("Throws TypeValidationError when privateKey is ", () => {
                 it.each(invalidInputs)("%p", async (privateKey: any) => {
-                    const promise = sdk.write({
+                    const promise = sdk.pushData({
                         ...defaultValidDataPush,
                         contractDetails: {
                             ...CONTRACT_DETAILS,
@@ -81,12 +81,9 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 const invalidFileDataInput = [...invalidInputs, "non empty strings"];
                 it.each(invalidFileDataInput)("%p", (fileData: any) => {
                     expect(
-                        sdk.write({
+                        sdk.pushData({
                             ...defaultValidDataPush,
-                            data: {
-                                ...defaultValidDataPush.data,
-                                fileData,
-                            },
+                            data: fileData,
                         })
                     ).rejects.toThrow(TypeValidationError);
                 });
@@ -101,7 +98,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 ["with missing file name", invalidFileMeta.MISSING_FILE_NAME],
             ])("%p", async (_label, data: any) => {
                 expect(
-                    sdk.write({
+                    sdk.pushData({
                         ...defaultValidDataPush,
                         data,
                     })
@@ -123,7 +120,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         expires: 200000,
                     });
 
-                const response = await sdk.write({
+                const response = await sdk.pushData({
                     ...defaultValidDataPush,
                     data,
                 });
@@ -143,11 +140,10 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     .post(`${new URL(baseUrl).pathname}permission-access/import`)
                     .reply(201);
 
-                const response = await sdk.write({
+                const response = await sdk.pushData({
                     ...defaultValidDataPush,
                     data,
                 });
-
                 expect(response).toBeUndefined();
             });
         });
@@ -163,7 +159,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 // Request event only fires when the scope target has been hit
                 scope.on("request", callback);
 
-                await sdk.write(defaultValidDataPush);
+                await sdk.pushData({ ...defaultValidDataPush });
             });
 
             it(`Requests target API host and version: ${baseUrl}`, () => {
@@ -227,7 +223,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 refreshScope.on("request", refreshCallback);
                 verifyJKUScope.on("request", jkuCallback);
 
-                await sdk.write(defaultValidDataPush);
+                await sdk.pushData({ ...defaultValidDataPush });
             });
 
             it(`Refresh endpoint is called`, async () => {
@@ -252,7 +248,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     .reply(404);
 
                 try {
-                    await sdk.write(defaultValidDataPush);
+                    await sdk.pushData({ ...defaultValidDataPush });
                 } catch (e) {
                     if (!(e instanceof Error)) {
                         throw e;
@@ -281,7 +277,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     });
 
                 try {
-                    await sdk.write(defaultValidDataPush);
+                    await sdk.pushData({ ...defaultValidDataPush });
                 } catch (e) {
                     if (!(e instanceof Error)) {
                         throw e;
