@@ -48,6 +48,6 @@ const digimeSDK = init({ applicationId: <my-unique-application-id> });
 To see all the other options when initializing the SDK, please take a look [here](../fundamentals/initialise-sdk.html).
 
 ## Using the SDK
-* Use digi.me to [request data from your users](read-data-overview.html).
-* Use digi.me to [write data to your users](write-data-overview.html).
+* Use digi.me to [read data from your users](read-data-overview.html).
+* Use digi.me to [push data to your users](write-data-overview.html).
 * To see all the available functions in the SDK, please take a look [here](../../interfaces/SDK.DigimeSDK.html).

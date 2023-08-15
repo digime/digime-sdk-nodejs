@@ -52,8 +52,8 @@
                             "source": "read-data-overview.md"
                         },
                         {
-                            "title": "Writing data - Step by step guide",
-                            "source": "write-data-overview.md"
+                            "title": "Pushing data - Step by step guide",
+                            "source": "push-data-overview.md"
                         }
                     ],
                     "output": "guides"
@@ -105,8 +105,8 @@
                             ]
                         },
                         {
-                            "title": "Writing Data",
-                            "source": "write.md"
+                            "title": "Push Data",
+                            "source": "push.md"
                         },
                         {
                             "title": "User Access Tokens",

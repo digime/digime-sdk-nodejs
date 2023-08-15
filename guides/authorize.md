@@ -19,7 +19,7 @@
 
 <br>
 
-In order to write or read data from digi.me, we first need to create an user access token for each user.
+In order to push or read data from digi.me, we first need to create an user access token for each user.
 User access tokens are linked to a contract, and it is possible to create multiple tokens that has access to the same digi.me libary.
 Authorization is the process to obtain an user access token for the user.
 
@@ -28,7 +28,7 @@ Authorization is the process to obtain an user access token for the user.
 Authorization is needed:
 
 * For new users. You have the option to also ask the user to onboard a service during this process.
-* For an existing user working with a different contract. eg, They have shared data but now we would like to write data in their digi.me.
+* For an existing user working with a different contract. eg, They have shared data but now we would like to push data in their digi.me.
 * For an existing user when their user access token has expired and we need to renew it.
 
 ### What are the steps?
@@ -54,6 +54,9 @@ const contractDetails = {
 // state - Put anything here to identify the user when authorization completes. This will be passed back in the callback.
 // userAccessToken - (Optional) User access token you may already have for this user from another contract.
 // sessionOptions - (Optional) An limits or scopes to set for this session.
+// sourceType - (Optional) Use push to filter out only services that are used for push to provider type. Default SourceType is set to pull.
+     */
+    sourceType?: SourceType;
 
 const result = await sdk.getAuthorizeUrl({
     contractDetails,
@@ -64,6 +67,7 @@ const result = await sdk.getAuthorizeUrl({
     sessionOptions: <{
         pull?: PullSessionOptions
     }>,
+    sourceType: "pull",
 });
 
 // => result will contain a url and a code verifier which you will need for later.
@@ -91,6 +95,7 @@ On *success*, the `callback` provided above will be called with the follow extra
 | `success` | Whether the call was successful. `true` or `false` | Yes |
 | `state` | The same string that was passed in to the `getAuthorizationUrl` call. | Yes |
 | `code` | Authorization Code. Only returned when the authorization successful. | Yes |
+| `accountReference` | This information can be used to get full account info when matching this number with reference number returned by readAccounts API. Only returned when the authorization successful. | Yes |
 | `postboxId` | __*Only used with SDK versions lower than v9.x.*__ Returned only when authorizing a write contract.  | No |
 | `publicKey` | __*Only used with SDK versions lower than v9.x.*__ Returned only when authorizing a write contract. | No |
 

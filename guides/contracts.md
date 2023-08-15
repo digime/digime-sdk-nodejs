@@ -37,7 +37,7 @@ Some example read contracts may be:
   * A contract requesting all medical data in the past six months.
 
 ## Write Contracts
-These are contracts that allow you to write data in to a user's digi.me.
+These are contracts that allow you to push data in to a user's digi.me.
 
 ## Read Raw Contracts
 If you have written something to the user, then you can use a read raw contract to request this data back out.

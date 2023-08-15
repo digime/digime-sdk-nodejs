@@ -23,42 +23,17 @@ Before data can be read, we should already have a user access token for this use
 
 If not, you'll need to [authorize them](./authorize.html) first.
 
-
-## Getting a Read Session
-To start reading user data, we first need to obtain a session:
-
-```typescript
-// initialize the SDK
-import { init } from "@digime/digime-sdk-nodejs";
-const sdk = init({ applicationId });
-
-// contractDetails - The same one used in getAuthorizeUrl().
-// userAccessToken - The user access token from the authorization step.
-// sessionOptions - (Optional) An limits or scopes to set for this session.
-
-const { session, updatedAccessToken }  = await sdk.readSession({
-    contractDetails,
-    userAccessToken,
-});
-```
-
-The [session](../../interfaces/Types.Session.html) received can now be used to query data.
-
 ## Reading accounts
 Using the session received above, we can trigger readAccounts to read all user accounts.
 
 
 ```typescript
 // ... initialize the SDK
-// session - The session we received from readSession().
-// privateKey - private key of your contract.
-// contractId - Your contract id
+// contractDetails - The same one used in getAuthorizeUrl().
 // userAccessToken - The user access token from the authorization step.
 
 const data = await sdk.readAccounts({
-    sessionKey: session.key,
-    privateKey,
-    contractId,
+    contractDetails,
     userAccessToken,
 });
 ```
@@ -69,22 +44,35 @@ Received [response](../../types/Types.ReadAccountsResponse.html) should be somet
 {
   "accounts": [
     {
-      "id": "1_serviceid",
-      "name": "Service 1",
-      "service": {
-        "logo": "LogoUrl",
-        "name": "Service Name"
-      }
+      "createdDate": 1693931692826,
+      "id": "40_XXXX",
+      "providerFavIcon": "providerFavIconUrl",
+      "providerLogo": "logoUrl",
+      "reference": "xxxxxxxxxxx",
+      "serviceGroupId": 1,
+      "serviceGroupName": "Social",
+      "serviceTypeId": 40,
+      "serviceTypeName": "Instagram",
+      "serviceTypeReference": "instagram",
+      "sourceId": 420,
+      "type": "USER",
+      "updatedDate": 1693931704516
     },
     {
-      "id": "2_serviceid",
-      "name": "Service 2",
-      "service": {
-        "logo": "LogoUrl",
-        "name": "Service Name"
-      }
+      "createdDate": 1693931692826,
+      "id": "40_XXXX",
+      "providerFavIcon": "providerFavIconUrl",
+      "providerLogo": "logoUrl",
+      "reference": "xxxxxxxxxxx",
+      "serviceGroupId": 1,
+      "serviceGroupName": "Social",
+      "serviceTypeId": 1,
+      "serviceTypeName": "Facebook",
+      "serviceTypeReference": "facebook",
+      "sourceId": 1,
+      "type": "USER",
+      "updatedDate": 1693931704516
     }
-  ],
-  "consentid": ""
+],
 }
 ```

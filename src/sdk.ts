@@ -19,11 +19,11 @@ import { ReadFileOptions, ReadFileResponse } from "./read-file";
 import { ReadFileListOptions, ReadFileListResponse } from "./read-file-list";
 import { ReadSessionOptions, ReadSessionResponse } from "./read-session";
 import { UserAccessToken } from "./types/user-access-token";
-import { WriteOptions, WriteResponse } from "./write";
+import { PushDataOptions } from "./push";
 
 export interface DigimeSDK {
     /**
-     * In order to write or read data from digi.me, we first need to create an access token. Access tokens are linked to a contract, and it is possible to create multiple access tokens that access to the same digi.me libary. This function is called when:
+     * In order to push or read data from digi.me, we first need to create an access token. Access tokens are linked to a contract, and it is possible to create multiple access tokens that access to the same digi.me libary. This function is called when:
      * * Authorize a new user. You have the option to also onboard a service during this process.
      * * An existing user authorizing a new contract.
      * * Existing user’s refresh token has expired and we need to extend it.
@@ -59,11 +59,11 @@ export interface DigimeSDK {
     exchangeCodeForToken: (props: ExchangeCodeForTokenOptions) => Promise<UserAccessToken>;
 
     /**
-     * Write something to the user's digi.me
+     * Push something to the user's digi.me library or to provider
      *
-     * @category Write
+     * @category Push
      */
-    write: (props: WriteOptions) => Promise<WriteResponse>;
+    pushData: (props: PushDataOptions) => Promise<void>;
 
     /**
      * Start a new read session. When we already have an user access token.

@@ -19,12 +19,12 @@
 
 <br>
 
-In order to write or read data from the user's digi.me, we will need an user access token to their digi.me.
+In order to push or read data from the user's digi.me, we will need an user access token to their digi.me.
 Once we have this, we can read up to date data of the services the user has onboarded to their digi.me.
 
 User access tokens are obtained once a user successfully goes through a [authorization process](../fundamentals/authorize.html).
 
-Separate user access tokens are required for each contract, so it is possible to have multiple for one user if you require to read and write data.
+Separate user access tokens are required for each contract, so it is possible to have multiple for one user if you require to read and push data.
 
 ## Access Token Expiry
 
