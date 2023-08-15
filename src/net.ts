@@ -42,3 +42,21 @@ export const handleServerResponse = (error: Error | unknown): void => {
 
     throw new ServerError(message, body.error);
 };
+
+export const shouldThrowError = (error: Error | unknown): void => {
+    if (!(error instanceof HTTPError)) {
+        throw error;
+    }
+
+    if (error.response.statusCode !== 401) {
+        handleServerResponse(error);
+        throw error;
+    }
+
+    const body: unknown = error.response.body;
+
+    if (isApiErrorResponse(body) && body.error.code !== "InvalidToken") {
+        handleServerResponse(error);
+        throw error;
+    }
+};

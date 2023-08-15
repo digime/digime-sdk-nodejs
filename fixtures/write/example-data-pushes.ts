@@ -4,7 +4,7 @@
 
 import NodeRSA from "node-rsa";
 import fs from "fs";
-import { WriteOptions } from "../../src/write";
+import { PushDataOptions } from "../../src/push";
 import { ContractDetails } from "../../src/types/common";
 import { SAMPLE_TOKEN } from "../../utils/test-constants";
 
@@ -15,7 +15,8 @@ const CONTRACT_DETAILS: ContractDetails = {
     privateKey: testKeyPair.exportKey("pkcs1-private-pem").toString(),
 };
 
-export const defaultValidDataPush: WriteOptions = {
+export const defaultValidDataPush: PushDataOptions = {
+    type: "library",
     contractDetails: CONTRACT_DETAILS,
     userAccessToken: SAMPLE_TOKEN,
     data: {

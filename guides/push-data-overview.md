@@ -19,14 +19,16 @@
 
 <br>
 
-Use this guide to write data to your user's library in digi.me.
+Use this guide to push data to your user's library in digi.me.
+
+Push to provider type is currently only supported for Medmij and is a bit different approach on how this data is pushed. We will explain this below.
 
 In order to access the digi.me platform, you need to obtain an application ID, a contract for writing data and its private key.
 
 Please check out [Getting Started](./start.html) for more details.
 
 ## 1. Onboarding and Authorization
-Before we can write data to user, we need go through the authorization flow and obtain a user access token.
+Before we can push data to user, we need go through the authorization flow and obtain a user access token.
 
 *If you already have an user access token for this user for another contract, you will still need to go through this process. Make sure to include any user access tokens you already have so we can link to the same library.*
 
@@ -49,11 +51,14 @@ const { url, codeVerifier } = await sdk.getAuthorizeUrl({
     serviceId: toNumber(serviceId),
     state: <any-details-to-help-you-identify-user-on-return>,
     userAccessToken: <if-you-already-have-one>
+    sourceType: <optional-use-only-for-push-to-provider-flow>
 });
 
 // Store the codeVerifier against the current user, and redirect them to the url returned.
 // This will kick start the authorization process.
 ```
+
+NOTE: Please have in mind that sourceType needs to be set to push only if you want to push data to provider. Currently this is only supported for Medmij. If sourceType is set to push we will show only services that are eligible for push to provider flow. 
 
 ### Redirect the user
 
@@ -73,7 +78,7 @@ After the user has onboarded and finished with the authorization, the `callback`
 An example URL might be:
 
 ```
-https://your-website.com/return?success=true&code=<authorization-code>&state=<state-passed-in-from-before>&postboxId=<postbox-id>&publicKey=<public-key>
+https://your-website.com/return?success=true&code=<authorization-code>&state=<state-passed-in-from-before>&postboxId=<postbox-id>&publicKey=<public-key>&accountReference=<accountReference>
 ```
 
 <small>*(`postboxId` and `publicKey` are only used with SDK versions lower than v9.x.x)*</small>
@@ -98,10 +103,10 @@ const userAccessToken = await sdk.exchangeCodeForToken({
 // Store the userAccessToken against the current user. We can use this for future reads.
 ```
 
-## 3. Write Data
+## 3. Push Data
 Once you have the `userAccessToken` from the steps above, we can push data!
 
-Please take a look at write data to find out more about how to format the data to push.
+Please take a look at push data to find out more about how to format the data to push.
 
 ```typescript
 // ... initialize the SDK
@@ -109,8 +114,9 @@ Please take a look at write data to find out more about how to format the data t
 // contractDetails - The same one used in getAuthorizeUrl().
 // userAccessToken - The user access token from the authorization step.
 // data - An object containing the buffer of the file to upload and some meta data.
+// onAccessTokenChange - A function that will be called when AccessToken is changed.
 
-await sdk.write({
+await sdk.pushData({
     contractDetails,
     userAccessToken,
     data: {
@@ -118,13 +124,45 @@ await sdk.write({
         fileName: req.file.originalname,
         fileDescriptor: JSON.parse(fileMeta),
     },
+    onAccessTokenChange(response) {
+        // Add logic to save new access token
+    },
 });
 ```
 
-If we need to write other files to the users in the future, we can keep writing as long as the user access token is valid.
+If you want to use push to provide (currently only Medmij) flow here is an example of puhs to provider call:
+
+```typescript
+// ... initialize the SDK
+
+// sourceType - (Optional) Use push to filter out only services that are used for push to provider type. Default SourceType is set to pull.
+// contractDetails - The same one used in getAuthorizeUrl().
+// userAccessToken - The user access token from the authorization step.
+// data - Medmij accepted object (type Record<string, unknown>).
+// onAccessTokenChange - A function that will be called when AccessToken is changed.
+// version - Currently supported versions are "stu3" and "3.0.2".
+// standard - Supported standard is fhir
+// accountId - accountId can be found in readAccounts API and can be filterd out with accountReference that will be returned to you as explained in authorization process.
+
+await sdk.pushData({
+    push: "provider",
+    version: "stu3",
+    contractDetails,
+    userAccessToken,
+    data: {}, // only medmij data object is acceptable
+    onAccessTokenChange(response) {
+        // Add logic to save new access token
+    },
+    accountId,
+});
+```
+
+If we need to push more files to the users in the future, we can keep pushing as long as the user access token is valid.
 
 ## 4. Reading files back out
 
 If you've written data to the user, you can read it back out using the [same process for reading user data](./read-data-overview.html). You will need a new contract which reads out raw data, so please contact digi.me [here](https://digi.me/register) to get yours.
+
+Note: Reading data is not possible for push to provider flow.
 
 Make sure you pass in the user access token which you obtained in step 3 above when authorizing the new contract.

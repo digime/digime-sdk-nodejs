@@ -38,12 +38,11 @@ export type AccountType =
     | "PUSH";
 
 export interface AccountsResponse {
+    id: string;
     accessTokenStatus?: AccessTokenStatus;
-    accountHash: string;
-    accountId: string;
-    accountType: AccountType;
+    reference: string;
+    type: AccountType;
     createdDate: number;
-    entityId: string;
     serviceGroupId: number;
     serviceGroupName: string;
     serviceProviderId?: number;
@@ -59,7 +58,9 @@ export interface AccountsResponse {
     providerLogo?: string;
 }
 
-export type ReadAccountsResponse = AccountsResponse[];
+export type ReadAccountsResponse = {
+    accounts: AccountsResponse[];
+};
 
 const AccessTokenStatusCodec: t.Type<AccessTokenStatus> = t.intersection([
     t.type({
@@ -86,33 +87,34 @@ const AccountTypeCodec: t.Type<AccountType> = t.keyof({
     PUSH: null,
 });
 
-export const ReadAccountsResponseCodec: t.Type<ReadAccountsResponse> = t.array(
-    t.intersection([
-        t.type({
-            accountHash: t.string,
-            accountId: t.string,
-            accountType: AccountTypeCodec,
-            createdDate: t.number,
-            entityId: t.string,
-            serviceGroupId: t.number,
-            serviceGroupName: t.string,
-            serviceTypeId: t.number,
-            serviceTypeName: t.string,
-            serviceTypeReference: t.string,
-            sourceId: t.number,
-            updatedDate: t.number,
-        }),
-        t.partial({
-            accessTokenStatus: AccessTokenStatusCodec,
-            serviceProviderId: t.number,
-            serviceProviderName: t.string,
-            serviceProviderReference: t.string,
-            username: t.string,
-            providerFavIcon: t.string,
-            providerLogo: t.string,
-        }),
-    ])
-);
+export const AccountsResponseCodec: t.Type<AccountsResponse> = t.intersection([
+    t.type({
+        id: t.string,
+        reference: t.string,
+        type: AccountTypeCodec,
+        createdDate: t.number,
+        serviceGroupId: t.number,
+        serviceGroupName: t.string,
+        serviceTypeId: t.number,
+        serviceTypeName: t.string,
+        serviceTypeReference: t.string,
+        sourceId: t.number,
+        updatedDate: t.number,
+    }),
+    t.partial({
+        accessTokenStatus: AccessTokenStatusCodec,
+        serviceProviderId: t.number,
+        serviceProviderName: t.string,
+        serviceProviderReference: t.string,
+        username: t.string,
+        providerFavIcon: t.string,
+        providerLogo: t.string,
+    }),
+]);
+
+export const ReadAccountsResponseCodec: t.Type<ReadAccountsResponse> = t.strict({
+    accounts: t.array(AccountsResponseCodec),
+});
 
 export const assertIsReadAccountsResponse: CodecAssertion<ReadAccountsResponse> =
     codecAssertion(ReadAccountsResponseCodec);
@@ -160,11 +162,11 @@ const readAccounts = async (
             retry: sdkConfig.retryOptions,
         });
 
-        assertIsReadAccountsResponse(response.body);
+        const formatedAccounts = { accounts: response.body };
 
-        return {
-            ...response.body,
-        };
+        assertIsReadAccountsResponse(formatedAccounts);
+
+        return formatedAccounts;
     } catch (error) {
         throw new DigiMeSDKError("Problem with getting user account list");
     }

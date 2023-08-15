@@ -19,7 +19,7 @@
 
 <br>
 
-Before we can be write data to the user, we should already have a user access token for this user.
+Before we can be push data to the user, we should already have a user access token for this user.
 
 If not, you'll need to [authorize them](./authorize.html) first. Make sure the user access token is for a [write contract](../fundamentals/contracts.html).
 
@@ -28,11 +28,17 @@ Once you have authorized a write contract, you should have the `userAccessToken`
 ```typescript
 // ... initialize the SDK
 
+// type - Push type can be library or provider. Library is common case to use when you need to push data to your library. Provider type is used for pushing to 3rd party source.
 // contractDetails - The same one used in getAuthorizeUrl().
 // userAccessToken - The user access token from the authorization step.
-// data - An object containing the buffer of the file to upload and some meta data.
+// data - An object containing the buffer of the file to upload and some meta data. If type is provider then Record<string, unknown> type is expected.
+// onAccessTokenChange - A function that will be called when AccessToken is changed.
+// version - Can be "stu3" or  "3.0.2" and it is used only for provider type.
+// standard -  For now only can be set to "fhir" and it is used only for provider type.
+// accountId - Id of account where push needs to be submited. Only for provider type. List of accounts where account Id can be found is related to readAccounts method. Callback URL after authorization will also return accountReference that can be used to match exact account object where push needs to be submited.
 
-await sdk.write({
+await sdk.pushData({
+    type: "library",
     contractDetails,
     userAccessToken,
     data: {
@@ -40,12 +46,15 @@ await sdk.write({
         fileName: req.file.originalname,
         fileDescriptor: JSON.parse(fileMeta),
     },
+    onAccessTokenChange(response) {
+        // Add logic to save new access token
+    },
 });
 ```
 If the promise resolves successfully, the data has been written to the user's digi.me.
 
 ## FileMeta
-This is how you should format the `data` property:
+This is how you should format the `data` property for library type:
 
 ```typescript
 interface FileMeta {

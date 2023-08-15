@@ -96,7 +96,7 @@ https://your-website.com/return?success=true&code=<authorization-code>&state=<st
 
 Extra query parameter `code` will be attached which can be used to exchange for an user access token.
 
-## 4. Exchange for an User Access Token
+## 3. Exchange for an User Access Token
 The `code` returned in the query parameters in the step above can be used with the `codeVerifier` to exchange for a user access token. This allows you to request updated data from this user in the future for as long as the user access token is valid. Read more about the user access token [here](../fundamentals/access-token.html).
 
 ```typescript
@@ -143,7 +143,7 @@ After the user has onboarded and finished with the authorization, the `callback`
 https://your-website.com/onboard-return?userId=<user-id>&success=true
 ```
 
-## 5. Query user data.
+## 4. Query user data.
 When your user has onboarded all the services you require, we can start reading the data using the session from earlier.
 
 ```typescript
