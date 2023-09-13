@@ -82,8 +82,8 @@ An example URL might be:</p>
 </code></pre>
 <p>Extra query parameter <code>code</code> will be attached which can be used to exchange for an user access token.</p>
 
-<a href="#4-exchange-for-an-user-access-token" id="4-exchange-for-an-user-access-token" style="color: inherit; text-decoration: none;">
-  <h2>4. Exchange for an User Access Token</h2>
+<a href="#3-exchange-for-an-user-access-token" id="3-exchange-for-an-user-access-token" style="color: inherit; text-decoration: none;">
+  <h2>3. Exchange for an User Access Token</h2>
 </a>
 <p>The <code>code</code> returned in the query parameters in the step above can be used with the <code>codeVerifier</code> to exchange for a user access token. This allows you to request updated data from this user in the future for as long as the user access token is valid. Read more about the user access token <a href="../fundamentals/access-token.html">here</a>.</p>
 <pre><code class="language-typescript"><span class="hl-1">// ... initialize the SDK</span><br/><br/><span class="hl-1">// authorizationCode - The code returned in the query parameter of the returned URL.</span><br/><span class="hl-1">// codeVerifier - The one stored from step above.</span><br/><span class="hl-1">// contractDetails - The same one used in getAuthorizeUrl().</span><br/><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-3">userAccessToken</span><span class="hl-0"> = </span><span class="hl-5">await</span><span class="hl-0"> </span><span class="hl-6">sdk</span><span class="hl-0">.</span><span class="hl-4">exchangeCodeForToken</span><span class="hl-0">({</span><br/><span class="hl-0">    </span><span class="hl-6">codeVerifier</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-6">authorizationCode</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-6">contractDetails</span><span class="hl-0">,</span><br/><span class="hl-0">});</span><br/><br/><span class="hl-1">// Store the userAccessToken against the current user. We can use this for future reads.</span>
@@ -100,8 +100,8 @@ An example URL might be:</p>
 <pre><code><span class="hl-9">https</span><span class="hl-0">:</span><span class="hl-1">//your-website.com/onboard-return?userId=&lt;user-id&gt;&amp;success=true</span>
 </code></pre>
 
-<a href="#5-query-user-data" id="5-query-user-data" style="color: inherit; text-decoration: none;">
-  <h2>5. Query user data.</h2>
+<a href="#4-query-user-data" id="4-query-user-data" style="color: inherit; text-decoration: none;">
+  <h2>4. Query user data.</h2>
 </a>
 <p>When your user has onboarded all the services you require, we can start reading the data using the session from earlier.</p>
 <pre><code class="language-typescript"><span class="hl-1">// ... initialize the SDK</span><br/><br/><span class="hl-1">// session - The session we received from getAuthorizeUrl().</span><br/><span class="hl-1">// privateKey - The private key for this contract.</span><br/><span class="hl-1">// contractId - Your contract id</span><br/><span class="hl-1">// userAccessToken - The user access token from the authorization step.</span><br/><span class="hl-1">// onFileData - A function that will be called when a file is successfully downloaded.</span><br/><span class="hl-1">// onFileError - A function that will be called when an error occurs when downloading a file.</span><br/><span class="hl-1">// onStatusChange - A function that will be called when file list status is changed.</span><br/><span class="hl-1">// onAccessTokenChange - A function that will be called when AccessToken is changed.</span><br/><br/><span class="hl-2">const</span><span class="hl-0"> { </span><span class="hl-3">stopPolling</span><span class="hl-0">, </span><span class="hl-3">filePromise</span><span class="hl-0"> } = </span><span class="hl-6">sdk</span><span class="hl-0">.</span><span class="hl-4">readAllFiles</span><span class="hl-0">({</span><br/><span class="hl-0">    </span><span class="hl-6">sessionKey:</span><span class="hl-0"> </span><span class="hl-6">session</span><span class="hl-0">.</span><span class="hl-6">key</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-6">privateKey:</span><span class="hl-0"> &lt;</span><span class="hl-8">private</span><span class="hl-0">-</span><span class="hl-8">key</span><span class="hl-0">-</span><span class="hl-8">of</span><span class="hl-0">-</span><span class="hl-8">contract</span><span class="hl-0">&gt;,</span><br/><span class="hl-0">    </span><span class="hl-6">contractId:</span><span class="hl-0"> &lt;</span><span class="hl-8">your</span><span class="hl-0">-</span><span class="hl-8">contract</span><span class="hl-0">-</span><span class="hl-8">id</span><span class="hl-0">&gt;,</span><br/><span class="hl-0">    </span><span class="hl-6">userAccessToken</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-6">onFileData:</span><span class="hl-0"> </span><span class="hl-6">onFileDownloaded</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-6">onFileError:</span><span class="hl-0"> </span><span class="hl-6">onFileError</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-6">onStatusChange:</span><span class="hl-0"> </span><span class="hl-6">onStatusChange</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-6">onAccessTokenChange:</span><span class="hl-0"> </span><span class="hl-6">onAccessTokenChange</span><span class="hl-0">,</span><br/><span class="hl-0">});</span><br/><br/><span class="hl-1">// filePromise is a promise that will resolve when data fetching is complete.</span><br/><span class="hl-1">// stopPolling is a function that you can call if you would like to stop the process when it&#39;s still running.</span>
@@ -134,7 +134,7 @@ An example URL might be:</p>
 <ul>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="start.html">Getting <wbr/>Started</a></li>
 <li class="current selected pages-entry pages-entry-page pages-entry-depth-2"><a href="read-data-overview.html">Reading data -<wbr/> <wbr/>Step by step guide</a></li>
-<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="write-data-overview.html">Writing data -<wbr/> <wbr/>Step by step guide</a></li></ul></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="push-data-overview.html">Pushing data -<wbr/> <wbr/>Step by step guide</a></li></ul></li>
 <li class="pages-entry pages-entry-menu pages-entry-depth-1"><a>Fundamentals</a>
 <ul>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/contracts.html">Contracts</a></li>
@@ -147,7 +147,7 @@ An example URL might be:</p>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/read.html">Reading <wbr/>Data</a>
 <ul>
 <li class="pages-entry pages-entry-page pages-entry-depth-3"><a href="../fundamentals/read/file-meta.html">File <wbr/>Metadata</a></li></ul></li>
-<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/write.html">Writing <wbr/>Data</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/push.html">Push <wbr/>Data</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/access-token.html">User <wbr/>Access <wbr/>Tokens</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/handling-errors.html">Handling <wbr/>Errors</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="../fundamentals/example-applications.html">Example <wbr/>Applications</a></li></ul></li>
