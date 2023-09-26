@@ -18,6 +18,7 @@ import { deleteUser, DeleteUserOptions } from "./delete-user";
 import { TypeValidationError } from "./errors";
 import { DigimeSDK } from "./sdk";
 import { getReauthorizeAccountUrl, GetReauthorizeAccountUrlOptions } from "./get-reauthorize-account-url";
+import { getPortabilityReport, GetPortabilityReportOptions } from "./get-portability-report";
 
 const DEFAULT_BASE_URL = "https://api.digi.me/v1.7/";
 const DEFAULT_ONBOARD_URL = "https://api.digi.me/apps/saas/";
@@ -57,6 +58,7 @@ const init = (config: SDKConfiguration): DigimeSDK => {
         readFileList: (props: ReadFileListOptions) => readFileList(props, sdkConfig),
         readAllFiles: (props: ReadAllFilesOptions) => readAllFiles(props, sdkConfig),
         readAccounts: (props: ReadAccountsOptions) => readAccounts(props, sdkConfig),
+        getPortabilityReport: (props: GetPortabilityReportOptions) => getPortabilityReport(props, sdkConfig),
     };
 };
 
