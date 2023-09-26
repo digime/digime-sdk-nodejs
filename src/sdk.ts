@@ -20,6 +20,7 @@ import { ReadFileListOptions, ReadFileListResponse } from "./read-file-list";
 import { ReadSessionOptions, ReadSessionResponse } from "./read-session";
 import { UserAccessToken } from "./types/user-access-token";
 import { PushDataOptions } from "./push";
+import { GetPortabilityReportOptions, GetPortabilityReportResponse } from "./get-portability-report";
 
 export interface DigimeSDK {
     /**
@@ -113,4 +114,11 @@ export interface DigimeSDK {
      * @category Read
      */
     getAvailableServices: (contractId?: string) => Promise<GetAvailableServicesResponse>;
+
+    /**
+     * Get Portability Report.
+     *
+     * @category Other
+     */
+    getPortabilityReport: (props: GetPortabilityReportOptions) => Promise<GetPortabilityReportResponse>;
 }
