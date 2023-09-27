@@ -1,31 +1,18 @@
 {
+    "$schema": "https://json.schemastore.org/tsconfig",
     "compilerOptions": {
-        "target": "es2017",
-        "moduleResolution": "node",
-        "module": "commonjs",
-        "declaration": true,
-        "inlineSourceMap": true,
-        "esModuleInterop": true,
+        "lib": ["es2023", "DOM"],
+        "module": "esnext",
         "strict": true,
-        "resolveJsonModule": true,
-
-        /* Additional Checks */
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "noImplicitReturns": true,
-        "noFallthroughCasesInSwitch": true,
-
-        /* Debugging Options */
-        "traceResolution": false,
-        "listEmittedFiles": false,
-        "listFiles": false,
-        "pretty": true,
-
-        "lib": ["es2017"]
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "moduleResolution": "bundler",
+        "noImplicitAny": true
     },
     "include": ["src/**/*", "utils/**/*", "tools/**/*"],
     "exclude": ["dist/**", "node_modules/**", "**/*.spec.ts"],
-    "compileOnSave": false,
+
     "typedocOptions": {
         "name": "@digime/digime-sdk-nodejs",
         "theme": "default",

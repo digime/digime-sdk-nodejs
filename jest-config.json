@@ -19,6 +19,5 @@
         "statements": 30
         }
     },
-    "testEnvironment": "node",
-    "testRunner": "jest-circus/runner"
+    "setupFilesAfterEnv": ["./jest.setup.ts"]
 }
