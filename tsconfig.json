@@ -1,8 +1,8 @@
 {
     "$schema": "https://json.schemastore.org/tsconfig",
     "compilerOptions": {
-        "lib": ["es2023", "DOM"],
         "module": "esnext",
+        "target": "ES6",
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
@@ -10,107 +10,108 @@
         "moduleResolution": "bundler",
         "noImplicitAny": true
     },
-    "include": ["src/**/*", "utils/**/*", "tools/**/*"],
-    "exclude": ["dist/**", "node_modules/**", "**/*.spec.ts"],
+    "exclude": ["dist/**", "node_modules/**","fixtures/**","utils/**"],
 
     "typedocOptions": {
         "name": "@digime/digime-sdk-nodejs",
-        "theme": "default",
-        "customCss": "typedoc-theme/style.css",
-        "entryPoints": ["src/sdk.ts", "src/errors.ts", "src/types.ts"],
-        "categorizeByGroup": false,
+        "excludePrivate": true,
+        // "theme": "default",
+        // "customCss": "typedoc-theme/style.css",
+        "entryPoints": ["src/index.ts"],
+        // "entryPoints": ["src/sdk.ts", "src/errors.ts", "src/types.ts"],
+        // "categorizeByGroup": false,
         "out": "docs",
-        "excludeExternals": true,
-        "internalModule": "Internal",
-        "exclude": "**/*+(index|.spec|.e2e).ts",
-        "pluginPages": {
-            "pages": [
-                {
-                    "title": "Guides",
-                    "childrenSourceDir": "./guides",
-                    "childrenOutputDir": "guides",
-                    "children": [
-                        {
-                            "title": "Getting Started",
-                            "source": "start.md"
-                        },
-                        {
-                            "title": "Reading data - Step by step guide",
-                            "source": "read-data-overview.md"
-                        },
-                        {
-                            "title": "Pushing data - Step by step guide",
-                            "source": "push-data-overview.md"
-                        }
-                    ],
-                    "output": "guides"
-                },
-                {
-                    "title": "Fundamentals",
-                    "childrenSourceDir": "./guides",
-                    "childrenOutputDir": "fundamentals",
-                    "children": [
-                        {
-                            "title": "Contracts",
-                            "source": "contracts.md"
-                        },
-                        {
-                            "title": "Initializing the SDK",
-                            "source": "initialise-sdk.md"
-                        },
-                        {
-                            "title": "Getting Available Services",
-                            "source": "available-services.md"
-                        }
-                        ,
-                        {
-                            "title": "Authorizing",
-                            "source": "authorize.md"
-                        },
-                        {
-                            "title": "Onboarding Additional Services",
-                            "source": "onboard.md"
-                        },
-                        {
-                            "title": "Reauthorizing account",
-                            "source": "reauthorize.md"
-                        },
-                        {
-                            "title": "Read accounts",
-                            "source": "read-accounts.md"
-                        },
-                        {
-                            "title": "Reading Data",
-                            "source": "read.md",
-                            "childrenSourceDir": "../guides",
-                            "output": "read.html",
-                            "children": [
-                                {
-                                    "title": "File Metadata",
-                                    "source": "file-meta.md"
-                                }
-                            ]
-                        },
-                        {
-                            "title": "Push Data",
-                            "source": "push.md"
-                        },
-                        {
-                            "title": "User Access Tokens",
-                            "source": "access-token.md"
-                        },
-                        {
-                            "title": "Handling Errors",
-                            "source": "handling-errors.md"
-                        },
-                        {
-                            "title": "Example Applications",
-                            "source": "example-applications.md"
-                        }
-                    ],
-                    "output": "fundamentals"
-                },
-             ],
-        }
-    },
+        // "excludeExternals": true,
+        // "internalModule": "Internal",
+        "exclude": "**/*+(.spec|.e2e).ts"
+        // "pluginPages": {
+        //     "pages": [
+        //         {
+        //             "title": "Guides",
+        //             "childrenSourceDir": "./guides",
+        //             "childrenOutputDir": "guides",
+        //             "children": [
+        //                 {
+        //                     "title": "Getting Started",
+        //                     "source": "start.md"
+        //                 },
+        //                 {
+        //                     "title": "Reading data - Step by step guide",
+        //                     "source": "read-data-overview.md"
+        //                 },
+        //                 {
+        //                     "title": "Pushing data - Step by step guide",
+        //                     "source": "push-data-overview.md"
+        //                 }
+        //             ],
+        //             "output": "guides"
+        //         },
+        //         {
+        //             "title": "Fundamentals",
+        //             "childrenSourceDir": "./guides",
+        //             "childrenOutputDir": "fundamentals",
+        //             "children": [
+        //                 {
+        //                     "title": "Contracts",
+        //                     "source": "contracts.md"
+        //                 },
+        //                 {
+        //                     "title": "Initializing the SDK",
+        //                     "source": "initialise-sdk.md"
+        //                 },
+        //                 {
+        //                     "title": "Getting Available Services",
+        //                     "source": "available-services.md"
+        //                 }
+        //                 ,
+        //                 {
+        //                     "title": "Authorizing",
+        //                     "source": "authorize.md"
+        //                 },
+        //                 {
+        //                     "title": "Onboarding Additional Services",
+        //                     "source": "onboard.md"
+        //                 },
+        //                 {
+        //                     "title": "Reauthorizing account",
+        //                     "source": "reauthorize.md"
+        //                 },
+        //                 {
+        //                     "title": "Read accounts",
+        //                     "source": "read-accounts.md"
+        //                 },
+        //                 {
+        //                     "title": "Reading Data",
+        //                     "source": "read.md",
+        //                     "childrenSourceDir": "../guides",
+        //                     "output": "read.html",
+        //                     "children": [
+        //                         {
+        //                             "title": "File Metadata",
+        //                             "source": "file-meta.md"
+        //                         }
+        //                     ]
+        //                 },
+        //                 {
+        //                     "title": "Push Data",
+        //                     "source": "push.md"
+        //                 },
+        //                 {
+        //                     "title": "User Access Tokens",
+        //                     "source": "access-token.md"
+        //                 },
+        //                 {
+        //                     "title": "Handling Errors",
+        //                     "source": "handling-errors.md"
+        //                 },
+        //                 {
+        //                     "title": "Example Applications",
+        //                     "source": "example-applications.md"
+        //                 }
+        //             ],
+        //             "output": "fundamentals"
+        //         }
+        //      ]
+        // }
+    }
 }

@@ -15,7 +15,7 @@
     "#lint": "eslint . --max-warnings=0",
     "#lint-fix": "eslint --fix . --ext .js,.ts",
     "test": "./node_modules/.bin/jest --coverage --config=jest-config.json",
-    "#version": "ts-node ./tools/update-sdk-version.ts",
+    "generate-version": "tsx ./build-utils/update-sdk-version.ts",
     "generate-docs": "./node_modules/.bin/typedoc",
     "#preversion": "npm run test"
   },
@@ -46,6 +46,7 @@
     "rimraf": "~5.0.5",
     "ts-jest": "~29.1.1",
     "tsup": "~7.2.0",
+    "tsx": "~3.13.0",
     "typedoc": "~0.25.1",
     "typescript": "~5.2.2"
   },
