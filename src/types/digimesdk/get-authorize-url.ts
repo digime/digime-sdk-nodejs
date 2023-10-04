@@ -4,8 +4,8 @@
 
 import { z } from "zod";
 import { ContractDetails } from "../contract-details";
-import { UserAccessToken } from "../user-access-token";
 import type { Session } from "../session";
+import { TokenPair } from "../external/tokens";
 
 /**
  * CAScope - timeRanges
@@ -107,8 +107,8 @@ export const GetAuthorizeUrlParameters = z.object({
         })
         .optional(),
 
-    /** UserAccessToken you may already have for this user */
-    userAccessToken: UserAccessToken.optional(),
+    /** TokenPair you may already have for this user */
+    tokenPair: TokenPair.optional(),
 
     /**
      * Only show services of specific sourceType

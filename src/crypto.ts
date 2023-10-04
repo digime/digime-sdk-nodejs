@@ -11,6 +11,8 @@ const ALPHA_NUMERIC = `${ALPHA_LOWER}${ALPHA_UPPER}${NUMERIC}`;
 
 /**
  * Get a string of random alphanumeric characters of a desired size
+ *
+ * NOTE: Duplicated from Digi.me internal crypto lib
  */
 export const getRandomAlphaNumeric = (size: number): string => {
     const charsLength = ALPHA_NUMERIC.length;
@@ -35,7 +37,7 @@ export const getRandomAlphaNumeric = (size: number): string => {
 export const getSha256Hash = (data: string | Buffer): Buffer => nodeCrypto.createHash("sha256").update(data).digest();
 
 /**
- * Encode a string to base64url
+ * Encode to base64url string
  */
 export const toBase64Url = (data: string | Buffer): string => {
     if (Buffer.isBuffer(data)) {
@@ -46,7 +48,7 @@ export const toBase64Url = (data: string | Buffer): string => {
 };
 
 /**
- * Decode a base64url string
+ * Decode from base64url to a UTF-8 string
  */
 export const fromBase64Url = (data: string | Buffer): string => {
     if (Buffer.isBuffer(data)) {

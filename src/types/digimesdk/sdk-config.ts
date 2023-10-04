@@ -11,6 +11,15 @@ export const SdkConfig = z.object({
     /** Your customised application ID from digi.me */
     applicationId: z.string(),
 
+    /** The ID of the contract you'd like to use */
+    // contractId: z.string(),
+
+    /** Private key in PKCS1 format */
+    // privateKey: z.string(),
+
+    /** Access token pair */
+    // tokenPair: TokenPair.optional(),
+
     /**
      * Root URL for the digi.me API
      * @defaultValue `"https://api.digi.me/v1.7/"`
@@ -23,6 +32,9 @@ export const SdkConfig = z.object({
      */
     onboardURL: z.string().optional(),
 
+    /**
+     * Callback to receive updated token after it updates automatically
+     */
     onTokenRefreshed: z.function().returns(z.void()).optional(),
 });
 

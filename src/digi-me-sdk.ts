@@ -13,12 +13,16 @@ import { JWKS } from "./types/external/jwks";
 import { PayloadPreauthorizationCode } from "./types/external/jwt-payloads";
 import { GetAuthorizeUrlReturn } from "./types/digimesdk/get-authorize-url";
 import { Network } from "./network";
+import { ContractDetails } from "./types/contract-details";
+import { TokenPair } from "./types/external/tokens";
 
 /**
  * Digi.me SDK
  */
 export class DigiMeSDK {
     #config: Required<SdkConfig>;
+    #contractDetails?: ContractDetails;
+    #tokenPair?: TokenPair;
     #network: Network;
 
     constructor(config: SdkConfig) {
@@ -32,7 +36,7 @@ export class DigiMeSDK {
             ...parsedConfig,
         };
 
-        this.#network = new Network();
+        this.#network = new Network({ sdk: this });
     }
 
     /**
@@ -114,18 +118,25 @@ export class DigiMeSDK {
     }
 
     /**
-     * TODO: Write this
+     * TODO: Write this docs
      */
     public async getAuthorizeUrl(parameters: GetAuthorizeUrlParameters): Promise<GetAuthorizeUrlReturn> {
-        const { contractDetails, userAccessToken, callback, state, sessionOptions } =
-            GetAuthorizeUrlParameters.parse(parameters);
+        if (!this.#tokenPair) {
+            throw new Error("Something");
+        }
+
+        if (!this.#contractDetails) {
+            throw new Error("Something");
+        }
+
+        const { callback, state, sessionOptions } = GetAuthorizeUrlParameters.parse(parameters);
 
         const codeVerifier = toBase64Url(getRandomAlphaNumeric(32));
 
         const token = JWT.sign(
             {
-                access_token: userAccessToken?.accessToken.value,
-                client_id: `${this.#config.applicationId}_${contractDetails.contractId}`,
+                access_token: this.#tokenPair.access_token.value,
+                client_id: `${this.#config.applicationId}_${this.#contractDetails.contractId}`,
                 code_challenge: toBase64Url(getSha256Hash(codeVerifier)),
                 code_challenge_method: "S256",
                 nonce: getRandomAlphaNumeric(32),
@@ -135,7 +146,7 @@ export class DigiMeSDK {
                 state,
                 timestamp: Date.now(),
             },
-            contractDetails.privateKey.toString(),
+            this.#contractDetails.privateKey.toString(),
             {
                 algorithm: "PS512",
                 noTimestamp: true,

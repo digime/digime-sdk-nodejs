@@ -2,6 +2,8 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
+import { DigiMeSDK } from "./digi-me-sdk";
+
 /**
  * Extends [`Response`](https://developer.mozilla.org/docs/Web/API/Response) to
  * make `.json()` method return `Promise<unknown>` instead of `Promise<any>`
@@ -10,13 +12,19 @@ interface DigiMeFetchResponse extends Response {
     json(): Promise<unknown>;
 }
 
+type NetworkConfig = {
+    sdk: DigiMeSDK;
+};
+
 /**
  * Digi.me SDK's network wrapper
  */
 export class Network {
-    private refreshTokenHandler: () => void = () => {};
+    #sdk: DigiMeSDK;
 
-    constructor() {}
+    constructor(config: NetworkConfig) {
+        this.#sdk = config.sdk;
+    }
 
     /**
      * Wraps around [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) to provide some automation
