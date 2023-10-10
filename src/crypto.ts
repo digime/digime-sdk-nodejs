@@ -25,7 +25,7 @@ export const getRandomAlphaNumeric = (size: number): string => {
             random = nodeCrypto.randomBytes(1).readUInt8(0);
         } while (random > 256 - (256 % charsLength));
 
-        value[i] = ALPHA_NUMERIC[random % charsLength];
+        value[i] = ALPHA_NUMERIC[random % charsLength]!;
     }
 
     return value.join("");
