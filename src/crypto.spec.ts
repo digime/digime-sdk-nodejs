@@ -2,6 +2,7 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
+import { describe, test, expect } from "vitest";
 import { getSha256Hash, fromBase64Url, toBase64Url } from "./crypto";
 
 const SAMPLE_MESSAGE = "This is a message";
@@ -13,19 +14,23 @@ describe("crypto", () => {
     // });
 
     describe("getSha256Hash", () => {
-        test("Creates expected hash", async () => {
+        test("Creates expected hash", () => {
             const hash = getSha256Hash(SAMPLE_MESSAGE).toString("base64url");
             expect(hash).toBe("qCbH44nsnzecr9xUTX6aQ5X_e_tYkXu-vuUbPQscmWo");
         });
     });
 
     describe("toBase64Url", () => {
-        const encoded = toBase64Url(SAMPLE_MESSAGE);
-        expect(encoded).toBe(SAMPLE_MESSAGE_BASE64URL);
+        test("Creates expected string", () => {
+            const encoded = toBase64Url(SAMPLE_MESSAGE);
+            expect(encoded).toBe(SAMPLE_MESSAGE_BASE64URL);
+        });
     });
 
     describe("fromBase64Url", () => {
-        const decoded = fromBase64Url(SAMPLE_MESSAGE_BASE64URL);
-        expect(decoded).toBe(SAMPLE_MESSAGE);
+        test("Creates expected string", () => {
+            const decoded = fromBase64Url(SAMPLE_MESSAGE_BASE64URL);
+            expect(decoded).toBe(SAMPLE_MESSAGE);
+        });
     });
 });

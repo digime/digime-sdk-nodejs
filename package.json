@@ -14,7 +14,9 @@
     "#clear-dist": "rimraf ./dist",
     "#lint": "eslint . --max-warnings=0",
     "#lint-fix": "eslint --fix . --ext .js,.ts",
-    "test": "./node_modules/.bin/jest --coverage --config=jest-config.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage",
+    "test:ui": "vitest --coverage --ui",
     "generate-version": "tsx ./build-utils/update-sdk-version.ts",
     "generate-docs": "./node_modules/.bin/typedoc",
     "#preversion": "npm run test"
@@ -30,31 +32,31 @@
   },
   "homepage": "https://github.com/digime/digime-sdk-nodejs#readme",
   "devDependencies": {
-    "@types/jest": "~29.5.5",
     "@types/jsonwebtoken": "~9.0.3",
     "@types/node": "~18.18.0",
     "@typescript-eslint/eslint-plugin": "~6.7.3",
     "@typescript-eslint/parser": "~6.7.3",
+    "@vitest/coverage-v8": "~0.34.6",
+    "@vitest/ui": "~0.34.6",
     "eslint": "~8.50.0",
     "eslint-config-prettier": "~9.0.0",
     "eslint-plugin-header": "~3.1.1",
     "eslint-plugin-prettier": "~5.0.0",
     "eslint-plugin-unicorn": "~48.0.1",
-    "jest": "~29.7.0",
     "msw": "~0.0.0-fetch.rc-20",
     "prettier": "~3.0.3",
     "rimraf": "~5.0.5",
-    "ts-jest": "~29.1.1",
     "tsup": "~7.2.0",
     "tsx": "~3.13.0",
     "typedoc": "~0.25.1",
-    "typescript": "~5.2.2"
+    "typescript": "~5.2.2",
+    "vitest": "~0.34.6"
   },
   "dependencies": {
     "@types/node-rsa": "~1.1.2",
-    "@types/urijs": "~1.19.20",
     "jsonwebtoken": "~9.0.2",
     "node-rsa": "~1.1.1",
+    "xstate": "~4.38.2",
     "zod": "~3.22.2"
   },
   "engines": {

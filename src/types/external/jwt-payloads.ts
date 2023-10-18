@@ -9,3 +9,9 @@ export const PayloadPreauthorizationCode = z.object({
 });
 
 export type PayloadPreauthorizationCode = z.infer<typeof PayloadPreauthorizationCode>;
+
+export const PayloadAccessToken = z.object({
+    access_token: z.string(),
+});
+
+export type PayloadAccessToken = z.infer<typeof PayloadAccessToken>;

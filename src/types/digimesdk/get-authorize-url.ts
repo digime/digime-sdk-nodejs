@@ -3,7 +3,6 @@
  */
 
 import { z } from "zod";
-import { ContractDetails } from "../contract-details";
 import type { Session } from "../session";
 import { TokenPair } from "../external/tokens";
 
@@ -88,9 +87,6 @@ const PullSessionOptions = z.object({
  * getAuthorizeUrl input parameters
  */
 export const GetAuthorizeUrlParameters = z.object({
-    /** Contract details to authorize */
-    contractDetails: ContractDetails,
-
     /** URL to be called after authorization is done */
     callback: z.string(),
 
@@ -114,7 +110,7 @@ export const GetAuthorizeUrlParameters = z.object({
      * Only show services of specific sourceType
      * @defaultValue `"pull"`
      */
-    sourceType: z.union([z.literal("pull"), z.literal("push")]),
+    sourceType: z.union([z.literal("pull"), z.literal("push")]).optional(),
 });
 
 export type GetAuthorizeUrlParameters = z.infer<typeof GetAuthorizeUrlParameters>;
@@ -123,7 +119,7 @@ export type GetAuthorizeUrlParameters = z.infer<typeof GetAuthorizeUrlParameters
  * getAuthorizeUrl return type
  */
 export type GetAuthorizeUrlReturn = {
+    url: string;
     codeVerifier: string;
-    code: string;
     session: Session;
 };

@@ -2,6 +2,6 @@
     "error": {
         "code": "ValidationErrors",
         "message": "Parameter validation errors",
-        "reference": "THIS IS A MOCKED ERROR"
+        "reference": "--MOCKED ERROR--"
     }
 }

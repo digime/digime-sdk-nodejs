@@ -3,6 +3,7 @@
  */
 
 import { z } from "zod";
+import { TokenPair } from "../external/tokens";
 
 /**
  * Configuration options for Digi.me SDK
@@ -35,7 +36,22 @@ export const SdkConfig = z.object({
     /**
      * Callback to receive updated token after it updates automatically
      */
-    onTokenRefreshed: z.function().returns(z.void()).optional(),
+    onTokenPairRefreshed: z
+        .function()
+        .args(
+            z.object({
+                /**
+                 * Old access token (`tokenPair.access_token.value`) from the provided `TokenPair`
+                 * that was automatically refreshed using the refresh token.
+                 * */
+                outdatedAccessToken: z.string(),
+
+                /** New TokenPair that should be saved */
+                newTokenPair: TokenPair,
+            }),
+        )
+        .returns(z.void())
+        .optional(),
 });
 
 export type SdkConfig = z.infer<typeof SdkConfig>;
