@@ -17,6 +17,27 @@ export interface ContractDetails {
     privateKey: string;
 }
 
+export interface SampleDataOptions {
+    /**
+     * Dataset ID to use for sample data onboard returned in getServiceSampleDataSets
+     */
+    dataSet: string;
+
+    /**
+     * Skip all steps in authorization proces and do auto onboard flow for sample data. Dafault to false.
+     */
+    autoOnboard?: boolean;
+}
+
+export const SampleDataOptionsCodec: t.Type<SampleDataOptions> = t.intersection([
+    t.type({
+        dataSet: t.string,
+    }),
+    t.partial({
+        autoOnboard: t.boolean,
+    }),
+]);
+
 export type SourceType = "pull" | "push";
 
 export const SourceTypeCodec: t.Type<SourceType> = t.keyof({

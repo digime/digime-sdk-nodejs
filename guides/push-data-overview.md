@@ -78,11 +78,8 @@ After the user has onboarded and finished with the authorization, the `callback`
 An example URL might be:
 
 ```
-https://your-website.com/return?success=true&code=<authorization-code>&state=<state-passed-in-from-before>&postboxId=<postbox-id>&publicKey=<public-key>&accountReference=<accountReference>
+https://your-website.com/return?success=true&code=<authorization-code>&state=<state-passed-in-from-before>&accountReference=<accountReference>
 ```
-
-<small>*(`postboxId` and `publicKey` are only used with SDK versions lower than v9.x.x)*</small>
-
 
 ## 2. Exchange for an User Access Token
 The `code` returned in step 2 above can be used with the `codeVerifier` to exchange for a user access token. This allows you to request updated data from this user in the future for as long as the user access token is valid. Read more about the user access token [here](../fundamentals/access-token.html).

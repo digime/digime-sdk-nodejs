@@ -19,6 +19,7 @@ import { TypeValidationError } from "./errors";
 import { DigimeSDK } from "./sdk";
 import { getReauthorizeAccountUrl, GetReauthorizeAccountUrlOptions } from "./get-reauthorize-account-url";
 import { getPortabilityReport, GetPortabilityReportOptions } from "./get-portability-report";
+import { getServiceSampleDataSets, GetServiceSampleDataSetsOptions } from "./get-service-sample-datasets";
 
 const DEFAULT_BASE_URL = "https://api.digi.me/v1.7/";
 const DEFAULT_ONBOARD_URL = "https://api.digi.me/apps/saas/";
@@ -59,6 +60,8 @@ const init = (config: SDKConfiguration): DigimeSDK => {
         readAllFiles: (props: ReadAllFilesOptions) => readAllFiles(props, sdkConfig),
         readAccounts: (props: ReadAccountsOptions) => readAccounts(props, sdkConfig),
         getPortabilityReport: (props: GetPortabilityReportOptions) => getPortabilityReport(props, sdkConfig),
+        getServiceSampleDataSets: (props: GetServiceSampleDataSetsOptions) =>
+            getServiceSampleDataSets(props, sdkConfig),
     };
 };
 

@@ -17,6 +17,8 @@ export { ReadAllFilesOptions, ReadAllFilesResponse } from "./read-all-files";
 export { ReadFileOptions, ReadFileResponse } from "./read-file";
 export { ReadFileListOptions, ReadFileListResponse } from "./read-file-list";
 export { ReadSessionOptions, ReadSessionResponse } from "./read-session";
+export { GetPortabilityReportOptions, GetPortabilityReportResponse } from "./get-portability-report";
+export { GetServiceSampleDataSetsOptions, GetServiceSampleDataSetsResponse } from "./get-service-sample-datasets";
 export { PushDataOptions } from "./push";
 export { SDKConfiguration } from "./types/sdk-configuration";
 export { Session } from "./types/api/session";

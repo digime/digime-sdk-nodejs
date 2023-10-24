@@ -55,8 +55,7 @@ const contractDetails = {
 // userAccessToken - (Optional) User access token you may already have for this user from another contract.
 // sessionOptions - (Optional) An limits or scopes to set for this session.
 // sourceType - (Optional) Use push to filter out only services that are used for push to provider type. Default SourceType is set to pull.
-     */
-    sourceType?: SourceType;
+// sampleData - (Optional) Use for testing flow with sample datasets
 
 const result = await sdk.getAuthorizeUrl({
     contractDetails,
@@ -65,9 +64,10 @@ const result = await sdk.getAuthorizeUrl({
     serviceId: toNumber(serviceId),
     userAccessToken: <access-token>,
     sessionOptions: <{
-        pull?: PullSessionOptions
+        pull: PullSessionOptions
     }>,
     sourceType: "pull",
+    sampleData: SampleDataOptions
 });
 
 // => result will contain a url and a code verifier which you will need for later.
@@ -77,6 +77,8 @@ The [result](../../interfaces/Types.GetAuthorizeUrlResponse.html) returned will 
 Store the `codeVerifier` against this user as this will be required for later.
 
 More on limits and scoping of raw and mapped data interface can be found [here](../../interfaces/Types.PullSessionOptions.html).
+
+To test flow using sample data please check more details [here](../fundamentals/sample-datasets.html)
 
 ## Redirecting the user to this authorization URL
 
@@ -96,8 +98,6 @@ On *success*, the `callback` provided above will be called with the follow extra
 | `state` | The same string that was passed in to the `getAuthorizationUrl` call. | Yes |
 | `code` | Authorization Code. Only returned when the authorization successful. | Yes |
 | `accountReference` | This information can be used to get full account info when matching this number with reference number returned by readAccounts API. Only returned when the authorization successful. | Yes |
-| `postboxId` | __*Only used with SDK versions lower than v9.x.*__ Returned only when authorizing a write contract.  | No |
-| `publicKey` | __*Only used with SDK versions lower than v9.x.*__ Returned only when authorizing a write contract. | No |
 
 On *failure*, the `callbackUrl` provided will be called with the follow extra query parameters:
 
