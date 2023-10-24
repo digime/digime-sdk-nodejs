@@ -21,6 +21,7 @@ import { ReadSessionOptions, ReadSessionResponse } from "./read-session";
 import { UserAccessToken } from "./types/user-access-token";
 import { PushDataOptions } from "./push";
 import { GetPortabilityReportOptions, GetPortabilityReportResponse } from "./get-portability-report";
+import { GetServiceSampleDataSetsOptions, GetServiceSampleDataSetsResponse } from "./get-service-sample-datasets";
 
 export interface DigimeSDK {
     /**
@@ -121,4 +122,10 @@ export interface DigimeSDK {
      * @category Other
      */
     getPortabilityReport: (props: GetPortabilityReportOptions) => Promise<GetPortabilityReportResponse>;
+
+    /** Get a list of datasets for given sourceId.
+     *
+     * @category Read
+     */
+    getServiceSampleDataSets: (props: GetServiceSampleDataSetsOptions) => Promise<GetServiceSampleDataSetsResponse>;
 }

@@ -19,6 +19,8 @@ import {
     ContractDetailsCodec,
     PullSessionOptions,
     PullSessionOptionsCodec,
+    SampleDataOptions,
+    SampleDataOptionsCodec,
     SourceType,
     SourceTypeCodec,
 } from "./types/common";
@@ -62,6 +64,11 @@ export interface GetAuthorizeUrlOptions {
      * Please use SourceType push to filter out only services that are push type. Default SourceType is set to pull.
      */
     sourceType?: SourceType;
+
+    /**
+     * Options for sample data flow
+     */
+    sampleData?: SampleDataOptions;
 }
 
 export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.intersection([
@@ -77,6 +84,7 @@ export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.int
             pull: PullSessionOptionsCodec,
         }),
         sourceType: SourceTypeCodec,
+        sampleData: SampleDataOptionsCodec,
     }),
 ]);
 
@@ -113,13 +121,15 @@ const getAuthorizeUrl = async (
     }
 
     const { code, codeVerifier, session } = await _authorize(props, sdkConfig);
-    const { serviceId, sourceType } = props;
+    const { serviceId, sourceType, sampleData } = props;
 
     const result: URL = new URL(`${sdkConfig.onboardUrl}authorize`);
     result.search = new URLSearchParams({
         code,
         sourceType: sourceType ? sourceType : "pull",
         ...(serviceId && { service: serviceId.toString() }),
+        ...(sampleData && sampleData.dataSet && { sampleDataSet: sampleData.dataSet }),
+        ...(sampleData && sampleData.autoOnboard && { sampleDataAutoOnboard: sampleData.autoOnboard.toString() }),
     }).toString();
 
     return {

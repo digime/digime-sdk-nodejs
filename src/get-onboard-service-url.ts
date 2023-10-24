@@ -13,7 +13,14 @@ import { URL, URLSearchParams } from "url";
 import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
 import { getPayloadFromToken } from "./utils/get-payload-from-token";
 import { SDKConfiguration } from "./types/sdk-configuration";
-import { ContractDetails, ContractDetailsCodec, SourceType, SourceTypeCodec } from "./types/common";
+import {
+    ContractDetails,
+    ContractDetailsCodec,
+    SampleDataOptions,
+    SampleDataOptionsCodec,
+    SourceType,
+    SourceTypeCodec,
+} from "./types/common";
 import { TypeValidationError } from "./errors";
 import { isNonEmptyString } from "./utils/basic-utils";
 import sdkVersion from "./sdk-version";
@@ -39,6 +46,10 @@ export interface GetOnboardServiceUrlOptions {
      * Please use SourceType push to filter out only services that are push type. Default SourceType is set to pull.
      */
     sourceType?: SourceType;
+    /**
+     * Options for sample data flow
+     */
+    sampleData?: SampleDataOptions;
 }
 
 const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.intersection([
@@ -50,6 +61,7 @@ const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.interse
     t.partial({
         serviceId: t.number,
         sourceType: SourceTypeCodec,
+        sampleData: SampleDataOptionsCodec,
     }),
 ]);
 
@@ -67,7 +79,7 @@ const _getOnboardServiceUrl = async (
         throw new TypeValidationError("Error on getOnboardServiceUrl(). Incorrect parameters passed in.");
     }
 
-    const { userAccessToken, contractDetails, callback, sourceType } = props;
+    const { userAccessToken, contractDetails, callback, sourceType, sampleData } = props;
     const { contractId, privateKey } = contractDetails;
 
     const jwt: string = sign(
@@ -118,6 +130,8 @@ const _getOnboardServiceUrl = async (
         searchParms = {
             ...searchParms,
             service: props.serviceId.toString(),
+            ...(sampleData && sampleData.dataSet && { sampleDataSet: sampleData.dataSet }),
+            ...(sampleData && sampleData.autoOnboard && { sampleDataAutoOnboard: sampleData.autoOnboard.toString() }),
         };
     }
 
