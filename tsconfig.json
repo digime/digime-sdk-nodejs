@@ -85,6 +85,10 @@
                             "source": "onboard.md"
                         },
                         {
+                            "title": "Sample datasets",
+                            "source": "sample-datasets.md"
+                        },
+                        {
                             "title": "Reauthorizing account",
                             "source": "reauthorize.md"
                         },
@@ -119,6 +123,10 @@
                         {
                             "title": "Example Applications",
                             "source": "example-applications.md"
+                        },
+                        {
+                            "title": "Portability report",
+                            "source": "portability-report.md"
                         }
                     ],
                     "output": "fundamentals"

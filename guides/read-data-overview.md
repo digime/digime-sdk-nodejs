@@ -64,15 +64,22 @@ const contractDetails = {
 const { url, codeVerifier, session } = await sdk.getAuthorizeUrl({
     contractDetails,
     callback: <an-url-to-call-when-authorization-is-done>,
-    serviceId: toNumber(serviceId),
     state: <any-details-to-help-you-identify-user-on-return>,
+    serviceId: toNumber(serviceId),
     userAccessToken: <if-you-already-have-one>
+    sessionOptions: <{
+        pull?: PullSessionOptions
+    }>,
+    sourceType: "pull",
+    sampleData: SampleDataOptions
 });
 
 // Store the codeVerifier against the current user, and redirect them to the url returned.
 // This will kick start the authorization process.
 // The session will be used later when triggering a data read.
 ```
+
+To test flow using sample data please check more details [here](../fundamentals/sample-datasets.html)
 
 ### Redirect the user
 
