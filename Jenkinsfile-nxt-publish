@@ -1,2 +1,2 @@
 #!/usr/bin/env groovy
-publicPublishNodeJs(node_version: "14.21.1")
+publicPublishNodeJs(node_version: "18.0.0")
