@@ -6,6 +6,16 @@ import { defineConfig } from "vite";
 export default defineConfig({
     test: {
         setupFiles: ["./vitest.setup.ts"],
+        /**
+         * NOTE: Disabling threads as it seems to reduce vitest hangs.
+         * Also doesn't make "debug" package output in non-TTY mode.
+         *
+         * Reference:
+         *  - https://github.com/vitest-dev/vitest/issues/3077
+         *  - https://github.com/vitest-dev/vitest/issues/2008
+         */
+        threads: false,
+        reporters: "verbose",
         coverage: {
             reportOnFailure: true,
             include: ["src/**/*.ts"],

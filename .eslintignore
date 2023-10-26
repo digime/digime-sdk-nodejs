@@ -4,3 +4,5 @@ coverage
 dist
 # Don't lint docs
 docs
+# Don't lint typegen
+*.typegen.ts

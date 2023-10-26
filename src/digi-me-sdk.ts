@@ -3,7 +3,7 @@
  */
 
 import JWT from "jsonwebtoken";
-import { SdkConfig } from "./types/digimesdk/sdk-config";
+import { SdkConfig, StoredSdkConfig } from "./types/digimesdk/sdk-config";
 import { DiscoveryAPIServicesData, DiscoveryAPIServicesResponse } from "./types/external/discovery-api-services";
 import { GetAuthorizeUrlParameters } from "./types/digimesdk/get-authorize-url";
 import { getRandomAlphaNumeric, getSha256Hash, toBase64Url } from "./crypto";
@@ -17,30 +17,29 @@ import { TokenPair } from "./types/external/tokens";
 import NodeRSA from "node-rsa";
 import { z } from "zod";
 import { OauthTokenResponse } from "./types/external/oauth-token";
-import { fetchMachine } from "./machines/fetch-machine";
-import { interpret } from "xstate";
-import { waitFor } from "xstate/lib/waitFor";
-
-/**
- * Extends [`Response`](https://developer.mozilla.org/docs/Web/API/Response) to
- * make `.json()` method return `Promise<unknown>` instead of `Promise<any>`
- */
-interface DigiMeFetchResponse extends Response {
-    json(): Promise<unknown>;
-}
+import { fetch } from "./fetch/fetch";
+import { parseWithSchema } from "./zod/zod-parse";
+import { DigiMeSdkTypeError } from "./errors/errors";
+import { errorMessages } from "./errors/messages";
 
 /**
  * Digi.me SDK
  */
 export class DigiMeSDK {
-    #config: Required<SdkConfig>;
-    #contractDetails?: ContractDetails;
-    #tokenPair?: TokenPair;
+    static #fetch = fetch;
+    #config: StoredSdkConfig;
+    #contractDetails: ContractDetails | undefined;
+    #tokenPair: TokenPair | undefined;
 
-    constructor(config: SdkConfig) {
-        const parsedConfig = SdkConfig.parse(config);
+    constructor(sdkConfig: SdkConfig) {
+        const { contractDetails, tokenPair, ...parsedConfig } = parseWithSchema(
+            sdkConfig,
+            SdkConfig,
+            'DigiMeSDK constructor parameter "sdkConfig"',
+        );
 
-        // TODO: Enforce trailing slash on setting baseURL
+        this.#contractDetails = contractDetails;
+        this.#tokenPair = tokenPair;
         this.#config = {
             baseURL: "https://api.digi.me/v1.7/",
             onboardURL: "https://api.digi.me/apps/saas/",
@@ -49,76 +48,34 @@ export class DigiMeSDK {
         };
     }
 
-    /**
-     * TODO
-     */
-    setCredentials() {
-        const testPrivateKey = new NodeRSA({ b: 2048 });
-
-        this.#contractDetails = {
-            contractId: "test-contract-id",
-            privateKey: testPrivateKey.exportKey("pkcs1-private-pem").toString(),
-        };
-        this.#tokenPair = {
-            access_token: {
-                value: "test-access-token",
-                expires_on: "never",
-            },
-            refresh_token: {
-                value: "test-access-token",
-                expires_on: "never",
-            },
-        };
-    }
-
-    setContractDetails(details: ContractDetails) {
-        this.#contractDetails = details;
-    }
-
-    setTokenPair(tokenPair: TokenPair) {
-        this.#tokenPair = tokenPair;
-    }
-
-    /**
-     * Wraps around [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) to provide some automation
-     */
-    async #fetch(...parameters: ConstructorParameters<typeof Request>): Promise<DigiMeFetchResponse> {
-        const fetchActor = interpret(fetchMachine)
-            .onTransition((state) => {
-                console.log("===", state.value);
-            })
-            .start();
-
-        fetchActor.send({ type: "FETCH", request: new Request(...parameters) });
-
-        const endState = await waitFor(fetchActor, (state) => Boolean(state.done), { timeout: Infinity });
-
-        // console.log("=== ctx", endState.context);
-
-        // XState types don't expose `data`, so we check for it
-        if (!("data" in endState.event)) {
-            throw new Error("TODO: No data in endState event, please report this");
+    async #validTokenPairOrThrow() {
+        if (!this.#tokenPair) {
+            throw new DigiMeSdkTypeError(errorMessages.noTokenPairProvided);
         }
 
-        // Return `Response`s
-        if (endState.matches("complete") && endState.event.data instanceof Response) {
-            return endState.event.data;
+        const now = Math.floor(Date.now() / 1000);
+        const accessTokenExpired = this.#tokenPair.access_token.expires_on + 10 > now;
+
+        if (!accessTokenExpired) {
+            return this.#tokenPair;
         }
 
-        // Throw `Error`s
-        if (endState.matches("failed")) {
-            // TODO: Our errors
-            // throw new AggregateError(endState.context.errors, "Network request failed");
-            throw new Error("Network request failed", { cause: endState.context.lastError });
+        const refreshTokenExpired = this.#tokenPair.refresh_token.expires_on + 10 > now;
+
+        if (refreshTokenExpired) {
+            throw new DigiMeSdkTypeError(errorMessages.accessAndRefreshTokenExpired);
         }
 
-        // TODO: Our errors
-        throw new Error("TODO: Unknown end state from state machine, please report this");
+        return await this.#refreshTokenPair();
     }
 
     async #refreshTokenPair() {
-        if (!this.#contractDetails || !this.#tokenPair) {
-            throw new Error("No credentials set, can't refresh token pair");
+        if (!this.#contractDetails) {
+            throw new DigiMeSdkTypeError(errorMessages.noContractDetailsProvided);
+        }
+
+        if (!this.#tokenPair) {
+            throw new DigiMeSdkTypeError(errorMessages.noTokenPairProvided);
         }
 
         const signedToken = this.#signTokenPayload({
@@ -129,7 +86,7 @@ export class DigiMeSDK {
             timestamp: Date.now(),
         });
 
-        const response = await this.#fetch(new URL("oauth/token", this.#config.baseURL), {
+        const response = await DigiMeSDK.#fetch(new URL("oauth/token", this.#config.baseURL), {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${signedToken}`,
@@ -138,12 +95,59 @@ export class DigiMeSDK {
         });
 
         const responseData = OauthTokenResponse.parse(await response.json());
-        return await this.#getJkuVerifiedTokenPayload(responseData.token, TokenPair);
+        const payload = await this.#getJkuVerifiedTokenPayload(responseData.token, TokenPair);
+
+        // Call the refresh hook with the tokens
+        if (this.#config.onTokenPairRefreshed) {
+            this.#config.onTokenPairRefreshed({ outdatedTokenPair: this.#tokenPair, newTokenPair: payload });
+        }
+
+        // Update the token pair bound to the instance
+        this.#tokenPair = payload;
+
+        return this.#tokenPair;
+    }
+
+    setDummyCredentials() {
+        const testPrivateKey = new NodeRSA({ b: 2048 });
+
+        this.#contractDetails = {
+            contractId: "test-contract-id",
+            privateKey: testPrivateKey.exportKey("pkcs1-private-pem").toString(),
+        };
+
+        this.#tokenPair = {
+            access_token: {
+                value: "test-access-token",
+                expires_on: Infinity,
+            },
+            refresh_token: {
+                value: "test-access-token",
+                expires_on: Infinity,
+            },
+        };
+
+        return this;
     }
 
     /**
-     * Signs with default parameters
-     * TODO: Write better description
+     * TODO
+     */
+    setContractDetails(details: ContractDetails) {
+        this.#contractDetails = details;
+        return this;
+    }
+
+    /**
+     * TODO
+     */
+    setTokenPair(tokenPair: TokenPair) {
+        this.#tokenPair = tokenPair;
+        return this;
+    }
+
+    /**
+     * Calls JWT.sign with some recurring default parameters
      */
     #signTokenPayload(
         payload: Record<string, unknown>,
@@ -151,8 +155,7 @@ export class DigiMeSDK {
         options?: JWT.SignOptions,
     ) {
         if (!secret) {
-            // TODO: Better error
-            throw new Error("No secret");
+            throw new DigiMeSdkTypeError('Not secret provided to ".#signTokenPayload()"');
         }
 
         return JWT.sign(payload, secret, {
@@ -186,32 +189,26 @@ export class DigiMeSDK {
 
         // TODO: Convert to schema check?
         if (typeof jku !== "string") {
-            // TODO: Errors
-            throw new TypeError("Invalid JKU");
+            throw new DigiMeSdkTypeError("Invalid JKU");
         }
 
         if (typeof kid !== "string") {
-            // TODO: Errors
-            throw new TypeError("Invalid KID");
+            throw new DigiMeSdkTypeError("Invalid KID");
         }
 
-        const jkuResponse = await this.#fetch(jku, {
+        const jkuResponse = await DigiMeSDK.#fetch(jku, {
             headers: {
                 Accept: "application/json",
             },
         });
-
-        if (!jkuResponse.ok) {
-            // TODO: Our own errors
-            throw new Error("DigiMeSDK - JKU returned a non-ok response");
-        }
 
         const jwks = JWKS.parse(await jkuResponse.json());
 
         const matchingKey = jwks.keys.find((key) => key.kid === kid);
 
         if (!matchingKey) {
-            throw new Error("DigiMeSDK - JKU returned a JWKS with a no matching keys");
+            // TODO: Better error text?
+            throw new DigiMeSdkTypeError("DigiMeSDK - JKU returned a JWKS with a no matching keys");
         }
 
         return payloadSchema.parse(JWT.verify(token, matchingKey.pem, { algorithms: ["PS512"] }));
@@ -232,7 +229,8 @@ export class DigiMeSDK {
         contractId?: string;
         signal?: AbortSignal;
     } = {}): Promise<DiscoveryAPIServicesData> {
-        // TODO: Parse parameters?
+        // TODO: Parse parameters
+
         const headers: HeadersInit = {
             Accept: "application/json",
         };
@@ -241,8 +239,7 @@ export class DigiMeSDK {
             headers.contractId = contractId;
         }
 
-        // TODO: Retry logic
-        const response = await this.#fetch(new URL("discovery/services", this.#config.baseURL), {
+        const response = await DigiMeSDK.#fetch(new URL("discovery/services", this.#config.baseURL), {
             headers,
             signal,
         });
@@ -253,10 +250,9 @@ export class DigiMeSDK {
     /**
      * TODO: Write this docs
      */
-    public async getAuthorizeUrl(parameters: GetAuthorizeUrlParameters): Promise<GetAuthorizeUrlReturn | false> {
+    public async getAuthorizeUrl(parameters: GetAuthorizeUrlParameters): Promise<GetAuthorizeUrlReturn> {
         if (!this.#contractDetails) {
-            // TODO: Do better
-            throw new Error("Credentials not set - ContractDetails");
+            throw new DigiMeSdkTypeError(errorMessages.noContractDetailsProvided);
         }
 
         const {
@@ -268,6 +264,17 @@ export class DigiMeSDK {
         } = GetAuthorizeUrlParameters.parse(parameters);
         const codeVerifier = toBase64Url(getRandomAlphaNumeric(32));
         const token = this.#signTokenPayload({
+            /**
+             * NOTE: Seemingly oauth/authorize can be used in various ways
+             *  - No token pair -> authorize a contract
+             *  - Valid token pair -> authorize a contract
+             *  - Invalid token pair -> (re)authorize a contract
+             *
+             * This is why we don't call `this.#validTokenPairOrThrow here
+             */
+            /**
+             * TODO: VERIFY THE ABOVE CLAIM!
+             */
             access_token: this.#tokenPair?.access_token.value,
             client_id: `${this.#config.applicationId}_${this.#contractDetails.contractId}`,
             code_challenge: toBase64Url(getSha256Hash(codeVerifier)),
@@ -281,7 +288,7 @@ export class DigiMeSDK {
         });
 
         try {
-            const response = await this.#fetch(new URL("oauth/authorize", this.#config.baseURL), {
+            const response = await DigiMeSDK.#fetch(new URL("oauth/authorize", this.#config.baseURL), {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -322,7 +329,6 @@ export class DigiMeSDK {
             };
         } catch (error) {
             // TODO: Our errors
-            // handleServerResponse(error);
             console.log("=== e", error);
             throw error;
         }
@@ -340,8 +346,7 @@ export class DigiMeSDK {
         // TODO: Validate parameters
 
         if (!this.#contractDetails) {
-            // TODO: Our own errors + better error
-            throw new Error("No contract details");
+            throw new DigiMeSdkTypeError(errorMessages.noContractDetailsProvided);
         }
 
         const token = this.#signTokenPayload({
@@ -355,7 +360,7 @@ export class DigiMeSDK {
 
         // eslint-disable-next-line no-useless-catch
         try {
-            const response = await this.#fetch(new URL("oauth/token", this.#config.baseURL), {
+            const response = await DigiMeSDK.#fetch(new URL("oauth/token", this.#config.baseURL), {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -367,7 +372,6 @@ export class DigiMeSDK {
             return await this.#getJkuVerifiedTokenPayload(responseData.token, TokenPair);
         } catch (error) {
             // TODO: Do something useful here
-            // console.log("caught", error);
             throw error;
         }
     }

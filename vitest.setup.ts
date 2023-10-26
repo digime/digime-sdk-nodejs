@@ -16,5 +16,11 @@ beforeAll(() =>
         },
     }),
 );
-afterAll(() => mswServer.close());
-afterEach(() => mswServer.resetHandlers());
+
+afterAll(() => {
+    mswServer.close();
+});
+
+afterEach(() => {
+    mswServer.resetHandlers();
+});

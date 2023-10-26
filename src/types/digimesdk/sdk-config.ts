@@ -4,54 +4,77 @@
 
 import { z } from "zod";
 import { TokenPair } from "../external/tokens";
+import { ContractDetails } from "../contract-details";
+
+// Transform and casting to have a more specific type for typechecking
+const UrlWithTrailingSlash = z
+    .string()
+    .url()
+    .endsWith("/")
+    .transform((value) => value as `${string}/`);
 
 /**
- * Configuration options for Digi.me SDK
+ * Input configuration options for Digi.me SDK
  */
-export const SdkConfig = z.object({
-    /** Your customised application ID from digi.me */
-    applicationId: z.string(),
+export const SdkConfig = z.object(
+    {
+        /** Your customised application ID from digi.me */
+        applicationId: z.string(),
 
-    /** The ID of the contract you'd like to use */
-    // contractId: z.string(),
+        /**
+         * ContractDetails, to set them right away without calling `sdk.setContractDetails()`
+         * @defaultValue undefined
+         */
+        contractDetails: ContractDetails.optional(),
 
-    /** Private key in PKCS1 format */
-    // privateKey: z.string(),
+        /**
+         * TokenPair, to set them right away without calling `sdk.setTokenPair()`
+         * @defaultValue undefined
+         */
+        tokenPair: TokenPair.optional(),
 
-    /** Access token pair */
-    // tokenPair: TokenPair.optional(),
+        /**
+         * Root URL for the digi.me API
+         * Must end with a trailing slash
+         * @defaultValue `"https://api.digi.me/v1.7/"`
+         */
+        baseURL: UrlWithTrailingSlash.optional(),
 
-    /**
-     * Root URL for the digi.me API
-     * @defaultValue `"https://api.digi.me/v1.7/"`
-     */
-    baseURL: z.string().optional(),
+        /**
+         * Root URL for the digi.me web onboard
+         * Must end with a trailing slash
+         * @defaultValue `"https://api.digi.me/apps/saas/"`
+         */
+        onboardURL: UrlWithTrailingSlash.optional(),
 
-    /**
-     * Root URL for the digi.me web onboard
-     * @defaultValue `"https://api.digi.me/apps/saas/"`
-     */
-    onboardURL: z.string().optional(),
-
-    /**
-     * Callback to receive updated token after it updates automatically
-     */
-    onTokenPairRefreshed: z
-        .function()
-        .args(
-            z.object({
-                /**
-                 * Old access token (`tokenPair.access_token.value`) from the provided `TokenPair`
-                 * that was automatically refreshed using the refresh token.
-                 * */
-                outdatedAccessToken: z.string(),
-
-                /** New TokenPair that should be saved */
-                newTokenPair: TokenPair,
-            }),
-        )
-        .returns(z.void())
-        .optional(),
-});
+        /**
+         * Callback to receive updated token after it updates automatically
+         * @defaultValue undefined
+         */
+        onTokenPairRefreshed: z
+            .function()
+            .args(
+                z.object({
+                    /** The TokenPair that was automatically refreshed using the refresh token*/
+                    outdatedTokenPair: TokenPair,
+                    /** New TokenPair that replaced the outdated TokenPair. */
+                    newTokenPair: TokenPair,
+                }),
+            )
+            .returns(z.void())
+            .optional(),
+    },
+    {
+        required_error: "SdkConfig is required",
+        invalid_type_error: "SdkConfig must be an object",
+    },
+);
 
 export type SdkConfig = z.infer<typeof SdkConfig>;
+
+/**
+ * Internally stored configuration for Digi.me SDK
+ */
+export const StoredSdkConfig = SdkConfig.omit({ contractDetails: true, tokenPair: true }).required();
+
+export type StoredSdkConfig = z.infer<typeof StoredSdkConfig>;

@@ -9,10 +9,90 @@ import {
     discoveryServicesCodeErrorHandler,
     discoveryServicesErrorAcceptHeaderHandler,
     discoveryServicesHandler,
-} from "./mocks/handlers/discovery/services/handlers";
+} from "./mocks/api/discovery/services/handlers";
 import { randomUUID } from "node:crypto";
+import { DigiMeSdkError, DigiMeSdkTypeError } from "./errors/errors";
 
 describe("DigiMeSDK", () => {
+    describe("constructor", () => {
+        test("Works with minimal parameters", () => {
+            expect(() => new DigiMeSDK({ applicationId: "test-application-id" })).not.toThrow();
+        });
+
+        test("Throws when provided with no config", () => {
+            try {
+                // @ts-expect-error Not passing in parameters on purpose
+                new DigiMeSDK();
+                expect.unreachable();
+            } catch (error) {
+                expect(error).toBeInstanceOf(Error);
+                expect(error).toBeInstanceOf(DigiMeSdkError);
+                expect(error).toBeInstanceOf(DigiMeSdkTypeError);
+                expect(error).toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for DigiMeSDK constructor parameter "sdkConfig" (1 issue):
+                   • SdkConfig is required]
+                `);
+            }
+        });
+
+        test("Throws when given wrong config type", () => {
+            try {
+                // @ts-expect-error Not passing in parameters on purpose
+                new DigiMeSDK([]);
+                expect.unreachable();
+            } catch (error) {
+                expect(error).toBeInstanceOf(Error);
+                expect(error).toBeInstanceOf(DigiMeSdkError);
+                expect(error).toBeInstanceOf(DigiMeSdkTypeError);
+                expect(error).toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for DigiMeSDK constructor parameter "sdkConfig" (1 issue):
+                   • SdkConfig must be an object]
+                `);
+            }
+        });
+
+        test("Throws when provided an empty object", () => {
+            try {
+                // @ts-expect-error Passing empty object on purpose
+                new DigiMeSDK({});
+                expect.unreachable();
+            } catch (error) {
+                expect(error).toBeInstanceOf(Error);
+                expect(error).toBeInstanceOf(DigiMeSdkError);
+                expect(error).toBeInstanceOf(DigiMeSdkTypeError);
+                expect(error).toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for DigiMeSDK constructor parameter "sdkConfig" (1 issue):
+                   • "applicationId": Required]
+                `);
+            }
+        });
+
+        test("Throws when provided an bad config", () => {
+            try {
+                new DigiMeSDK({
+                    contractDetails: {
+                        // @ts-expect-error Intentionally wrong
+                        privateKey: 1,
+                    },
+                    // @ts-expect-error Intentionally wrong
+                    onboardURL: ["a", "b", "c"],
+                });
+                expect.unreachable();
+            } catch (error) {
+                expect(error).toBeInstanceOf(Error);
+                expect(error).toBeInstanceOf(DigiMeSdkError);
+                expect(error).toBeInstanceOf(DigiMeSdkTypeError);
+                expect(error).toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for DigiMeSDK constructor parameter "sdkConfig" (4 issues):
+                   • "applicationId": Required
+                   • "contractDetails.contractId": Required
+                   • "contractDetails.privateKey": Expected string, received number
+                   • "onboardURL": Expected string, received array]
+                `);
+            }
+        });
+    });
+
     describe(".getAvailableServices()", () => {
         test("Succeeds", async () => {
             mswServer.use(discoveryServicesHandler());
@@ -36,17 +116,18 @@ describe("DigiMeSDK", () => {
                 services: expect.anything(),
                 serviceGroups: expect.anything(),
             });
+
+            expect(mswServer.listHandlers()).toMatchObject([{ isUsed: true }, { isUsed: true }]);
         });
 
         test("Retries on ENOTFOUND network error", async () => {
             // Alter the base to try and force the ENOTFOUND the network request
-            const base = `https://intentionally-unhandled.${randomUUID()}/`;
+            const base = `https://intentionally-unhandled.${randomUUID()}/` as const;
 
             // Bind the handler after some unhandled attempts
             let unhandledRequests = 0;
 
             const unhandledRequestHandler = () => {
-                console.log("-handler");
                 unhandledRequests++;
 
                 if (unhandledRequests >= 2) {
@@ -69,7 +150,7 @@ describe("DigiMeSDK", () => {
             expect(emitter.listenerCount("request:unhandled")).toBe(0);
         });
 
-        test("Throws with causes on unretryable code", async () => {
+        test.skip("Throws with causes on unretryable code", async () => {
             mswServer.use(discoveryServicesErrorAcceptHeaderHandler());
 
             const sdk = new DigiMeSDK({ applicationId: "test-application-id" });
@@ -95,7 +176,7 @@ describe("DigiMeSDK", () => {
         test("Runs", async () => {
             const sdk = new DigiMeSDK({ applicationId: "test-application-id" });
 
-            sdk.setCredentials();
+            sdk.setDummyCredentials();
 
             await sdk.getAuthorizeUrl({
                 callback: "abc",

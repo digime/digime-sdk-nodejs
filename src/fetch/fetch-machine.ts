@@ -5,6 +5,7 @@
 import { createMachine, assign } from "xstate";
 import { ApiErrorResponse } from "../types/external/api-error-response";
 import { ErrorWithCauseCode } from "../types/error-with-cause-code";
+import { logFetch } from "../debug-log";
 
 const RETRY_DEFAULTS = {
     maxAttempts: 3,
@@ -12,21 +13,10 @@ const RETRY_DEFAULTS = {
     retryableErrorCodes: ["ENOTFOUND", "ENETUNREACH", "EAI_AGAIN", "ECONNREFUSED", "ECONNRESET"],
 };
 
-// const getBearerTokenFromRequest = (request: Request): string | undefined => {
-//     const auth = request.headers.get("Authorization");
-
-//     // No expected Authorization header
-//     if (!auth || !auth.startsWith("Bearer ")) {
-//         return undefined;
-//     }
-
-//     return auth.split(" ")[1];
-// };
-
 // TODO: Handle aborts in other parts of the machine
 export const fetchMachine = createMachine(
     {
-        /** @xstate-layout N4IgpgJg5mDOIC5QDMwBcDGALAsgQ2wEsA7MAOkIgBswBiAMQFEAVAYQAkBtABgF1FQABwD2sQmkLDiAkAA9EARm4AmMgGZuAFgBsAdjUBWA9zUAObdoUAaEAE9Ea1QbUBObse4vdn7QF9fNqiYuARYJORBRMRQtBBS5CQAbsIA1hHo2PhR6cEkUAhJwhh4ElI8vOUyImKl0khyisqqCpZNJpa6usoGLjb2CMqmmmTc3EODygoGyi4Gmv6BGSHZZJFh0bHxFMTJaatLWes5UfmFxbXlnAr89dXiknWg8gim3GQGui4KLmoaJk0ubR9BxmMgKTQ6Iy6AwKWFjPwBEBrQ7hfa5DZxUjbXbHZZHNEnAo7IolB6XZQ3ISie5SGTPBSDMimFwuHSmZTaGbaLTAhAQt7GWGmFo-OZihZIg6hVFrPK0MAAJwVwgVZEEVBKyBVAFsCXiZUs8kTkucyXxKrdqbU6YhlLptOpDKzdAozNDuC1eWphiY3M5NGoFKZjEYJcjpVjZRtFcrVerNTq9SjI4bosaSRdzdcqlaHjaEB83tpNO4hizzEYgXYHD7XGMS11tDDOWGpSsFXBhFREnlGEqVQAlOAiYiwOiYhLEvbh9ud7u9-sKoewEdj9Omsrmvg5mp5+rPAC03reCk69tm2iGmhcyl5miMYNmge9mlM+h6reCyfIHdgXZ70R9rGy6ruOWyFNObb4r+-4LsBw5SGuZykpuFTZpau60vuiAHoMujvMWr66CWHLQsomi8pYPrkde15eICZifpkEY-nOAFQEBg4IaOdAxiqaoamgWoKrqM7QWxcFcSuiFgOuKHEJc24YTSjwNHyPTqNohhmJokzKL8Bi8s4ahMh60zKGMajaF4TH6liHbIL+6xQMwqRgMQmxYhBuLfmQDlOXkrlpMQcmZhUSlUphqmHrC+Ecq81m6KYaifB8t7Vgg3wKGQ3jPpoUzkXa7K2b5-lwM5QXufKi4CQmIlJixflgI55WBW5IXIWFFqRSp+YHhCLhkF45issWpjsuCvLeKYBHdF0wZWQyCj+IixDCBAcAyGJ4Q7r12EIAeMLNJygyApMpamLyh3DICniaPozK-Ho94lY1lA0Lt1r7QeUxkGN+X5V0KUWPdRkGO8Uw9Fp3BJS0rgGK9KxRlAn17k8igpSMZH2sYl4uOYvJTCZuUMgjiLbZGeCEDQECo1h6MIOeZB0d4nJ6G+Mxg9RwrcCdoyzGTixfo1MHzoBi4gTJdPRY04M3pe3JaQtdq9BlYpkN0OgQtZ3JJboiP4hgwjauq6BgNL+YQtl+hWU05hmTChkZYM2XdOMN6BqeGj6+TUGomVsAVe1FvfVrYIncynJKAY42ExYOUmK6KXdKeMKmCtvhAA */
+        /** @xstate-layout N4IgpgJg5mDOIC5QDMwBcDGALAsgQ2wEsA7MAOkIgBswBiAMQFEAVAYQAkBtABgF1FQABwD2sQmkLDiAkAA9EAWgBMAZgCMZAGwqAHDoCcAdkNK1Sw-v0qANCACeiJTrL7uugCwBWA-rXcDOoYAvkG2qJi4BFgk5OFExFC0EFLkJABuwgDWsejY+PE5ESRQCOnCGHgSUjy8NTIiYlXSSHKKphqGOqqe3K76Bir6nrYOCE7cZCqGKkpK7txq0-4qmiFhuZEFZHHRCUkpFMQZ2dsb+buF8SVlFU01nGr8LQ3iks2g8gjKniqTmu5TCyGNQqAGeQwjRAqUFkHr6LxqTw-My6NYgHbnGKnIp7ZKkQ7HS6bC7Yq6lI7lSpve5KJ5CUSvKQyT7KbieMjcdzuPwqbj+QzcTRqdyQhAAzRkHSaTxGQzuIZInTuNEYqJYnbFWhgABO2uE2rIgiolWQ+oAtqTieqNsVyRlbtS+HVngymszFOCtNxDJo5iClL5tDphvYoRN5h59KpdNofkoVWc1fiNXsdXqDUaTebLZjkzaEnbKXcnY96q63u6xistEYFlMlJp+r5RbyyBHAv05Zp-ppOQmIrnyNq4MIqGlioxdfqAEpwETEWB0NP6w3GtCm7UW1VbYewUfjhKT9Oz2DzxeFh3VJ18MuNCstT5mdncyyaYHyzzd-SaUU-CZqbt1E6YNgX7PIkyHEcxwnKdtRPM86DxVIKRObcSV3fcYOPOcpHPG4qSvWobxdO8mQfRQ1HhWEFl6NQAOBAN9FFbt2TlTx5S5JEvBCUIQGIYQIDgGQ0JiW9GXeVovl5DQVgBYwjBBcVRQUEFflUTQdAAxsgWheNeJE-FKBoMS3XIr4lG4JQyEMTxTDlOZzGWENRgULxrJWTSnBUJEAO8MCrTzHEoBM+8Pgo79JQ0gN3B9GK33hUVEQmQULAsnRLLrfzB22PBCBoCAQrIsKxW82FP0U18LO0X8ekmKNXAs2Y-GDLKILIDDoMPWD4NwsBCoklk0o5ei-G0dRoRs39uS0SiuU5fpaNWfTEy2DBhDNI10D6kjxMrPxDGs1w2URPR3D0IVRXMA7fRmJQemhNQpTcHigiAA */
         schema: {
             context: {} as {
                 request?: Request;
@@ -115,21 +105,14 @@ export const fetchMachine = createMachine(
                 invoke: {
                     src: "resolveErrorResponse",
 
-                    onDone: [
-                        {
-                            target: "refreshingToken",
-                            cond: "canRetryByRefreshingToken",
-                            actions: ["setLastErrorFromApiError"],
-                        },
-                        {
-                            target: "failed",
-                            actions: ["setLastErrorFromApiError"],
-                        },
-                    ],
-
                     onError: {
                         target: "failed",
                         actions: ["setLastError"],
+                    },
+
+                    onDone: {
+                        target: "failed",
+                        actions: "setLastErrorFromApiError",
                     },
                 },
             },
@@ -138,14 +121,6 @@ export const fetchMachine = createMachine(
                 type: "final",
                 data: (context, event) => {
                     return event.request;
-                },
-            },
-
-            refreshingToken: {
-                invoke: {
-                    src: "refreshToken",
-                    onDone: "fetching",
-                    onError: "failed",
                 },
             },
         },
@@ -193,28 +168,12 @@ export const fetchMachine = createMachine(
                     return false;
                 }
             },
-
-            canRetryByRefreshingToken: (context, event) => {
-                const { response, apiError } = event.data;
-
-                // Somehow we're here without a request?
-                if (!context.request) return false;
-
-                // We didn't send a token
-                if (!context.request.headers.has("Authorization")) return false;
-
-                // Wrong status code for refresh
-                if (response.status !== 401) return false;
-
-                // Error is not related to the token
-                if (apiError.code !== "InvalidToken") return false;
-
-                return true;
-            },
         },
 
         services: {
             fetch: async (context) => {
+                logFetch(`Attempt: ${context.attempts}/${context.maxAttempts}`);
+
                 if (!context.request) {
                     // TODO: Our own errors
                     throw new Error("TODO: Missing request!");
@@ -225,25 +184,33 @@ export const fetchMachine = createMachine(
                     throw new Error(`Too many attempts`, { cause: context.lastError });
                 }
 
-                return await fetch(context.request);
+                return await globalThis.fetch(context.request.clone());
             },
 
             resolveErrorResponse: async (context, event) => {
                 const clonedResponse = event.data.clone();
-                // const clonedResponse = new Response("", { status: 501 });
+
+                const responseBody = await clonedResponse.text();
+
+                logFetch(
+                    `Received response:\n====\n${clonedResponse.status} ${clonedResponse.statusText}\n----\n${responseBody}\n====`,
+                );
 
                 let apiError: ApiErrorResponse;
 
                 try {
-                    apiError = ApiErrorResponse.parse(await clonedResponse.json());
+                    apiError = ApiErrorResponse.parse(JSON.parse(responseBody));
                 } catch (error) {
+                    logFetch(`Error encountered while parsing response:\n====\n${error}\n====`);
+                    // logServicesResolveErrorResponse("abcd", error);
+                    // logServicesResolveErrorResponse("def");
                     // Add last error to the thrown error, to have context what failed
                     if (error instanceof Error) {
                         error.cause = context.lastError;
                     }
 
                     // TODO: Our own errors
-                    throw new Error("Received unexpected response from the API", { cause: error });
+                    throw new Error(`Received unexpected response from the API:\n\n${responseBody}`, { cause: error });
                 }
 
                 return {
@@ -251,8 +218,6 @@ export const fetchMachine = createMachine(
                     apiError,
                 };
             },
-
-            refreshToken: async () => {},
         },
     },
 );

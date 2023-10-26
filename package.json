@@ -12,11 +12,11 @@
     "#compile:main": "./node_modules/.bin/tsc -p tsconfig.dist.json",
     "#compile:module": "./node_modules/.bin/tsc -p tsconfig.module.json",
     "#clear-dist": "rimraf ./dist",
-    "#lint": "eslint . --max-warnings=0",
-    "#lint-fix": "eslint --fix . --ext .js,.ts",
+    "lint": "eslint . --max-warnings=0",
+    "lint-fix": "eslint --fix . --ext .js,.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --coverage",
-    "test:ui": "vitest --coverage --ui",
+    "test": "vitest run",
+    "test:ui": "vitest --ui --reporter=basic",
     "generate-version": "tsx ./build-utils/update-sdk-version.ts",
     "generate-docs": "./node_modules/.bin/typedoc",
     "#preversion": "npm run test"
@@ -32,6 +32,7 @@
   },
   "homepage": "https://github.com/digime/digime-sdk-nodejs#readme",
   "devDependencies": {
+    "@types/debug": "~4.1.10",
     "@types/jsonwebtoken": "~9.0.3",
     "@types/node": "~18.18.0",
     "@typescript-eslint/eslint-plugin": "~6.7.3",
@@ -54,6 +55,7 @@
   },
   "dependencies": {
     "@types/node-rsa": "~1.1.2",
+    "debug": "~4.3.4",
     "jsonwebtoken": "~9.0.2",
     "node-rsa": "~1.1.1",
     "xstate": "~4.38.2",

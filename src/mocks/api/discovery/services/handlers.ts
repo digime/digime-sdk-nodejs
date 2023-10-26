@@ -24,7 +24,7 @@ export const discoveryServicesHandler = ({ path = ENDPOINT_PATH, base = LIVE_BAS
             }
 
             return HttpResponse.text(
-                await fs.readFile("./src/mocks/handlers/discovery/services/response-valid-full.json", "utf-8"),
+                await fs.readFile(new URL("./response-valid-full.json", import.meta.url), "utf-8"),
             );
         },
         { once: true },
@@ -38,7 +38,8 @@ export const discoveryServicesErrorAcceptHeaderHandler = ({ path = ENDPOINT_PATH
         url,
         async () => {
             return HttpResponse.text(
-                await fs.readFile("./src/mocks/handlers/discovery/services/response-error-accept-header.json", "utf-8"),
+                /// await fs.readFile(new URL("./response-error-accept-header.json", import.meta.url), "utf-8"),
+                "{{{{",
                 {
                     status: 406,
                 },
