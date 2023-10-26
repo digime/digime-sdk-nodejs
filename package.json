@@ -54,7 +54,7 @@
     "vitest": "~0.34.6"
   },
   "dependencies": {
-    "@types/node-rsa": "~1.1.2",
+    "@types/node-rsa": "~1.1.3",
     "debug": "~4.3.4",
     "jsonwebtoken": "~9.0.2",
     "node-rsa": "~1.1.1",
