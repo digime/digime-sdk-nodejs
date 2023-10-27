@@ -3,15 +3,45 @@
  */
 
 import { describe, test, expect } from "vitest";
-import { getSha256Hash, fromBase64Url, toBase64Url } from "./crypto";
+import { getRandomAlphaNumeric, getSha256Hash, fromBase64Url, toBase64Url } from "./crypto";
+import nodeCrypto from "node:crypto";
 
 const SAMPLE_MESSAGE = "This is a message";
 const SAMPLE_MESSAGE_BASE64URL = "VGhpcyBpcyBhIG1lc3NhZ2U";
 
 describe("crypto", () => {
-    // describe("getRandomAlphaNumeric", () => {
+    describe("getRandomAlphaNumeric", () => {
+        test("Creates a string of requested size", () => {
+            const randomLength = nodeCrypto.randomInt(10, 100);
+            const string = getRandomAlphaNumeric(randomLength);
+            expect(string.length).toBe(randomLength);
+        });
 
-    // });
+        test("Creates a string that that should be alphanumeric", () => {
+            const randomLength = nodeCrypto.randomInt(10, 100);
+            const string = getRandomAlphaNumeric(randomLength);
+
+            expect(/^[\dA-Za-z]*$/.test(string)).toBe(true);
+        });
+
+        test("Throws a TypeError if provided a size lower than 0", () => {
+            const assertion = () => getRandomAlphaNumeric(nodeCrypto.randomInt(-1000, 0));
+
+            expect(assertion).toThrow(TypeError);
+            expect(assertion).toThrowErrorMatchingInlineSnapshot('"Size parameter must be greater than 0"');
+        });
+
+        test("Collision test, 10000 iterations at size 32", () => {
+            const randomStrings = new Set();
+            const maxIterations = 10000;
+
+            for (let i = 0; i < maxIterations; i++) {
+                randomStrings.add(getRandomAlphaNumeric(32));
+            }
+
+            expect(randomStrings.size).toBe(maxIterations);
+        });
+    });
 
     describe("getSha256Hash", () => {
         test("Creates expected hash", () => {

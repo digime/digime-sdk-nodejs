@@ -17,6 +17,7 @@ export default defineConfig({
         threads: false,
         reporters: "verbose",
         coverage: {
+            enabled: true,
             reportOnFailure: true,
             include: ["src/**/*.ts"],
             reporter: ["cobertura", "lcovonly", "text-summary", "html"],

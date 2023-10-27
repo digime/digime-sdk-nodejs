@@ -11,24 +11,20 @@ const ALPHA_NUMERIC = `${ALPHA_LOWER}${ALPHA_UPPER}${NUMERIC}`;
 
 /**
  * Get a string of random alphanumeric characters of a desired size
- *
- * NOTE: Duplicated from Digi.me internal crypto lib
  */
 export const getRandomAlphaNumeric = (size: number): string => {
-    const charsLength = ALPHA_NUMERIC.length;
-    const value: string[] = Array.from({ length: size });
-
-    for (let i = 0; i < size; i++) {
-        let random: number;
-
-        do {
-            random = nodeCrypto.randomBytes(1).readUInt8(0);
-        } while (random > 256 - (256 % charsLength));
-
-        value[i] = ALPHA_NUMERIC[random % charsLength]!;
+    // Empty strings are not random
+    if (size <= 0) {
+        throw new TypeError("Size parameter must be greater than 0");
     }
 
-    return value.join("");
+    let string = "";
+    for (let i = 0; i < size; i++) {
+        // Pick a random character from ALPHA_NUMERIC
+        // Using the ! postfix, as we're generating random ints that fall in the range of ALPHA_NUMERIC
+        string += ALPHA_NUMERIC.at(nodeCrypto.randomInt(ALPHA_NUMERIC.length))!;
+    }
+    return string;
 };
 
 /**
