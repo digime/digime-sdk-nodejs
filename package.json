@@ -44,7 +44,7 @@
     "eslint-plugin-header": "~3.1.1",
     "eslint-plugin-prettier": "~5.0.0",
     "eslint-plugin-unicorn": "~48.0.1",
-    "msw": "~0.0.0-fetch.rc-20",
+    "msw": "~2.0.0",
     "prettier": "~3.0.3",
     "rimraf": "~5.0.5",
     "tsup": "~7.2.0",
