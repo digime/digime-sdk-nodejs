@@ -7,14 +7,14 @@ export default defineConfig({
     test: {
         setupFiles: ["./vitest.setup.ts"],
         /**
-         * NOTE: Disabling threads as it seems to reduce vitest hangs.
-         * Also doesn't make "debug" package output in non-TTY mode.
+         * NOTE: Switching from default "thread" pooling to "fork" pooling reduce vitest hangs.
+         * Additioally, it also allows the "debug" package to output in TTY mode.
          *
          * Reference:
          *  - https://github.com/vitest-dev/vitest/issues/3077
          *  - https://github.com/vitest-dev/vitest/issues/2008
          */
-        threads: false,
+        pool: "forks",
         reporters: "verbose",
         coverage: {
             enabled: true,

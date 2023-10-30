@@ -37,8 +37,8 @@
     "@types/node": "~18.18.0",
     "@typescript-eslint/eslint-plugin": "~6.7.3",
     "@typescript-eslint/parser": "~6.7.3",
-    "@vitest/coverage-v8": "~0.34.6",
-    "@vitest/ui": "~0.34.6",
+    "@vitest/coverage-v8": "~1.0.0-beta.3",
+    "@vitest/ui": "~1.0.0-beta.3",
     "eslint": "~8.50.0",
     "eslint-config-prettier": "~9.0.0",
     "eslint-plugin-header": "~3.1.1",
@@ -51,7 +51,7 @@
     "tsx": "~3.13.0",
     "typedoc": "~0.25.1",
     "typescript": "~5.2.2",
-    "vitest": "~0.34.6"
+    "vitest": "~1.0.0-beta.3"
   },
   "dependencies": {
     "@types/node-rsa": "~1.1.3",
