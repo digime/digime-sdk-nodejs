@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Initializing the SDK | @digime/digime-sdk-nodejs</title><meta name="description" content="Documentation for @digime/digime-sdk-nodejs"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../../assets/style.css"/><link rel="stylesheet" href="../../assets/highlight.css"/><link rel="stylesheet" href="../../assets/custom.css"/><script async src="../../assets/search.js" id="search-script"></script><link rel="stylesheet" href="../../assets/pages.css"/></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Portability report | @digime/digime-sdk-nodejs</title><meta name="description" content="Documentation for @digime/digime-sdk-nodejs"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../../assets/style.css"/><link rel="stylesheet" href="../../assets/highlight.css"/><link rel="stylesheet" href="../../assets/custom.css"/><script async src="../../assets/search.js" id="search-script"></script><link rel="stylesheet" href="../../assets/pages.css"/></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container">
 <div class="table-cell" id="tsd-search" data-base="../..">
 <div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
@@ -14,8 +14,8 @@
 <ul class="tsd-breadcrumb">
 <li><a href="../../modules.html">@digime/digime-sdk-nodejs</a></li>
 <li><span>Fundamentals</span></li>
-<li><a href="initialise-sdk.html">Initializing the SDK</a></li></ul>
-<h1> Initializing the SDK</h1></div>
+<li><a href="portability-report.html">Portability report</a></li></ul>
+<h1> Portability report</h1></div>
 <div class="tsd-panel tsd-typography"><p><img src="https://securedownloads.digi.me/partners/digime/SDKReadmeBanner.png" alt=""></p>
 <p align="center">
     <a href="https://developers.digi.me/slack/join">
@@ -37,34 +37,11 @@
 
 <br>
 
-<p>In order to use the JS SDK, you&#39;ll first need to initialise it with your unique application ID.
-You can get yours by filling out the registration form <a href="https://digi.me/register">here</a>.</p>
-<p>By default, the SDK will point to the production environment of digi.me, but when initialising the SDK, you have the ability to override some default behaviour and specify some options.</p>
-
-<a href="#configuration-options" id="configuration-options" style="color: inherit; text-decoration: none;">
-  <h4>Configuration Options</h4>
-</a>
-<p>See all possible <a href="../../interfaces/Types.SDKConfiguration.html">configurations</a> when initializing the SDK.</p>
-
-<a href="#returns" id="returns" style="color: inherit; text-decoration: none;">
-  <h4>Returns</h4>
-</a>
-<p>The returned SDK has the following <a href="../../interfaces/SDK.DigimeSDK.html">properties</a></p>
-
-<a href="#examples" id="examples" style="color: inherit; text-decoration: none;">
-  <h4>Examples</h4>
-</a>
-<p>The most basic initialization:</p>
-<p><em>Using ES6 modules</em></p>
-<pre><code class="language-typescript"><span class="hl-5">import</span><span class="hl-0"> { </span><span class="hl-6">init</span><span class="hl-0"> } </span><span class="hl-5">from</span><span class="hl-0"> </span><span class="hl-7">&quot;@digime/digime-sdk-nodejs&quot;</span><span class="hl-0">;</span><br/><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-3">sdk</span><span class="hl-0"> = </span><span class="hl-4">init</span><span class="hl-0">({ </span><span class="hl-6">applicationId:</span><span class="hl-0"> &lt;</span><span class="hl-8">my</span><span class="hl-0">-</span><span class="hl-8">unique</span><span class="hl-0">-</span><span class="hl-8">application</span><span class="hl-0">-</span><span class="hl-8">id</span><span class="hl-0">&gt; });</span>
+<p>Currently only for service Medmij we provide option to get portability report.</p>
+<p>To get portability report you need trigger:</p>
+<pre><code class="language-typescript"><span class="hl-1">// Initialize the SDK</span><br/><span class="hl-5">import</span><span class="hl-0"> {</span><span class="hl-6">init</span><span class="hl-0">} </span><span class="hl-5">from</span><span class="hl-0"> </span><span class="hl-7">&quot;@digime/digime-sdk-nodejs&quot;</span><span class="hl-0">;</span><br/><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-3">sdk</span><span class="hl-0"> = </span><span class="hl-4">init</span><span class="hl-0">({ </span><span class="hl-6">applicationId:</span><span class="hl-0"> &lt;</span><span class="hl-8">you</span><span class="hl-0">-</span><span class="hl-8">application</span><span class="hl-0">-</span><span class="hl-8">id</span><span class="hl-0">&gt; });</span><br/><br/><span class="hl-1">// contractDetails - The same one used in getAuthorizeUrl().</span><br/><span class="hl-1">// userAccessToken - The user access token from the authorization step.</span><br/><span class="hl-1">// format - File format to be returned. Currently only XML is supported.</span><br/><span class="hl-1">// serviceType - Service type medmij is only supported for now.</span><br/><span class="hl-1">// from -  From timestamp in seconds</span><br/><span class="hl-1">// to -  To timestamp in seconds</span><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-3">report</span><span class="hl-0"> = </span><span class="hl-5">await</span><span class="hl-0"> </span><span class="hl-6">sdk</span><span class="hl-0">.</span><span class="hl-4">getPortabilityReport</span><span class="hl-0">({</span><br/><span class="hl-0">    </span><span class="hl-6">contractDetails</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-6">userAccessToken</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-6">format</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-6">serviceType</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-6">from</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-6">to</span><span class="hl-0">,</span><br/><span class="hl-0">});</span><br/><br/><span class="hl-1">//.</span>
 </code></pre>
-<p><em>Using CommonJS</em></p>
-<pre><code class="language-typescript"><span class="hl-2">const</span><span class="hl-0"> { </span><span class="hl-3">init</span><span class="hl-0"> } = </span><span class="hl-4">require</span><span class="hl-0">(</span><span class="hl-7">&quot;@digime/digime-sdk-nodejs&quot;</span><span class="hl-0">);</span><br/><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-3">sdk</span><span class="hl-0"> = </span><span class="hl-4">init</span><span class="hl-0">({ </span><span class="hl-6">applicationId:</span><span class="hl-0"> &lt;</span><span class="hl-8">my</span><span class="hl-0">-</span><span class="hl-8">unique</span><span class="hl-0">-</span><span class="hl-8">application</span><span class="hl-0">-</span><span class="hl-8">id</span><span class="hl-0">&gt; });</span>
-</code></pre>
-<p>If you&#39;d like to specify retry options for the SDK:</p>
-<pre><code class="language-typescript"><span class="hl-5">import</span><span class="hl-0"> { </span><span class="hl-6">init</span><span class="hl-0"> } </span><span class="hl-5">from</span><span class="hl-0"> </span><span class="hl-7">&quot;@digime/digime-sdk-nodejs&quot;</span><span class="hl-0">;</span><br/><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-3">sdk</span><span class="hl-0"> = </span><span class="hl-4">init</span><span class="hl-0">({</span><br/><span class="hl-0">    </span><span class="hl-6">applicationId:</span><span class="hl-0"> &lt;</span><span class="hl-8">my</span><span class="hl-0">-</span><span class="hl-8">unique</span><span class="hl-0">-</span><span class="hl-8">application</span><span class="hl-0">-</span><span class="hl-8">id</span><span class="hl-0">&gt;,</span><br/><span class="hl-0">    </span><span class="hl-6">retryOptions:</span><span class="hl-0"> {</span><br/><span class="hl-0">        </span><span class="hl-6">retries:</span><span class="hl-0"> </span><span class="hl-10">10</span><span class="hl-0">,</span><br/><span class="hl-0">    }</span><br/><span class="hl-0">});</span>
-</code></pre>
-<p>Please see <a href="https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/got/index.d.ts#L271">here</a> for all possible retry options.</p>
+<p>File <a href="../../interfaces/Types.GetPortabilityReportResponse.html">response</a> will be return as string.</p>
 </div></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
@@ -94,7 +71,7 @@ You can get yours by filling out the registration form <a href="https://digi.me/
 <li class="current pages-entry pages-entry-menu pages-entry-depth-1"><a>Fundamentals</a>
 <ul>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="contracts.html">Contracts</a></li>
-<li class="current selected pages-entry pages-entry-page pages-entry-depth-2"><a href="initialise-sdk.html">Initializing the SDK</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="initialise-sdk.html">Initializing the SDK</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="available-services.html">Getting <wbr/>Available <wbr/>Services</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="authorize.html">Authorizing</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="onboard.html">Onboarding <wbr/>Additional <wbr/>Services</a></li>
@@ -108,7 +85,7 @@ You can get yours by filling out the registration form <a href="https://digi.me/
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="access-token.html">User <wbr/>Access <wbr/>Tokens</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="handling-errors.html">Handling <wbr/>Errors</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="example-applications.html">Example <wbr/>Applications</a></li>
-<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="portability-report.html">Portability report</a></li></ul></li>
+<li class="current selected pages-entry pages-entry-page pages-entry-depth-2"><a href="portability-report.html">Portability report</a></li></ul></li>
 <li class="tsd-kind-module"><a href="../../modules/Errors.html">Errors</a>
 <ul>
 <li class="tsd-kind-module tsd-parent-kind-module"><a href="../../modules/Errors.Internal.html">Internal</a></li></ul></li>
