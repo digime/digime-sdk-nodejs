@@ -56,6 +56,7 @@ const contractDetails = {
 // sessionOptions - (Optional) An limits or scopes to set for this session.
 // sourceType - (Optional) Use push to filter out only services that are used for push to provider type. Default SourceType is set to pull.
 // sampleData - (Optional) Use for testing flow with sample datasets
+// locale - (Optional) Send prefared locale for authorization client to be used. Default is en.
 
 const result = await sdk.getAuthorizeUrl({
     contractDetails,
