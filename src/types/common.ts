@@ -69,6 +69,10 @@ export interface PullSessionOptions {
         };
     };
     scope?: CAScope;
+    /**
+     * If set to false user will be able to see only existing data, without refreshing the library. Default value is true.
+     */
+    sourceFetch?: boolean;
 }
 
 export interface ServiceGroup {
@@ -173,4 +177,5 @@ export const PullSessionOptionsCodec: t.Type<PullSessionOptions> = t.partial({
         }),
     }),
     scope: CAScopeCodec,
+    sourceFetch: t.boolean,
 });
