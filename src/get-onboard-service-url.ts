@@ -16,6 +16,8 @@ import { SDKConfiguration } from "./types/sdk-configuration";
 import {
     ContractDetails,
     ContractDetailsCodec,
+    PullSessionOptions,
+    PullSessionOptionsCodec,
     SampleDataOptions,
     SampleDataOptionsCodec,
     SourceType,
@@ -50,6 +52,12 @@ export interface GetOnboardServiceUrlOptions {
      * Options for sample data flow
      */
     sampleData?: SampleDataOptions;
+    /**
+     * Any optional parameters for the share.
+     */
+    sessionOptions?: {
+        pull?: PullSessionOptions;
+    };
 }
 
 const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.intersection([
@@ -62,6 +70,9 @@ const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.interse
         serviceId: t.number,
         sourceType: SourceTypeCodec,
         sampleData: SampleDataOptionsCodec,
+        sessionOptions: t.partial({
+            pull: PullSessionOptionsCodec,
+        }),
     }),
 ]);
 
@@ -79,7 +90,7 @@ const _getOnboardServiceUrl = async (
         throw new TypeValidationError("Error on getOnboardServiceUrl(). Incorrect parameters passed in.");
     }
 
-    const { userAccessToken, contractDetails, callback, sourceType, sampleData } = props;
+    const { userAccessToken, contractDetails, callback, sourceType, sampleData, sessionOptions } = props;
     const { contractId, privateKey } = contractDetails;
 
     const jwt: string = sign(
@@ -112,6 +123,7 @@ const _getOnboardServiceUrl = async (
                     },
                 },
             },
+            actions: sessionOptions,
         },
         responseType: "json",
     });

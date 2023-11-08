@@ -32,6 +32,7 @@ const sdk = init({ applicationId: <you-application-id> });
 // contractDetails - The same one used in getAuthorizeUrl().
 // serviceId - (Optional) The service to onboard. If serviceId is not passed user will have option to choose service that will be added.
 // userAccessToken - The user access token from the authorization step.
+// sessionOptions - (Optional) An limits or scopes to set for this session.
 // sourceType - (Optional) Use push to filter out only services that are used for push to provider type. Default SourceType is set to pull.
 // sampleData - (Optional) Use for testing flow with sample datasets
 
@@ -56,6 +57,8 @@ https://api.digi.me/apps/saas/onboard?code=<code>&callback=<callback>&service=<s
 Redirect the user to this URL, and they will be asked to onboard the service and consent to share the requested data.
 
 To test flow using sample data please check more details [here](../fundamentals/sample-datasets.html)
+
+More on limits and scoping of raw and mapped data interface can be found [here](../../interfaces/Types.PullSessionOptions.html).
 
 At the end of the process, the `callback` provided above will be called with the follow extra query parameters:
 
