@@ -69,6 +69,13 @@ export interface GetAuthorizeUrlOptions {
      * Options for sample data flow
      */
     sampleData?: SampleDataOptions;
+
+    /**
+     * Send prefared locale for authorization client to be used.
+     * If passed locale is not supported then language will fallback to browser language.
+     * If browser locale is not supported we will fallback to default locale (en).
+     */
+    locale?: string;
 }
 
 export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.intersection([
@@ -121,7 +128,7 @@ const getAuthorizeUrl = async (
     }
 
     const { code, codeVerifier, session } = await _authorize(props, sdkConfig);
-    const { serviceId, sourceType, sampleData } = props;
+    const { serviceId, sourceType, sampleData, locale } = props;
 
     const result: URL = new URL(`${sdkConfig.onboardUrl}authorize`);
     result.search = new URLSearchParams({
@@ -130,6 +137,7 @@ const getAuthorizeUrl = async (
         ...(serviceId && { service: serviceId.toString() }),
         ...(sampleData && sampleData.dataSet && { sampleDataSet: sampleData.dataSet }),
         ...(sampleData && sampleData.autoOnboard && { sampleDataAutoOnboard: sampleData.autoOnboard.toString() }),
+        ...(locale && { lng: locale.toString() }),
     }).toString();
 
     return {

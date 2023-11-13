@@ -58,6 +58,12 @@ export interface GetOnboardServiceUrlOptions {
     sessionOptions?: {
         pull?: PullSessionOptions;
     };
+    /**
+     * Send prefared locale for authorization client to be used.
+     * If passed locale is not supported then language will fallback to browser language.
+     * If browser locale is not supported we will fallback to default locale (en).
+     */
+    locale?: string;
 }
 
 const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.intersection([
@@ -90,7 +96,7 @@ const _getOnboardServiceUrl = async (
         throw new TypeValidationError("Error on getOnboardServiceUrl(). Incorrect parameters passed in.");
     }
 
-    const { userAccessToken, contractDetails, callback, sourceType, sampleData, sessionOptions } = props;
+    const { userAccessToken, contractDetails, callback, sourceType, sampleData, sessionOptions, locale } = props;
     const { contractId, privateKey } = contractDetails;
 
     const jwt: string = sign(
@@ -144,6 +150,7 @@ const _getOnboardServiceUrl = async (
             service: props.serviceId.toString(),
             ...(sampleData && sampleData.dataSet && { sampleDataSet: sampleData.dataSet }),
             ...(sampleData && sampleData.autoOnboard && { sampleDataAutoOnboard: sampleData.autoOnboard.toString() }),
+            ...(locale && { lng: locale.toString() }),
         };
     }
 
