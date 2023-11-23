@@ -10,6 +10,7 @@ import { UserAccessToken } from "./types/user-access-token";
 import { getPayloadFromToken } from "./utils/get-payload-from-token";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { ContractDetails } from "./types/common";
+import { formatToken } from "./utils/format-token";
 
 export interface RefreshTokenOptions {
     contractDetails: ContractDetails;
@@ -46,16 +47,7 @@ const refreshToken = async (options: RefreshTokenOptions, sdkConfig: SDKConfigur
         });
 
         const payload = await getPayloadFromToken(get(response.body, "token"), sdkConfig);
-        return {
-            accessToken: {
-                value: get(payload, ["access_token", "value"]),
-                expiry: get(payload, ["access_token", "expires_on"]),
-            },
-            refreshToken: {
-                value: get(payload, ["refresh_token", "value"]),
-                expiry: get(payload, ["refresh_token", "expires_on"]),
-            },
-        };
+        return formatToken(payload);
     } catch (error) {
         handleServerResponse(error);
         throw error;

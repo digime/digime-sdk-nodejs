@@ -4,7 +4,7 @@
 
 import { pushData, PushDataOptions } from "./push";
 import { assertIsSDKConfiguration, SDKConfiguration } from "./types/sdk-configuration";
-import { getAvailableServices } from "./get-available-services";
+import { getAvailableServices, GetAvailableServicesOptions } from "./get-available-services";
 import { getAuthorizeUrl, GetAuthorizeUrlOptions } from "./get-authorize-url";
 import { getOnboardServiceUrl, GetOnboardServiceUrlOptions } from "./get-onboard-service-url";
 import { addTrailingSlash, isPlainObject } from "./utils/basic-utils";
@@ -54,7 +54,7 @@ const init = (config: SDKConfiguration): DigimeSDK => {
         pushData: (props: PushDataOptions) => pushData(props, sdkConfig),
         readSession: (props: ReadSessionOptions) => readSession(props, sdkConfig),
         deleteUser: (props: DeleteUserOptions) => deleteUser(props, sdkConfig),
-        getAvailableServices: (contractId?: string) => getAvailableServices(sdkConfig, contractId),
+        getAvailableServices: (props: GetAvailableServicesOptions) => getAvailableServices(props, sdkConfig),
         readFile: (props: ReadFileOptions) => readFile(props, sdkConfig),
         readFileList: (props: ReadFileListOptions) => readFileList(props, sdkConfig),
         readAllFiles: (props: ReadAllFilesOptions) => readAllFiles(props, sdkConfig),
