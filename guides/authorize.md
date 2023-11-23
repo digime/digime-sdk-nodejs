@@ -57,6 +57,7 @@ const contractDetails = {
 // sourceType - (Optional) Use push to filter out only services that are used for push to provider type. Default SourceType is set to pull.
 // sampleData - (Optional) Use for testing flow with sample datasets
 // locale - (Optional) Send prefared locale for authorization client to be used. Default is en.
+// includeSampleDataOnlySources - (Optional) Flag to indicate if we should include sample data only sources. Default is false.
 
 const result = await sdk.getAuthorizeUrl({
     contractDetails,
@@ -68,7 +69,9 @@ const result = await sdk.getAuthorizeUrl({
         pull: PullSessionOptions
     }>,
     sourceType: "pull",
-    sampleData: SampleDataOptions
+    sampleData: SampleDataOptions,
+    locale: "nl",
+    includeSampleDataOnlySources: true
 });
 
 // => result will contain a url and a code verifier which you will need for later.

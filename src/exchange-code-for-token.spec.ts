@@ -138,6 +138,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         expires_on: 1000000,
                         value: "sample-refresh-token",
                     },
+                    sub: "test-user-id",
+                    consentid: "test-consent-id",
                 },
                 testKeyPair.exportKey("pkcs1-private-pem").toString(),
                 {

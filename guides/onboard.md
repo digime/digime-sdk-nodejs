@@ -36,6 +36,7 @@ const sdk = init({ applicationId: <you-application-id> });
 // sourceType - (Optional) Use push to filter out only services that are used for push to provider type. Default SourceType is set to pull.
 // sampleData - (Optional) Use for testing flow with sample datasets
 // locale - (Optional) Send prefared locale for authorization client to be used. Default is en.
+// includeSampleDataOnlySources - (Optional) Flag to indicate if we should include sample data only sources. Default is false.
 
 const { url } = await sdk.getOnboardServiceUrl({
     callback,
@@ -44,6 +45,8 @@ const { url } = await sdk.getOnboardServiceUrl({
     userAccessToken,
     sourceType,
     sampleData,
+    locale,
+    includeSampleDataOnlySources
 });
 
 // Redirect the user to the url returned and this will kick start the onboarding process.

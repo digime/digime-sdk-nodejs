@@ -76,6 +76,11 @@ export interface GetAuthorizeUrlOptions {
      * If browser locale is not supported we will fallback to default locale (en).
      */
     locale?: string;
+
+    /**
+     * Flag to indicate if we should include sample data only sources. Default is false.
+     */
+    includeSampleDataOnlySources?: boolean;
 }
 
 export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.intersection([
@@ -92,6 +97,8 @@ export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.int
         }),
         sourceType: SourceTypeCodec,
         sampleData: SampleDataOptionsCodec,
+        locale: t.string,
+        includeSampleDataOnlySources: t.boolean,
     }),
 ]);
 
@@ -128,7 +135,7 @@ const getAuthorizeUrl = async (
     }
 
     const { code, codeVerifier, session } = await _authorize(props, sdkConfig);
-    const { serviceId, sourceType, sampleData, locale } = props;
+    const { serviceId, sourceType, sampleData, locale, includeSampleDataOnlySources } = props;
 
     const result: URL = new URL(`${sdkConfig.onboardUrl}authorize`);
     result.search = new URLSearchParams({
@@ -137,7 +144,10 @@ const getAuthorizeUrl = async (
         ...(serviceId && { service: serviceId.toString() }),
         ...(sampleData && sampleData.dataSet && { sampleDataSet: sampleData.dataSet }),
         ...(sampleData && sampleData.autoOnboard && { sampleDataAutoOnboard: sampleData.autoOnboard.toString() }),
-        ...(locale && { lng: locale.toString() }),
+        ...(locale && { lng: locale }),
+        ...(includeSampleDataOnlySources !== undefined && {
+            includeSampleDataOnlySources: includeSampleDataOnlySources.toString(),
+        }),
     }).toString();
 
     return {
