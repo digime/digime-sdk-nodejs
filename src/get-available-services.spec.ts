@@ -40,7 +40,9 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
             it.each([true, false, null, {}, [], 0, NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (contract: any) => {
-                    return expect(sdk.getAvailableServices(contract)).rejects.toThrowError(TypeValidationError);
+                    return expect(sdk.getAvailableServices({ contractId: contract })).rejects.toThrowError(
+                        TypeValidationError
+                    );
                 }
             );
         });
@@ -50,7 +52,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
             beforeAll(async () => {
                 nock.define(loadDefinitions("fixtures/network/get-available-services/valid-response.json"));
 
-                response = await sdk.getAvailableServices();
+                response = await sdk.getAvailableServices({});
             });
 
             it("returned object contains a country object", () => {
