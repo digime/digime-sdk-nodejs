@@ -64,6 +64,11 @@ export interface GetOnboardServiceUrlOptions {
      * If browser locale is not supported we will fallback to default locale (en).
      */
     locale?: string;
+
+    /**
+     * Flag to indicate if we should include services that are sample data only services. Default is false.
+     */
+    includeSampleDataOnlySources?: boolean;
 }
 
 const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.intersection([
@@ -79,6 +84,8 @@ const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.interse
         sessionOptions: t.partial({
             pull: PullSessionOptionsCodec,
         }),
+        locale: t.string,
+        includeSampleDataOnlySources: t.boolean,
     }),
 ]);
 
@@ -96,7 +103,17 @@ const _getOnboardServiceUrl = async (
         throw new TypeValidationError("Error on getOnboardServiceUrl(). Incorrect parameters passed in.");
     }
 
-    const { userAccessToken, contractDetails, callback, sourceType, sampleData, sessionOptions, locale } = props;
+    const {
+        userAccessToken,
+        contractDetails,
+        callback,
+        sourceType,
+        sampleData,
+        sessionOptions,
+        locale,
+        includeSampleDataOnlySources,
+        serviceId,
+    } = props;
     const { contractId, privateKey } = contractDetails;
 
     const jwt: string = sign(
@@ -139,22 +156,18 @@ const _getOnboardServiceUrl = async (
     const session = get(response.body, "session", {} as GetOnboardServiceUrlResponse["session"]);
 
     const result: URL = new URL(`${sdkConfig.onboardUrl}onboard`);
-    let searchParms: Record<string, string> = {
+
+    result.search = new URLSearchParams({
         code,
         sourceType: sourceType ? sourceType : "pull",
-    };
-
-    if (props.serviceId) {
-        searchParms = {
-            ...searchParms,
-            service: props.serviceId.toString(),
-            ...(sampleData && sampleData.dataSet && { sampleDataSet: sampleData.dataSet }),
-            ...(sampleData && sampleData.autoOnboard && { sampleDataAutoOnboard: sampleData.autoOnboard.toString() }),
-            ...(locale && { lng: locale.toString() }),
-        };
-    }
-
-    result.search = new URLSearchParams(searchParms).toString();
+        ...(serviceId && { service: serviceId.toString() }),
+        ...(sampleData && sampleData.dataSet && { sampleDataSet: sampleData.dataSet }),
+        ...(sampleData && sampleData.autoOnboard && { sampleDataAutoOnboard: sampleData.autoOnboard.toString() }),
+        ...(locale && { lng: locale }),
+        ...(includeSampleDataOnlySources !== undefined && {
+            includeSampleDataOnlySources: includeSampleDataOnlySources.toString(),
+        }),
+    }).toString();
 
     return {
         url: result.toString(),
