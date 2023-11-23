@@ -37,7 +37,13 @@ The most basic initialization:
 import {init} from "@digime/digime-sdk-nodejs";
 const sdk = init({ applicationId: <you-application-id> });
 
-const services = await sdk.getAvailableServices(<read-contract-id>);
+// contractId - (Optional) Pass contractId to scope list of services allowed for your contract
+// includeSampleDataOnlySources - (Optional) If set to true response will include services that are sample only. Default is false.
+
+const services = await sdk.getAvailableServices({
+    contractId,
+    includeSampleDataOnlySources,
+});
 ```
 
 For a contract that only asks for Twitter data, the response might be:

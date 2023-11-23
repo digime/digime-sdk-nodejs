@@ -10,7 +10,7 @@
 import { DeleteUserOptions, DeleteUserResponse } from "./delete-user";
 import { ExchangeCodeForTokenOptions } from "./exchange-code-for-token";
 import { GetAuthorizeUrlResponse, GetAuthorizeUrlOptions } from "./get-authorize-url";
-import { GetAvailableServicesResponse } from "./get-available-services";
+import { GetAvailableServicesOptions, GetAvailableServicesResponse } from "./get-available-services";
 import { GetOnboardServiceUrlOptions, GetOnboardServiceUrlResponse } from "./get-onboard-service-url";
 import { GetReauthorizeAccountUrlOptions, GetReauthorizeAccountUrlResponse } from "./get-reauthorize-account-url";
 import { ReadAccountsOptions, ReadAccountsResponse } from "./read-accounts";
@@ -114,7 +114,7 @@ export interface DigimeSDK {
      *
      * @category Read
      */
-    getAvailableServices: (contractId?: string) => Promise<GetAvailableServicesResponse>;
+    getAvailableServices: (props: GetAvailableServicesOptions) => Promise<GetAvailableServicesResponse>;
 
     /**
      * Get Portability Report.
