@@ -17,4 +17,8 @@ export const SAMPLE_TOKEN = {
         expiry: 1000000,
         value: "sample-refresh-token",
     },
+    user: {
+        id: "test-user-id",
+    },
+    consentid: "test-consent-id",
 };
