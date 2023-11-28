@@ -13,6 +13,7 @@ import { SDKConfiguration } from "./types/sdk-configuration";
 import { ContractDetails, ContractDetailsCodec } from "./types/common";
 import * as t from "io-ts";
 import { isNonEmptyString } from "./utils/basic-utils";
+import { formatToken } from "./utils/format-token";
 
 export interface ExchangeCodeForTokenOptions {
     contractDetails: ContractDetails;
@@ -70,16 +71,7 @@ const exchangeCodeForToken = async (
 
         const payload = await getPayloadFromToken(get(response.body, "token"), sdkConfig);
 
-        return {
-            accessToken: {
-                value: get(payload, ["access_token", "value"]),
-                expiry: get(payload, ["access_token", "expires_on"]),
-            },
-            refreshToken: {
-                value: get(payload, ["refresh_token", "value"]),
-                expiry: get(payload, ["refresh_token", "expires_on"]),
-            },
-        };
+        return formatToken(payload);
     } catch (error) {
         handleServerResponse(error);
         throw error;
