@@ -9,9 +9,15 @@ interface Token {
     value: string;
 }
 
+interface User {
+    id: string;
+}
+
 export interface UserAccessToken {
     accessToken: Token;
     refreshToken: Token;
+    user: User;
+    consentid: string;
 }
 
 const TokenCodec: t.Type<Token> = t.type({
@@ -19,9 +25,15 @@ const TokenCodec: t.Type<Token> = t.type({
     value: t.string,
 });
 
+const UserCodec: t.Type<User> = t.type({
+    id: t.string,
+});
+
 const UserAccessTokenCodec: t.Type<UserAccessToken> = t.type({
     accessToken: TokenCodec,
     refreshToken: TokenCodec,
+    user: UserCodec,
+    consentid: t.string,
 });
 
 export { UserAccessTokenCodec };
