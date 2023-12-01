@@ -8,18 +8,6 @@ import { FileDataSchema, FileDataSchemaCodec } from "./ca-file-response";
 import { UserAccessToken, UserAccessTokenCodec } from "../user-access-token";
 
 /*
- * AccountSyncStatus
- */
-
-type AccountSyncStatus = "running" | "partial" | "completed";
-
-const AccountSyncStatusCodec: t.Type<AccountSyncStatus> = t.keyof({
-    running: null,
-    partial: null,
-    completed: null,
-});
-
-/*
  * LibrarySyncStatus
  */
 
@@ -52,17 +40,54 @@ const CAFileListEntryCodec: t.Type<CAFileListEntry> = t.intersection([
     }),
 ]);
 
-/*
- * AccountSyncStatusEntry
- */
-
-interface AccountSyncStatusEntry {
-    state: AccountSyncStatus;
+interface AccountSyncStatusEntryPartial {
+    state: "partial";
+    error: {
+        code: string;
+        error: {
+            message: string;
+        };
+        statuscode: number;
+    };
 }
 
-const AccountSyncStatusEntryCodec: t.Type<AccountSyncStatusEntry> = t.type({
-    state: AccountSyncStatusCodec,
+const AccountSyncStatusEntryPartialCodec: t.Type<AccountSyncStatusEntryPartial> = t.type({
+    state: t.literal("partial"),
+    error: t.type({
+        code: t.string,
+        error: t.type({
+            message: t.string,
+        }),
+        statuscode: t.number,
+    }),
 });
+
+interface AccountSyncStatusEntryRunning {
+    state: "running";
+}
+
+const AccountSyncStatusEntryRunningCodec: t.Type<AccountSyncStatusEntryRunning> = t.type({
+    state: t.literal("running"),
+});
+
+interface AccountSyncStatusEntryCompleted {
+    state: "completed";
+}
+
+const AccountSyncStatusEntryCompletedCodec: t.Type<AccountSyncStatusEntryCompleted> = t.type({
+    state: t.literal("completed"),
+});
+
+type AccountSyncStatusEntry =
+    | AccountSyncStatusEntryPartial
+    | AccountSyncStatusEntryRunning
+    | AccountSyncStatusEntryCompleted;
+
+const AccountSyncStatusEntryCodec: t.Type<AccountSyncStatusEntry> = t.union([
+    AccountSyncStatusEntryPartialCodec,
+    AccountSyncStatusEntryRunningCodec,
+    AccountSyncStatusEntryCompletedCodec,
+]);
 
 /*
  * CAFileListResponse
