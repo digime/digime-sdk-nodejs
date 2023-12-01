@@ -95,7 +95,29 @@ describe("isCAFileListResponse", () => {
     });
 
     describe("Returns true when the entries in status.details property of the CAFileListResponse object are valid AccountSyncStatusEntry", () => {
-        it.each(["running", "partial", "completed"])("%p", (value) => {
+        it("partial", () => {
+            expect(
+                isCAFileListResponse({
+                    status: {
+                        state: "running",
+                        details: {
+                            testid: {
+                                state: "partial",
+                                error: {
+                                    code: "test",
+                                    error: {
+                                        message: "test",
+                                    },
+                                    statuscode: 7357,
+                                },
+                            },
+                        },
+                    },
+                })
+            ).toBe(true);
+        });
+
+        it.each(["running", "completed"])("%p", (value) => {
             expect(
                 isCAFileListResponse({
                     status: {
@@ -356,7 +378,29 @@ describe("assertIsCAFileListResponse", () => {
     });
 
     describe("Does not throw when the entries in status.details property of the CAFileListResponse object are valid AccountSyncStatusEntry", () => {
-        it.each(["running", "partial", "completed"])("%p", (value) => {
+        it("partial", () => {
+            expect(() =>
+                assertIsCAFileListResponse({
+                    status: {
+                        state: "running",
+                        details: {
+                            testid: {
+                                state: "partial",
+                                error: {
+                                    code: "test",
+                                    error: {
+                                        message: "test",
+                                    },
+                                    statuscode: 7357,
+                                },
+                            },
+                        },
+                    },
+                })
+            ).not.toThrow();
+        });
+
+        it.each(["running", "completed"])("%p", (value) => {
             expect(() =>
                 assertIsCAFileListResponse({
                     status: {
