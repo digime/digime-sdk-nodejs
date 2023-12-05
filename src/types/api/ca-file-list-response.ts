@@ -46,8 +46,10 @@ interface AccountSyncStatusEntryPartial {
         code: string;
         error: {
             message: string;
+            reauth?: boolean;
+            retryAfter?: number;
         };
-        statuscode: number;
+        statusCode: number;
     };
 }
 
@@ -55,10 +57,16 @@ const AccountSyncStatusEntryPartialCodec: t.Type<AccountSyncStatusEntryPartial> 
     state: t.literal("partial"),
     error: t.type({
         code: t.string,
-        error: t.type({
-            message: t.string,
-        }),
-        statuscode: t.number,
+        error: t.intersection([
+            t.type({
+                message: t.string,
+            }),
+            t.partial({
+                reauth: t.boolean,
+                retryAfter: t.number,
+            }),
+        ]),
+        statusCode: t.number,
     }),
 });
 

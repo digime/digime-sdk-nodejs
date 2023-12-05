@@ -108,7 +108,7 @@ describe("isCAFileListResponse", () => {
                                     error: {
                                         message: "test",
                                     },
-                                    statuscode: 7357,
+                                    statusCode: 7357,
                                 },
                             },
                         },
@@ -391,7 +391,7 @@ describe("assertIsCAFileListResponse", () => {
                                     error: {
                                         message: "test",
                                     },
-                                    statuscode: 7357,
+                                    statusCode: 7357,
                                 },
                             },
                         },
