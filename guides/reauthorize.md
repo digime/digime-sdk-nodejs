@@ -31,7 +31,7 @@ Reauthorization is needed if user receives error during reading of data similar 
         "message": "Service authorization required",
         "reauth": true
       },
-      "statuscode": 511
+      "statusCode": 511
     }
   }
 }
