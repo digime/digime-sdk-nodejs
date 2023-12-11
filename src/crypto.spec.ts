@@ -28,7 +28,7 @@ describe("crypto", () => {
             const assertion = () => getRandomAlphaNumeric(nodeCrypto.randomInt(-1000, 0));
 
             expect(assertion).toThrow(TypeError);
-            expect(assertion).toThrowErrorMatchingInlineSnapshot('"Size parameter must be greater than 0"');
+            expect(assertion).toThrowErrorMatchingInlineSnapshot(`[TypeError: Size parameter must be greater than 0]`);
         });
 
         test("Collision test, 10000 iterations at size 32", () => {

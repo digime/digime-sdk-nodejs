@@ -21,10 +21,12 @@ export default defineConfig({
             reportOnFailure: true,
             include: ["src/**/*.ts"],
             reporter: ["cobertura", "lcovonly", "text-summary", "html"],
-            branches: 25,
-            functions: 25,
-            lines: 30,
-            statements: 30,
+            thresholds: {
+                branches: 25,
+                functions: 25,
+                lines: 30,
+                statements: 30,
+            },
         },
     },
 });

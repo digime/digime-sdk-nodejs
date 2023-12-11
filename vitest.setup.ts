@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { beforeAll, afterAll, afterEach } from "vitest";
+import { beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
 import { mswServer } from "./src/mocks/server";
 
 beforeAll(() =>
@@ -19,6 +19,10 @@ beforeAll(() =>
 
 afterAll(() => {
     mswServer.close();
+});
+
+beforeEach(() => {
+    vi.useRealTimers();
 });
 
 afterEach(() => {

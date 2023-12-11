@@ -2,14 +2,16 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
+import { ApiError } from "../types/external/api-error-response";
+
 /**
  * Generic catch-all Error thrown by the SDK.
  */
 export class DigiMeSdkError extends Error {
     public name = "DigiMeSdkError";
 
-    constructor(message: Error["message"]) {
-        super(message);
+    constructor(...parameters: ConstructorParameters<typeof Error>) {
+        super(...parameters);
         Error.captureStackTrace(this, this.constructor);
     }
 }
@@ -25,9 +27,12 @@ export class DigiMeSdkTypeError extends DigiMeSdkError {
  * Thrown when a parseable error response is received from Digi.me API.
  */
 export class DigiMeSdkApiError extends DigiMeSdkError {
-    public name = "DigiMeServerError";
+    public name = "DigiMeSdkApiError";
 
-    // TODO: Accept ApiError, format message automatically?
+    constructor(apiError: ApiError, ...parameters: ConstructorParameters<typeof Error>) {
+        super(...parameters);
+        this.message = `Digi.me API responded with the following error:\n • Code: ${apiError.code}\n • Message: ${apiError.message}\n • Reference: ${apiError.reference}`;
+    }
 }
 
 /**
