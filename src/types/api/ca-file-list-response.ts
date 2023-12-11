@@ -40,34 +40,54 @@ const CAFileListEntryCodec: t.Type<CAFileListEntry> = t.intersection([
     }),
 ]);
 
-interface AccountSyncStatusEntryPartial {
-    state: "partial";
+interface ObjectTypeError {
     error: {
         code: string;
-        error: {
-            message: string;
-            reauth?: boolean;
-            retryAfter?: number;
-        };
+        message: string;
         statusCode: number;
     };
+    objectType: number;
+}
+
+const ObjectTypeErrorCodec: t.Type<ObjectTypeError> = t.type({
+    error: t.type({
+        code: t.string,
+        message: t.string,
+        statusCode: t.number,
+    }),
+    objectType: t.number,
+});
+
+interface PartialError {
+    code: string;
+    statusCode: number;
+    message: string;
+    reauth?: boolean;
+    retryAfter?: number;
+    objectTypeErrors?: ObjectTypeError[];
+}
+
+const PartialErrorCodec: t.Type<PartialError> = t.intersection([
+    t.type({
+        code: t.string,
+        statusCode: t.number,
+        message: t.string,
+    }),
+    t.partial({
+        reauth: t.boolean,
+        retryAfter: t.number,
+        objectTypeErrors: t.array(ObjectTypeErrorCodec),
+    }),
+]);
+
+interface AccountSyncStatusEntryPartial {
+    state: "partial";
+    error: PartialError;
 }
 
 const AccountSyncStatusEntryPartialCodec: t.Type<AccountSyncStatusEntryPartial> = t.type({
     state: t.literal("partial"),
-    error: t.type({
-        code: t.string,
-        error: t.intersection([
-            t.type({
-                message: t.string,
-            }),
-            t.partial({
-                reauth: t.boolean,
-                retryAfter: t.number,
-            }),
-        ]),
-        statusCode: t.number,
-    }),
+    error: PartialErrorCodec,
 });
 
 interface AccountSyncStatusEntryRunning {
