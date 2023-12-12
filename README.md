@@ -28,8 +28,8 @@ This SDK is a server side Node library that allows seamless authentication with 
 ## Requirements
 
 ### Development
-- Node 14.0 or above
-- (Optional, if using TypeScript) TypeScript 3.8 or above
+- Node 18.0 or above
+- (Optional, if using TypeScript) TypeScript 4.0 or above
 
 ## Installation
 
