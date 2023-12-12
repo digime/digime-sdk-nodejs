@@ -42,15 +42,15 @@
   <h2>Requirements</h2>
 </a>
 <ul>
-<li>Node 14.0 or above</li>
-<li>(Optional, if using TypeScript) TypeScript 3.8 or above</li>
+<li>Node 18.0 or above</li>
+<li>(Optional, if using TypeScript) TypeScript 4.0 or above</li>
 </ul>
 
 <a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
   <h2>Installation</h2>
 </a>
 <p>Using npm:</p>
-<pre><code class="language-shell"><span class="hl-0">$ npm i @digime/digime-sdk-nodejs</span>
+<pre><code class="language-shell"><span class="hl-0">$</span><span class="hl-1"> </span><span class="hl-2">npm</span><span class="hl-1"> </span><span class="hl-2">i</span><span class="hl-1"> </span><span class="hl-2">@digime/digime-sdk-nodejs</span>
 </code></pre>
 
 <a href="#obtaining-your-contract-id-application-id-amp-private-key" id="obtaining-your-contract-id-application-id-amp-private-key" style="color: inherit; text-decoration: none;">
@@ -63,7 +63,7 @@
   <h2>Initializing the SDK</h2>
 </a>
 <p>Once you have the above, we can initiate the SDK.</p>
-<pre><code class="language-typescript"><span class="hl-5">import</span><span class="hl-0"> { </span><span class="hl-6">init</span><span class="hl-0"> } </span><span class="hl-5">from</span><span class="hl-0"> </span><span class="hl-7">&quot;@digime/digime-sdk-nodejs&quot;</span><span class="hl-0">;</span><br/><br/><span class="hl-2">const</span><span class="hl-0"> </span><span class="hl-3">digimeSDK</span><span class="hl-0"> = </span><span class="hl-4">init</span><span class="hl-0">({ </span><span class="hl-6">applicationId:</span><span class="hl-0"> &lt;</span><span class="hl-8">my</span><span class="hl-0">-</span><span class="hl-8">unique</span><span class="hl-0">-</span><span class="hl-8">application</span><span class="hl-0">-</span><span class="hl-8">id</span><span class="hl-0">&gt; });</span>
+<pre><code class="language-typescript"><span class="hl-6">import</span><span class="hl-1"> { </span><span class="hl-7">init</span><span class="hl-1"> } </span><span class="hl-6">from</span><span class="hl-1"> </span><span class="hl-2">&quot;@digime/digime-sdk-nodejs&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">digimeSDK</span><span class="hl-1"> = </span><span class="hl-0">init</span><span class="hl-1">({ </span><span class="hl-7">applicationId:</span><span class="hl-1"> &lt;</span><span class="hl-8">my</span><span class="hl-1">-</span><span class="hl-8">unique</span><span class="hl-1">-</span><span class="hl-8">application</span><span class="hl-1">-</span><span class="hl-8">id</span><span class="hl-1">&gt; });</span>
 </code></pre>
 <p>To see all the other options when initializing the SDK, please take a look <a href="../fundamentals/initialise-sdk.html">here</a>.</p>
 

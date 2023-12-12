@@ -21,8 +21,8 @@
 
 ## Requirements
 
-- Node 14.0 or above
-- (Optional, if using TypeScript) TypeScript 3.8 or above
+- Node 18.0 or above
+- (Optional, if using TypeScript) TypeScript 4.0 or above
 
 ## Installation
 
