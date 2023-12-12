@@ -105,9 +105,7 @@ describe("isCAFileListResponse", () => {
                                 state: "partial",
                                 error: {
                                     code: "test",
-                                    error: {
-                                        message: "test",
-                                    },
+                                    message: "test",
                                     statusCode: 7357,
                                 },
                             },
@@ -388,9 +386,7 @@ describe("assertIsCAFileListResponse", () => {
                                 state: "partial",
                                 error: {
                                     code: "test",
-                                    error: {
-                                        message: "test",
-                                    },
+                                    message: "test",
                                     statusCode: 7357,
                                 },
                             },
