@@ -4,69 +4,27 @@
 
 import fs from "node:fs/promises";
 import { http, HttpResponse } from "msw";
+import { formatBodyError, formatHeadersError, fromApiBase } from "../../../utilities";
 
-const ENDPOINT_PATH = "discovery/services";
-const LIVE_BASE = "https://api.digi.me/v1.7/";
-// const TEST_BASE = "https://test.test.test/v0/";
-
-export const discoveryServicesHandler = ({ path = ENDPOINT_PATH, base = LIVE_BASE } = {}) => {
-    const url = new URL(path, base).toString();
-
-    return http.get(
-        url,
+export const implementations = {
+    // Default - Happy response
+    default: [
+        fromApiBase("discovery/services"),
         // Remove `any` when this is fixed: https://github.com/mswjs/msw/issues/1691
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         async ({ request }): Promise<any> => {
             const accept = request.headers.get("Accept");
 
             if (accept !== "application/json") {
-                return discoveryServicesErrorAcceptHeaderHandler({ path, base });
+                const error = { code: "ValidationErrors", message: "Parameter validation errors" };
+                return HttpResponse.json(formatBodyError(error), { status: 406, headers: formatHeadersError(error) });
             }
 
             return HttpResponse.text(
                 await fs.readFile(new URL("./response-valid-full.json", import.meta.url), "utf-8"),
             );
         },
-        { once: true },
-    );
-};
+    ],
+} satisfies Record<string, Parameters<typeof http.all>>;
 
-export const discoveryServicesErrorAcceptHeaderHandler = ({ path = ENDPOINT_PATH, base = LIVE_BASE } = {}) => {
-    const url = new URL(path, base).toString();
-
-    return http.get(
-        url,
-        async () => {
-            return HttpResponse.text(
-                /// await fs.readFile(new URL("./response-error-accept-header.json", import.meta.url), "utf-8"),
-                "{{{{",
-                {
-                    status: 406,
-                },
-            );
-        },
-        { once: true },
-    );
-};
-
-export const discoveryServicesCodeErrorHandler = ({ path = ENDPOINT_PATH, base = LIVE_BASE, errorCode = 500 } = {}) => {
-    const url = new URL(path, base).toString();
-    return http.get(
-        url,
-        () => {
-            return HttpResponse.text("", { status: errorCode });
-        },
-        { once: true },
-    );
-};
-
-export const discoveryServicesNetworkErrorHandler = ({ path = ENDPOINT_PATH, base = LIVE_BASE } = {}) => {
-    const url = new URL(path, base).toString();
-    return http.get(
-        url,
-        () => {
-            return HttpResponse.error();
-        },
-        { once: true },
-    );
-};
+export const handlers = [http.get(...implementations.default)];

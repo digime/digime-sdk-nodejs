@@ -7,8 +7,8 @@ import { mswServer } from "../mocks/server";
 import { fetch } from "./fetch";
 import { HttpResponse, http } from "msw";
 import { randomUUID } from "node:crypto";
-import { getResponseData } from "../mocks/api/response-data";
 import { DigiMeSdkApiError } from "../errors/errors";
+import { formatBodyError, formatHeadersError } from "../mocks/utilities";
 
 describe("fetch", () => {
     test("Returns response on success", async () => {
@@ -22,54 +22,31 @@ describe("fetch", () => {
     });
 
     describe("Errors", () => {
-        // TODO: Improve
         test("Throws DigiMeApiError when the API responds with a well formed error response and non-retryable status code", async () => {
             mswServer.use(
                 http.get(
                     "https://fetch.test/",
-                    () =>
-                        new HttpResponse(getResponseData("../discovery/services/response-error-accept-header.json"), {
+                    () => {
+                        const error = { code: "TestError", message: "Test error" };
+                        return HttpResponse.json(formatBodyError(error), {
                             status: 409,
-                            headers: {
-                                "X-Error-Code": "ValidationErrors",
-                                "X-Error-Message": "Parameter validation errors",
-                                "X-Error-Reference": "--MOCKED ERROR--",
-                            },
-                        }),
+                            headers: formatHeadersError(error),
+                        });
+                    },
                     { once: true },
                 ),
             );
 
-            try {
-                await fetch("https://fetch.test/");
-                expect.unreachable();
-            } catch (error) {
-                expect(error).toBeInstanceOf(Error);
-                expect(error).toBeInstanceOf(DigiMeSdkApiError);
-                expect(error).toMatchInlineSnapshot(`
-              [DigiMeSdkApiError: Digi.me API responded with the following error:
-               • Code: ValidationErrors
-               • Message: Parameter validation errors
-               • Reference: --MOCKED ERROR--]
-            `);
-                // throw error;
+            const fetchPromise = fetch("https://fetch.test/");
 
-                // await expect(response).rejects.toThrowError(DigiMeSdkApiError);
-                // await expect(response).rejects.toThrowErrorMatchingInlineSnapshot(`"Network request failed"`);
-            }
-
-            // await expect(response).rejects.toThrowError(Error);
-            // await expect(response).rejects.toThrowError(DigiMeSdkApiError);
-            // await expect(response).rejects.toThrowErrorMatchingInlineSnapshot(`"Network request failed"`);
-            // await expect(response).rejects.toThrowError("Network request failed");
-            // await expect(response).rejects.toMatchObject({
-            //     cause: expect.objectContaining({
-            //         message: expect.stringContaining("Received unexpected response from the API"),
-            //         cause: expect.objectContaining({
-            //             name: expect.stringContaining("ZodError"),
-            //         }),
-            //     }),
-            // });
+            expect(fetchPromise).rejects.toBeInstanceOf(Error);
+            expect(fetchPromise).rejects.toBeInstanceOf(DigiMeSdkApiError);
+            expect(fetchPromise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkApiError: Digi.me API responded with the following error:
+                   • Code: TestError
+                   • Message: Test error
+                   • Reference: --MOCKED ERROR--]
+                `);
 
             expect.assertions(3);
         });
@@ -89,12 +66,13 @@ describe("fetch", () => {
 
             const fetchPromise = fetch("https://fetch-retry-after-long.test/");
 
+            // TODO: Spec error
             // expect(fetchPromise).rejects.toThrowError(Error);
             // expect(fetchPromise).rejects.toThrowError(DigiMeSdkError);
             expect(fetchPromise).rejects.toThrowErrorMatchingInlineSnapshot(`undefined`);
-            // TODO: Spec error
         });
     });
+
     describe("Retry logic", () => {
         test('Uses "Retry-After" header for retry delay', async () => {
             const secondsToWait = 8;

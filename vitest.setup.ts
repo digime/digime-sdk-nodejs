@@ -12,7 +12,7 @@ beforeAll(() =>
                 return;
             }
 
-            print.warning();
+            print.error();
         },
     }),
 );
