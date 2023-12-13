@@ -20,8 +20,14 @@ export const implementations = {
                 return HttpResponse.json(formatBodyError(error), { status: 406, headers: formatHeadersError(error) });
             }
 
+            if (request.headers.has("contractId")) {
+                return HttpResponse.text(
+                    await fs.readFile(new URL("./response-valid-with-contract-id.json", import.meta.url), "utf-8"),
+                );
+            }
+
             return HttpResponse.text(
-                await fs.readFile(new URL("./response-valid-full.json", import.meta.url), "utf-8"),
+                await fs.readFile(new URL("./response-valid-default.json", import.meta.url), "utf-8"),
             );
         },
     ],

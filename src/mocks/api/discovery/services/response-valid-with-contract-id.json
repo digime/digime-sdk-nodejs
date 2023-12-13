@@ -1,0 +1,525 @@
+{
+    "data": {
+        "countries": [
+            {
+                "code": "us",
+                "id": 1,
+                "name": "United States",
+                "resources": [
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/countries/us/icon25x25.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 25,
+                        "width": 25
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/countries/us/icon50x50.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 50,
+                        "width": 50
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/countries/us/icon75x75.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 75,
+                        "width": 75
+                    }
+                ]
+            },
+            {
+                "code": "is",
+                "id": 2,
+                "name": "Iceland",
+                "resources": [
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/countries/is/icon25x25.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 25,
+                        "width": 25
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/countries/is/icon50x50.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 50,
+                        "width": 50
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/countries/is/icon75x75.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 75,
+                        "width": 75
+                    }
+                ]
+            },
+            {
+                "code": "in",
+                "id": 6,
+                "name": "India",
+                "resources": []
+            }
+        ],
+        "serviceGroups": [
+            {
+                "categoryTypeId": 1,
+                "id": 1,
+                "name": "Social",
+                "reference": "social",
+                "resources": [
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/categories/social/icon25x25.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 25,
+                        "width": 25
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/categories/social/icon50x50.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 50,
+                        "width": 50
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/categories/social/icon75x75.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 75,
+                        "width": 75
+                    }
+                ],
+                "subTitle": "See your photos, posts, tweets, grams and more in one place",
+                "title": "Add your social accounts...",
+                "expandedTitle": "Select a social network",
+                "expandedSubTitle": "You will be prompted to login"
+            },
+            {
+                "categoryTypeId": 1,
+                "id": 2,
+                "name": "Medical",
+                "reference": "medical",
+                "resources": [
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/categories/medical/icon25x25.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 25,
+                        "width": 25
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/categories/medical/icon50x50.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 50,
+                        "width": 50
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/categories/medical/icon75x75.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 75,
+                        "width": 75
+                    }
+                ],
+                "subTitle": "See your allergies, vaccines, medications, diagnosis & vitals",
+                "title": "Add your medical records...",
+                "expandedTitle": "Select a medical source",
+                "expandedSubTitle": "You will be prompted to login"
+            },
+            {
+                "categoryTypeId": 1,
+                "id": 5,
+                "name": "Entertainment",
+                "reference": "entertainment",
+                "resources": [
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/categories/entertainment/icon25x25.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 25,
+                        "width": 25
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/categories/entertainment/icon50x50.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 50,
+                        "width": 50
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/categories/entertainment/icon75x75.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 75,
+                        "width": 75
+                    }
+                ],
+                "subTitle": "See your recent tracks, videos, albums, playlists, and favourite artists",
+                "title": "Add your entertainment accounts...",
+                "expandedTitle": "Select an entertainment service",
+                "expandedSubTitle": "You will be prompted to login"
+            }
+        ],
+        "services": [
+            {
+                "name": "Facebook",
+                "publishedDate": 1518428711000,
+                "publishedStatus": "approved",
+                "reference": "facebook",
+                "serviceId": 1,
+                "id": 1,
+                "serviceGroups": [
+                    {
+                        "id": 1
+                    }
+                ],
+                "countries": [],
+                "sync": {
+                    "type": {
+                        "options": [
+                            "auto",
+                            "manual"
+                        ]
+                    }
+                },
+                "authorisation": {
+                    "mode": "webview",
+                    "reauthType": "normal"
+                },
+                "homepageURL": "https://www.facebook.com",
+                "title": "Add your Facebook...",
+                "subTitle": "Your posts, photos, albums",
+                "platform": {
+                    "macos": {
+                        "availability": "production",
+                        "currentStatus": "available"
+                    },
+                    "windows": {
+                        "availability": "production",
+                        "currentStatus": "available"
+                    },
+                    "ios": {
+                        "availability": "production",
+                        "currentStatus": "available"
+                    },
+                    "android": {
+                        "availability": "production",
+                        "currentStatus": "available"
+                    }
+                },
+                "resources": [
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/services/facebook/icon25x25.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 25,
+                        "width": 25
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/services/facebook/icon50x50.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 50,
+                        "width": 50
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/services/facebook/icon75x75.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 75,
+                        "width": 75
+                    }
+                ]
+            },
+            {
+                "name": "Facebook Page",
+                "publishedDate": 1578312569000,
+                "publishedStatus": "approved",
+                "reference": "facebookpage",
+                "serviceId": 2,
+                "id": 283,
+                "serviceGroups": [
+                    {
+                        "id": 1
+                    }
+                ],
+                "countries": [],
+                "sync": {
+                    "type": {
+                        "options": [
+                            "auto",
+                            "manual"
+                        ]
+                    }
+                },
+                "authorisation": {
+                    "mode": "webview",
+                    "reauthType": "normal"
+                },
+                "homepageURL": "https://www.facebook.com",
+                "title": "Add your Facebook Pages...",
+                "subTitle": "Your pages",
+                "platform": {
+                    "macos": {
+                        "availability": "production",
+                        "currentStatus": "available"
+                    },
+                    "windows": {
+                        "availability": "production",
+                        "currentStatus": "available"
+                    },
+                    "ios": {
+                        "availability": "production",
+                        "currentStatus": "available"
+                    },
+                    "android": {
+                        "availability": "production",
+                        "currentStatus": "available"
+                    }
+                },
+                "resources": [
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/services/facebookpage/icon25x25.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 25,
+                        "width": 25
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/services/facebookpage/icon50x50.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 50,
+                        "width": 50
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/services/facebookpage/icon75x75.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 75,
+                        "width": 75
+                    }
+                ]
+            },
+            {
+                "name": "CONTRACT ONLY TEST SOURCE",
+                "publishedDate": 1578312569000,
+                "publishedStatus": "approved",
+                "reference": "contractonlytestsource",
+                "serviceId": 7357,
+                "id": 73577357,
+                "serviceGroups": [
+                    {
+                        "id": 1
+                    }
+                ],
+                "countries": [],
+                "sync": {
+                    "type": {
+                        "options": [
+                            "auto",
+                            "manual"
+                        ]
+                    }
+                },
+                "authorisation": {
+                    "mode": "webview",
+                    "reauthType": "normal"
+                },
+                "homepageURL": "https://www.test-source.test",
+                "title": "Add your Contract Only Test Source...",
+                "subTitle": "Your contract only test source",
+                "platform": {
+                    "macos": {
+                        "availability": "production",
+                        "currentStatus": "available"
+                    },
+                    "windows": {
+                        "availability": "production",
+                        "currentStatus": "available"
+                    },
+                    "ios": {
+                        "availability": "production",
+                        "currentStatus": "available"
+                    },
+                    "android": {
+                        "availability": "production",
+                        "currentStatus": "available"
+                    }
+                },
+                "resources": [
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/services/facebookpage/icon25x25.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 25,
+                        "width": 25
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/services/facebookpage/icon50x50.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 50,
+                        "width": 50
+                    },
+                    {
+                        "mimetype": "image/png",
+                        "resize": "fit",
+                        "type": 0,
+                        "url": "https://securedownloads.digi.me/static/development/discovery/services/facebookpage/icon75x75.png",
+                        "aspectratio": {
+                            "accuracy": 100,
+                            "actual": "1:1",
+                            "closest": "1:1"
+                        },
+                        "height": 75,
+                        "width": 75
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -96,12 +96,23 @@ describe("DigiMeSDK", () => {
 
             await expect(sdk.getAvailableServices()).resolves.toMatchObject({
                 countries: expect.anything(),
-                services: expect.anything(),
+                services: expect.arrayContaining([expect.objectContaining({ name: "TEST SOURCE" })]),
                 serviceGroups: expect.anything(),
             });
         });
 
-        test.todo('With "contractId"');
+        test('With "contractId" parameter', async () => {
+            mswServer.use(...handlers);
+
+            const sdk = new DigiMeSDK({ applicationId: "test-application-id" });
+
+            await expect(sdk.getAvailableServices({ contractId: "test" })).resolves.toMatchObject({
+                countries: expect.anything(),
+                services: expect.arrayContaining([expect.objectContaining({ name: "CONTRACT ONLY TEST SOURCE" })]),
+                serviceGroups: expect.anything(),
+            });
+        });
+
         test.todo("Aborts when abort signal is triggered");
     });
 
