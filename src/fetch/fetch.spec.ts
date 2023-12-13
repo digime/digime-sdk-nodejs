@@ -16,9 +16,69 @@ describe("fetch", () => {
 
         const response = await fetch("https://fetch.test/");
 
-        expect(response).toBeInstanceOf(Response);
-        expect(response.text()).resolves.toBe("fetch-success");
         expect.assertions(2);
+
+        expect(response).toBeInstanceOf(Response);
+        await expect(response.text()).resolves.toBe("fetch-success");
+    });
+
+    describe("Aborting", () => {
+        test("Can be aborted with AbortSignal", async () => {
+            mswServer.use(http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 })));
+
+            const responsePromise = fetch("https://fetch.test/", { signal: AbortSignal.abort() });
+
+            expect.assertions(3);
+
+            await expect(responsePromise).rejects.toBeInstanceOf(Error);
+            await expect(responsePromise).rejects.toBeInstanceOf(DOMException);
+            await expect(responsePromise).rejects.toHaveProperty("name", "AbortError");
+        });
+
+        test("Can be aborted with AbortSignal while waiting to retry", async () => {
+            mswServer.use(
+                http.get("https://fetch.test/", () =>
+                    HttpResponse.text("fetch-failed", {
+                        status: 500,
+                        headers: {
+                            // Correctly functioning fetch wrapper should respect this header
+                            // and attempt to wait for 9 seconds.
+                            "Retry-After": "2",
+                        },
+                    }),
+                ),
+            );
+
+            performance.mark("fetch-start");
+
+            const responsePromise = fetch("https://fetch.test/", {
+                // We pass in the abort signal that will trigger in 50 milliseconds, so that retry never happens
+                signal: AbortSignal.timeout(50),
+            });
+
+            responsePromise.catch(() => {
+                performance.measure("fetch-reject", "fetch-start");
+            });
+
+            expect.assertions(4);
+            await expect(responsePromise).rejects.toBeInstanceOf(Error);
+            await expect(responsePromise).rejects.toBeInstanceOf(DOMException);
+            await expect(responsePromise).rejects.toThrowErrorMatchingInlineSnapshot(
+                `[TimeoutError: The operation was aborted due to timeout]`,
+            );
+
+            /**
+             * This fails the test if fetch doesn't reject, or reject within 200ms.
+             *
+             * - If this assertion fails by being compared to `NaN`:
+             *   The fetch didn't reject and is indicative of a problem with the AbortSignal handling
+             *
+             * - If this assertion fails by with the duration being larger than expected:
+             *   Abort wasn't handled in "waitForRetry" and instead the real fetch has rejected in "fetching" state,
+             *   which is not the correct behavior.
+             */
+            expect(Number(performance.getEntriesByName("fetch-reject")[0]?.duration)).toBeLessThan(200);
+        });
     });
 
     describe("Errors", () => {
@@ -39,16 +99,15 @@ describe("fetch", () => {
 
             const fetchPromise = fetch("https://fetch.test/");
 
-            expect(fetchPromise).rejects.toBeInstanceOf(Error);
-            expect(fetchPromise).rejects.toBeInstanceOf(DigiMeSdkApiError);
-            expect(fetchPromise).rejects.toMatchInlineSnapshot(`
+            expect.assertions(3);
+            await expect(fetchPromise).rejects.toBeInstanceOf(Error);
+            await expect(fetchPromise).rejects.toBeInstanceOf(DigiMeSdkApiError);
+            await expect(fetchPromise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkApiError: Digi.me API responded with the following error:
                    • Code: TestError
                    • Message: Test error
                    • Reference: --MOCKED ERROR--]
                 `);
-
-            expect.assertions(3);
         });
 
         test('Throws if the "Retry-After" header for a retryable response is too long', async () => {
@@ -67,9 +126,11 @@ describe("fetch", () => {
             const fetchPromise = fetch("https://fetch-retry-after-long.test/");
 
             // TODO: Spec error
-            // expect(fetchPromise).rejects.toThrowError(Error);
-            // expect(fetchPromise).rejects.toThrowError(DigiMeSdkError);
-            expect(fetchPromise).rejects.toThrowErrorMatchingInlineSnapshot(`undefined`);
+            // await expect(fetchPromise).rejects.toThrowError(Error);
+            // await expect(fetchPromise).rejects.toThrowError(DigiMeSdkError);
+            await expect(fetchPromise).rejects.toThrowErrorMatchingInlineSnapshot(
+                `[DigiMeSdkError: Encountered a retryable response, but the "Retry-After" specified a delay over 10000ms]`,
+            );
         });
     });
 
@@ -116,9 +177,11 @@ describe("fetch", () => {
 
             vi.useRealTimers();
 
+            expect.assertions(3);
+
+            await expect(fetchPromise).resolves.toBeInstanceOf(Response);
+            await expect(response.text()).resolves.toBe("fetch-success");
             expect(advancedByTime).toBeGreaterThanOrEqual(secondsToWait * 1000);
-            expect(fetchPromise).resolves.toBeInstanceOf(Response);
-            expect(response.text()).resolves.toBe("fetch-success");
         });
 
         test("Retries on 500 error code", async () => {
@@ -131,10 +194,11 @@ describe("fetch", () => {
 
             const response = await fetch("https://fetch.test/");
 
-            expect(response).toBeInstanceOf(Response);
-            expect(response.text()).resolves.toBe("fetch-success");
-            expect(mswServer.listHandlers()).toMatchObject([{ isUsed: true }, { isUsed: true }]);
             expect.assertions(3);
+
+            expect(response).toBeInstanceOf(Response);
+            await expect(response.text()).resolves.toBe("fetch-success");
+            expect(mswServer.listHandlers()).toMatchObject([{ isUsed: true }, { isUsed: true }]);
         });
 
         test("Retries on ENOTFOUND network error", async () => {
@@ -153,15 +217,15 @@ describe("fetch", () => {
 
             const response = await fetch(url);
 
+            expect.assertions(4);
+
             expect(response).toBeInstanceOf(Response);
-            expect(response.text()).resolves.toBe("fetch-success");
+            await expect(response.text()).resolves.toBe("fetch-success");
             expect(handlerTracker).toHaveBeenCalledTimes(2);
 
             // Clean up and ensure listener was removed
             mswServer.events.removeListener("request:unhandled", unhandledRequestHandler);
             expect(emitter.listenerCount("request:unhandled")).toBe(0);
-
-            expect.assertions(4);
         });
 
         test("Can retry requests with consumable bodies", async () => {

@@ -14,7 +14,29 @@ const RETRY_DEFAULTS = {
     retryableErrorCodes: ["ENOTFOUND", "ENETUNREACH", "EAI_AGAIN", "ECONNREFUSED", "ECONNRESET"],
 };
 
-const delay = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+const abortableDelay = (milliseconds: number, signal?: AbortSignal): Promise<void> => {
+    const delayPromises = [new Promise<void>((resolve) => setTimeout(resolve, milliseconds))];
+
+    if (signal) {
+        delayPromises.push(
+            new Promise<void>((_, reject) => {
+                signal.addEventListener(
+                    "abort",
+                    () => {
+                        try {
+                            signal.throwIfAborted();
+                        } catch (e) {
+                            reject(e);
+                        }
+                    },
+                    { once: true, signal: AbortSignal.timeout(milliseconds + 1) },
+                );
+            }),
+        );
+    }
+
+    return Promise.race(delayPromises);
+};
 
 const getRetryAfterDelay = (response: Response): number | undefined => {
     const retryAfter = response.headers.get("Retry-After");
@@ -55,7 +77,7 @@ const getFetchErrorCauseCode = (value: unknown): string => {
 // TODO: Handle aborts in other parts of the machine
 export const fetchMachine = createMachine(
     {
-        /** @xstate-layout N4IgpgJg5mDOIC5QDMwBcDGALAsgQ2wEsA7MAOkIgBswBiAMQFEAVAYQAkBtABgF1FQABwD2sQmkLDiAkAA9EAWgBMAZgCMZAGwqAHAE41Adk1KArABY1+gDQgAnoiU6ye7rpWm9m7kc1rzAL4BtqiYuARYJOShRMRQtBBS5CQAbsIA1tHo2PixWWEkUAipwhh4ElI8vFUyImIV0khyikp6hmQ6VqY6TobchipKbrYOCE7cZCoDqoatJiompkEh2eF5ZDGRcQlJFMRpmRuruVv5sUUlZQ1VnGr8TXXiko2g8ggKKp9khmrq3J06FTcTSGHSmEaIT7tUymPyGcyg1Qg7TLECbE5RI4FbaJUh7A5nNanLHnYr7UrlZ43JT3ISiJ5SGRvZQ6TRkbjcPRcwygoGaMGGCEIFRcrS+AxqUwDNRDQLBNHHCKYzaFWhgABO6uE6rIgio5WQ2oAtiSicrVoUyWkrlS+DUHvSGkzEKYJoDLCCOR4-FyhWo2XolLMdMCdOZLEDDKj0Uq8SrthqtTq9QbjaaMXGLXErRTrna7rVHc9nQhzCKXGpuEpzCHuBYgV4hUCyOY3GG+lM694dNHFesAO54J5xZjCABK6HVdh2eJKhxjA6HEhH48ndhzNsqdr4hfqxaab0lSnZko8YfMSl+UvB9kQVmcwNBbT0YP6F97YQz5EHw6go4naBTmqmrarq+poIa6omguxI-suf6roB66XJSW7VDuDp7oyB6Qt4LidAs3AXp4QzwkK4yTNMQxTFMrbGB+OSxuQ6pwMIVApGAjAgeqE6wCIxCwHQuLJOS859sSLGwGxHFcUmvH8YJG6ocQNwYXSWEvM0wqmC4hgGD0bZeMGTY9JMSjaKCFiVoCagMWaeKSdJnHcfJUiCcBSZgamUHpkxZCOexzlyXAClgEpebobSICPE6OHCmymgIv6QI+DWQI6EKpj+N8Ib1n0TieHoQTysQwgQHAMgwVEu4MppzK6BoPx-ACfKWUKCi-OYHQgtySjmX4MKaHZX4UNQYA1bFrwtFW3ymJe8LVkG-weO1CKTD1ridZemiJcNfnxlAE37lN7xOMerjmHNPyuh45h+q67IgvonJuHpfUqHt6zIEONAQEd2EnboEwIvCJh6DWgZ6FMTZeN1xhhpyCIXZ9xIYMIRp6ug42YbVJY6Z8KituZWU9OY3LkTyWiqKoVZQv4mhLPKVV4nBhT-mu-11ZCrQtn1mheAYIpBiofraI9ekcsY3hej2TPiZiAUyS5IVudj6m43Fyjg+yc1eAidZODoGW3qWfhaJy1YvkbFh1sVARAA */
+        /** @xstate-layout N4IgpgJg5mDOIC5QDMwBcDGALAsgQ2wEsA7MAOkIgBswBiAMQFEAVAYQAkBtABgF1FQABwD2sQmkLDiAkAA9EAWgBMAZgCMZAGwqAHAE41Adk1KArABY1+gDQgAnoiU6ye7rpWm9m7kc1rzAL4BtqiYuARYJOShRMRQtBBS5CQAbsIA1tHo2PixWWEkUAipwhh4ElI8vFUyImIV0khyikp6hmQ6VqY6TobchipKbrYOCE7cZCoDqoatJiompkEh2eF5ZDGRcQlJFMRpmRuruVv5sUUlZQ1VnGr8TXXiko2g8ggKKp9khmrq3J06FTcTSGHSmEaIT7tUymPyGcyg1Qg7TLECbE5RI4FbaJUh7A5nNanLHnYr7UrlZ43JT3ISiJ5SGRvZQ6TRkbjcPRcwygoGaMGGCEIFRcrS+AxqUwDNRDQLBNHHCKYzaFWhgABO6uE6rIgio5WQ2oAtiSicrVoUyWkrlS+DUHvSGkzEKYJoDLCCOR4-FyhWo2XolLMdMCdOZLEDDKj0Uq8SrthqtTq9QbjaaMXGLXErRTrna7rVHc9nQhLEoyDLjIZTEpWvDYUKgWRzG4w6Z-JpNJ42kt5TH1gB3PBPOLMYQAJXQ6rsOzxJUO-eJQ5HUDHk7Q05zNsqdr4hfqxaab0l5Z8pg8YfMSl+UvB9kQVmcwNBbT0YP6V+jisHw4ko4nU4zom2q6vqaCGuqJqLpiy5-quAEbnYW6Uju1R7g6B6MkekLeC4nQLNwV6eEM8JCuMkzTEMUxTC2xhfmEGbkOqcDCFQKRgIwmrapOsAiMQsB0LiyTkgu37EsxsCsexnFJjxfECcheZobSICPE62HCqYLiGAYPStl4waNj0kxKNooIWGo-zqPROSxkxLFsRxXHqnJUgCWqzmgamkHpnZZASVJTmyXA8lgIptrKfuDIvM0wpspoCL+kCPjmIC-xCu25jfCGFhTNwTjdkE8rEMIEBwDI0GkFF6mvIougaD8fwAny5lCgovxZayOmst6XhqDZZpztQYDVYetXvEM5bVte8JKFefSAneowKAikwglyPgqFe-oJQNjGmoUo1YeNLLlq45g1j8roeOYfquuyIL6Jybg6bWKh7X5yDDjQEBHTFby6BMCLwiYeipYGehTI2XgdMiYacgi50fesGDCEaeroCNGHRSWWmfFt+VdlYc3cmRPJaKoqj5VCHa9isDF+bBhRroBf0loMejNrWmheAYIpBiofraA9OkcsY3hejoyPiQ50nOa5-FY3SmH-S0YPsjWXgItwNY6HrQrmH4WiciTetgi2vZBEAA */
         schema: {
             context: {} as {
                 request?: Request;
@@ -64,7 +86,6 @@ export const fetchMachine = createMachine(
                 maxRetryAfterDelay: number;
                 retryableStatusCodes: number[];
                 retryableErrorCodes: string[];
-                errors: unknown[];
                 lastError?: unknown;
             },
             events: {} as { type: "FETCH"; request: Request },
@@ -74,9 +95,9 @@ export const fetchMachine = createMachine(
                 resolveErrorResponse: { data: DigiMeSdkApiError };
             },
         },
+
         tsTypes: {} as import("./fetch-machine.typegen").Typegen0,
         predictableActionArguments: true,
-
         id: "fetchMachine",
         initial: "idle",
 
@@ -86,7 +107,7 @@ export const fetchMachine = createMachine(
             maxRetryAfterDelay: 10000,
             retryableStatusCodes: RETRY_DEFAULTS.retryableStatusCodes,
             retryableErrorCodes: RETRY_DEFAULTS.retryableErrorCodes,
-            errors: [],
+            lastError: new Error("TEMP: Default lastError"),
         },
 
         states: {
@@ -150,7 +171,10 @@ export const fetchMachine = createMachine(
                 invoke: {
                     src: "delayRetry",
                     onDone: "fetching",
-                    onError: "failed",
+                    onError: {
+                        target: "failed",
+                        actions: "setLastError",
+                    },
                 },
             },
 
@@ -222,7 +246,6 @@ export const fetchMachine = createMachine(
 
                 // In case "Retry-After" is too long, we should just fail
                 if (retryAfterDelay && retryAfterDelay > context.maxRetryAfterDelay) {
-                    console.log("lastError", context.lastError);
                     throw new DigiMeSdkError(
                         `Encountered a retryable response, but the "Retry-After" specified a delay over ${context.maxRetryAfterDelay}ms`,
                     );
@@ -233,7 +256,9 @@ export const fetchMachine = createMachine(
 
                 const resolvedDelay = retryAfterDelay || calculatedDelay;
                 logFetch(`[${context.request?.url}] Delaying attempt #${context.attempts + 1} for ${resolvedDelay}ms`);
-                await delay(resolvedDelay);
+
+                await abortableDelay(resolvedDelay, context.request?.signal);
+
                 return;
             },
 
