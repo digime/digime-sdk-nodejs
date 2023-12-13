@@ -16,8 +16,8 @@ interface User {
 export interface UserAccessToken {
     accessToken: Token;
     refreshToken: Token;
-    user: User;
-    consentid: string;
+    user?: User;
+    consentid?: string;
 }
 
 const TokenCodec: t.Type<Token> = t.type({
@@ -29,11 +29,15 @@ const UserCodec: t.Type<User> = t.type({
     id: t.string,
 });
 
-const UserAccessTokenCodec: t.Type<UserAccessToken> = t.type({
-    accessToken: TokenCodec,
-    refreshToken: TokenCodec,
-    user: UserCodec,
-    consentid: t.string,
-});
+const UserAccessTokenCodec: t.Type<UserAccessToken> = t.intersection([
+    t.type({
+        accessToken: TokenCodec,
+        refreshToken: TokenCodec,
+    }),
+    t.partial({
+        user: UserCodec,
+        consentid: t.string,
+    }),
+]);
 
 export { UserAccessTokenCodec };
