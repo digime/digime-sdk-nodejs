@@ -6,6 +6,14 @@ import { createMachine, assign } from "xstate";
 import { logFetch } from "../debug-log";
 import { DigiMeSdkApiError, DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 import { ApiErrorFromHeaders } from "../types/external/api-error-response";
+import { z } from "zod";
+
+const ResolvedResponseError = z.object({
+    response: z.instanceof(Response),
+    error: z.instanceof(Error),
+});
+
+type ResolvedResponseError = z.infer<typeof ResolvedResponseError>;
 
 const RETRY_DEFAULTS = {
     maxAttempts: 3,
@@ -79,7 +87,7 @@ const isFetchNetworkError = (value: unknown): boolean => {
 
 export const fetchMachine = createMachine(
     {
-        /** @xstate-layout N4IgpgJg5mDOIC5QDMwBcDGALAsgQ2wEsA7MAOkIgBswBiAMQFEAVAYQAkBtABgF1FQABwD2sQmkLDiAkAA9EAWgBMAZgCMZAGwqAHAE41Adk1KArABY1+gDQgAnoiU6ye7rpWm9m7kc1rzAL4BtqiYuARYJOShRMRQtBBS5CQAbsIA1tHo2PixWWEkUAipwhh4ElI8vFUyImIV0khyikp6hmQ6VqY6TobchipKbrYOCE7cZCoDqoatJiompkEh2eF5ZDGRcQlJFMRpmRuruVv5sUUlZQ1VnGr8TXXiko2g8ggKKp9khmrq3J06FTcTSGHSmEaIT7tUymPyGcyg1Qg7TLECbE5RI4FbaJUh7A5nNanLHnYr7UrlZ43JT3ISiJ5SGRvZQ6TRkbjcPRcwygoGaMGGCEIFRcrS+AxqUwDNRDQLBNHHCKYzaFWhgABO6uE6rIgio5WQ2oAtiSicrVoUyWkrlS+DUHvSGkzEKYJoDLCCOR4-FyhWo2XolLMdMCdOZLEDDKj0Uq8SrthqtTq9QbjaaMXGLXErRTrna7rVHc9nQhLEoyDLjIZTEpWvDYUKgWRzG4w6Z-JpNJ42kt5TH1gB3PBPOLMYQAJXQ6rsOzxJUO-eJQ5HUDHk7Q05zNsqdr4hfqxaab0l5Z8pg8YfMSl+UvB9kQVmcwNBbT0YP6V+jisHw4ko4nU4zom2q6vqaCGuqJqLpiy5-quAEbnYW6Uju1R7g6B6MkekLeC4nQLNwV6eEM8JCuMkzTEMUxTC2xhfmEGbkOqcDCFQKRgIwmrapOsAiMQsB0LiyTkgu37EsxsCsexnFJjxfECcheZobSICPE62HCqYLiGAYPStl4waNj0kxKNooIWGo-zqPROSxkxLFsRxXHqnJUgCWqzmgamkHpnZZASVJTmyXA8lgIptrKfuDIvM0wpspoCL+kCPjmIC-xCu25jfCGFhTNwTjdkE8rEMIEBwDI0GkFF6mvIougaD8fwAny5lCgovxZayOmst6XhqDZZpztQYDVYetXvEM5bVte8JKFefSAneowKAikwglyPgqFe-oJQNjGmoUo1YeNLLlq45g1j8roeOYfquuyIL6Jybg6bWKh7X5yDDjQEBHTFby6BMCLwiYeipYGehTI2XgdMiYacgi50fesGDCEaeroCNGHRSWWmfFt+VdlYc3cmRPJaKoqj5VCHa9isDF+bBhRroBf0loMejNrWmheAYIpBiofraA9OkcsY3hejoyPiQ50nOa5-FY3SmH-S0YPsjWXgItwNY6HrQrmH4WiciTetgi2vZBEAA */
+        /** @xstate-layout N4IgpgJg5mDOIC5QDMwBcDGALAsgQ2wEsA7MAOkIgBswBiAMQFEAVAYQAkBtABgF1FQABwD2sQmkLDiAkAA9EAWgBMAZgCMZAGwqAHAE41Adk1KArABY1+gDQgAnoiU6ye7rpWm9m7kc1rzAL4BtqiYuARYJOShRMRQtBBS5CQAbsIA1tHo2PixWWEkUAipwhh4ElI8vFUyImIV0khyikp6hmQ6VqY6TobchipKbrYOCE7cZCoDqoatJiompkEh2eF5ZDGRcQlJFMRpmRuruVv5sUUlZQ1VnGr8TXXiko2g8gjKOppk3Nx6f5YWTxGEaIFTmcyTbpKTQWNRKfw-QLBECbE5RI4FbZgABO2OE2LIgio5WQ+IAthichF0ZtCsV9qVys8bnxaqInlIZG9TBMdGC1Jo+m5TCYfKYQQhzF9XLNdDpzE5LFLlijjtTSJStvEcXiCUSSeTNWiNbS4vS0ldmXxbvchOyGlzEOZjC4+XoPPp4f1zBKpS5+kpzJ1ZsZunoVaj1eQAO54J5xZjCABK6Gxdh2GpKh0j61j8agiZTaDT5sZ12trIe9uejoQan6ZED5hU3D5v0G6kMEqszm4gtcOlb7q8eiWyJzpzIeYkCeTqfTOvxhOJaFJ2IpE-R08KhfnpctlQrtpAjwdTTeCva3CUN7apgGPQMEsGGl0AvlSsMOllEbV62xcDCFQKRgCmsAiMQsBgIwuL4hmyQMtmf6TgBsBASBYEQVBMG6vuTKHtUlZ2vUNbni07TfoKfTwmYbSDuK9igl4ZDOuYeiBsYfwLBYv5hMa5CoehoFwFh0GwditCLnqK5rhuyHooJwHCeBUjYeJeHloRx6nqRryIAMWiqPCMJqCO5jcD6jEIN0zj9qYAqWD4KijrxVL-oBSmYapYm6vBewHGcawoR5GEid5OH4hpVrVHcbIkZyZF1l8bizIOnSaOYphDJoOi+noEKZT4AzOTC7pjsixDCBAcAyJupBxRyLzNO8YKmB0XQ9N+-SDMMVkKGoYIdP2OifEVX4mK5QXopQNANWeenvEMShkIYWVGAql6th4EoKM6kz9q4A0KgKGWTfxmqFHNunNR8y2uJlSiGGoPIeJZozPRMfZfq4rhTOxqhnVGGxxjQEBXQlC3gl89l8jlBgGEMKgSvZEKCoK5k8veQZjisfFAxgwhkkS6BgODTXcpMKhgteJk9GxbQSo97TzKo15U09Uo46qeO5nGM4FnOxajMRjW1txLiPexo46BY35KN22jfIK+huP8mUioD7loZ5YWQT5+Jk7Wyj5d8WXS-4Jgwm9ToDS4UqaF4mVfs6OhBEEQA */
         schema: {
             context: {} as {
                 request?: Request;
@@ -93,7 +101,7 @@ export const fetchMachine = createMachine(
             services: {} as {
                 delayRetry: { data: void };
                 fetch: { data: Response };
-                resolveErrorResponse: { data: DigiMeSdkApiError };
+                resolveResponseError: { data: ResolvedResponseError };
             },
         },
 
@@ -141,11 +149,7 @@ export const fetchMachine = createMachine(
                             target: "complete",
                             cond: "isResponseOk",
                         },
-                        {
-                            target: "waitingToRetry",
-                            cond: "isResponseRetryable",
-                        },
-                        "resolveErrorResponse",
+                        "resolveResponseError",
                     ],
                 },
 
@@ -178,13 +182,20 @@ export const fetchMachine = createMachine(
                 },
             },
 
-            resolveErrorResponse: {
+            resolveResponseError: {
                 invoke: {
-                    src: "resolveErrorResponse",
-                    onDone: {
-                        target: "failed",
-                        actions: "setLastError",
-                    },
+                    src: "resolveResponseError",
+                    onDone: [
+                        {
+                            target: "waitingToRetry",
+                            cond: "isResolvedErrorRetryable",
+                            actions: "setLastErrorFromResolvedError",
+                        },
+                        {
+                            target: "failed",
+                            actions: "setLastErrorFromResolvedError",
+                        },
+                    ],
                     onError: {
                         target: "failed",
                         actions: "setLastError",
@@ -206,13 +217,17 @@ export const fetchMachine = createMachine(
             setLastError: assign({
                 lastError: (context, event) => event.data,
             }),
+
+            setLastErrorFromResolvedError: assign({
+                lastError: (context, event) => event.data.error,
+            }),
         },
 
         guards: {
             isResponseOk: (context, event) => event.data.ok,
 
-            isResponseRetryable: (context, event) => {
-                return context.retryableStatusCodes.includes(event.data.status);
+            isResolvedErrorRetryable: (context, event) => {
+                return context.retryableStatusCodes.includes(event.data.response.status);
             },
 
             isRetryableError: (context, event) => isFetchNetworkError(event.data),
@@ -222,14 +237,16 @@ export const fetchMachine = createMachine(
             delayRetry: async (context, event) => {
                 if (context.attempts > context.maxAttempts) {
                     throw context.lastError;
-                    // throw new DigiMeSdkError(`Fetch aborted, out of retry attempts`, { cause: context.lastError });
                 }
 
                 // Introduce some delay noise to stagger parallel requests
                 const noise = Math.round(Math.random() * 100);
 
-                // TODO: "Retry-After" delay clamping? Reject when detecting long retry-after?
-                const retryAfterDelay = event.data instanceof Response ? getRetryAfterDelay(event.data) : undefined;
+                const dataParseResult = ResolvedResponseError.safeParse(event.data);
+
+                const retryAfterDelay = dataParseResult.success
+                    ? getRetryAfterDelay(dataParseResult.data.response)
+                    : undefined;
 
                 // In case "Retry-After" is too long, we should just fail
                 if (retryAfterDelay && retryAfterDelay > context.maxRetryAfterDelay) {
@@ -271,15 +288,22 @@ export const fetchMachine = createMachine(
                 return response;
             },
 
-            resolveErrorResponse: async (context, event) => {
+            resolveResponseError: async (context, event) => {
+                let resolvedError: Error;
                 try {
-                    const error = ApiErrorFromHeaders.parse(Object.fromEntries(event.data.headers));
-                    return new DigiMeSdkApiError(error);
+                    resolvedError = new DigiMeSdkApiError(
+                        ApiErrorFromHeaders.parse(Object.fromEntries(event.data.headers)),
+                    );
                 } catch (error) {
-                    throw new DigiMeSdkTypeError(`Received unexpected response from the Digi.me API`, {
+                    resolvedError = new DigiMeSdkTypeError(`Received unexpected error response from the Digi.me API`, {
                         cause: error,
                     });
                 }
+
+                return {
+                    response: event.data,
+                    error: resolvedError,
+                };
             },
         },
     },

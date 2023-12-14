@@ -81,7 +81,7 @@ describe("fetch", () => {
     });
 
     describe("Errors", () => {
-        test("Throws DigiMeApiError when the API responds with a well formed error response and non-retryable status code", async () => {
+        test("Throws DigiMeSdkApiError when the API responds with a well formed error response and non-retryable status code", async () => {
             mswServer.use(
                 http.get(
                     "https://fetch.test/",
@@ -109,77 +109,134 @@ describe("fetch", () => {
                 `);
         });
 
-        test('Throws if the "Retry-After" header for a retryable response is too long', async () => {
-            mswServer.use(
-                http.get(
-                    "https://fetch-retry-after-long.test/",
-                    () =>
-                        HttpResponse.text("fetch-503", {
-                            status: 503,
-                            headers: { "Retry-After": "60" },
-                        }),
-                    { once: true },
-                ),
-            );
+        describe('Throws if the "Retry-After" header for a retryable response is too long', () => {
+            test("In number format", async () => {
+                mswServer.use(
+                    http.get(
+                        "https://fetch-retry-after-long.test/",
+                        () =>
+                            HttpResponse.text("fetch-503", {
+                                status: 503,
+                                headers: { "Retry-After": "60" },
+                            }),
+                        { once: true },
+                    ),
+                );
 
-            const fetchPromise = fetch("https://fetch-retry-after-long.test/");
+                const fetchPromise = fetch("https://fetch-retry-after-long.test/");
 
-            await expect(fetchPromise).rejects.toThrowError(Error);
-            await expect(fetchPromise).rejects.toThrowError(DigiMeSdkError);
-            await expect(fetchPromise).rejects.toThrowErrorMatchingInlineSnapshot(
-                `[DigiMeSdkError: Encountered a retryable response, but the "Retry-After" specified a delay over 10000ms]`,
-            );
+                await expect(fetchPromise).rejects.toThrowError(Error);
+                await expect(fetchPromise).rejects.toThrowError(DigiMeSdkError);
+                await expect(fetchPromise).rejects.toThrowErrorMatchingInlineSnapshot(
+                    `[DigiMeSdkError: Encountered a retryable response, but the "Retry-After" specified a delay over 10000ms]`,
+                );
+            });
+
+            test("In date format", async () => {
+                mswServer.use(
+                    http.get(
+                        "https://fetch-retry-after-long.test/",
+                        () =>
+                            HttpResponse.text("fetch-503", {
+                                status: 503,
+                                headers: { "Retry-After": new Date(Date.now() + 60000).toUTCString() },
+                            }),
+                        { once: true },
+                    ),
+                );
+
+                const fetchPromise = fetch("https://fetch-retry-after-long.test/");
+
+                await expect(fetchPromise).rejects.toThrowError(Error);
+                await expect(fetchPromise).rejects.toThrowError(DigiMeSdkError);
+                await expect(fetchPromise).rejects.toThrowErrorMatchingInlineSnapshot(
+                    `[DigiMeSdkError: Encountered a retryable response, but the "Retry-After" specified a delay over 10000ms]`,
+                );
+            });
         });
     });
 
     describe("Retry logic", () => {
-        test('Uses "Retry-After" header for retry delay', async () => {
-            const secondsToWait = 8;
+        describe('"Retry-After" header', () => {
+            test.each(["number", "date"] as const)(`Works in %s format`, async (retryAfterFormat) => {
+                // Retry-After header set to 8 seconds in both types
+                const retryAfterValue = retryAfterFormat === "number" ? "8" : new Date(Date.now() + 8000).toUTCString();
 
-            mswServer.use(
-                http.get(
-                    "https://fetch-retry-after.test/",
-                    () =>
-                        HttpResponse.text("fetch-500", {
-                            status: 503,
-                            headers: { "Retry-After": secondsToWait.toString() },
-                        }),
-                    { once: true },
-                ),
-                http.get("https://fetch-retry-after.test/", () => HttpResponse.text("fetch-success", { status: 200 }), {
-                    once: true,
-                }),
-            );
+                mswServer.use(
+                    http.get(
+                        "https://fetch-retry-after.test/",
+                        () =>
+                            HttpResponse.text("fetch-500", {
+                                status: 503,
+                                headers: { "Retry-After": retryAfterValue },
+                            }),
+                        { once: true },
+                    ),
+                    http.get(
+                        "https://fetch-retry-after.test/",
+                        () => HttpResponse.text("fetch-success", { status: 200 }),
+                        {
+                            once: true,
+                        },
+                    ),
+                );
 
-            vi.useFakeTimers();
+                vi.useFakeTimers();
 
-            const fetchPromise = fetch("https://fetch-retry-after.test/");
+                const fetchPromise = fetch("https://fetch-retry-after.test/");
 
-            let advancedByTime = 0;
-            await vi.waitFor(() => {
-                advancedByTime += 50;
+                let advancedByTime = 0;
+                await vi.waitFor(() => {
+                    advancedByTime += 50;
 
-                const handlers = mswServer.listHandlers();
+                    const handlers = mswServer.listHandlers();
 
-                const allHandlersUsed = handlers.every((handler) => handler.isUsed);
+                    const allHandlersUsed = handlers.every((handler) => handler.isUsed);
 
-                vi.advanceTimersByTime(1000);
-                advancedByTime += 1000;
+                    vi.advanceTimersByTime(1000);
+                    advancedByTime += 1000;
 
-                if (!allHandlersUsed) {
-                    throw new Error("Unused handlers present");
-                }
+                    if (!allHandlersUsed) {
+                        throw new Error("Unused handlers present");
+                    }
+                });
+
+                const response = await fetchPromise;
+
+                vi.useRealTimers();
+
+                expect.assertions(3);
+                await expect(fetchPromise).resolves.toBeInstanceOf(Response);
+                await expect(response.text()).resolves.toBe("fetch-success");
+                expect(advancedByTime).toBeGreaterThanOrEqual(8000);
             });
 
-            const response = await fetchPromise;
+            test(`Ignores bad values`, async () => {
+                mswServer.use(
+                    http.get(
+                        "https://fetch-retry-after.test/",
+                        () =>
+                            HttpResponse.text("fetch-500", {
+                                status: 503,
+                                headers: { "Retry-After": "@#$%" },
+                            }),
+                        { once: true },
+                    ),
+                    http.get(
+                        "https://fetch-retry-after.test/",
+                        () => HttpResponse.text("fetch-success", { status: 200 }),
+                        {
+                            once: true,
+                        },
+                    ),
+                );
 
-            vi.useRealTimers();
+                const response = await fetch("https://fetch-retry-after.test/");
 
-            expect.assertions(3);
-
-            await expect(fetchPromise).resolves.toBeInstanceOf(Response);
-            await expect(response.text()).resolves.toBe("fetch-success");
-            expect(advancedByTime).toBeGreaterThanOrEqual(secondsToWait * 1000);
+                expect.assertions(2);
+                expect(response).toBeInstanceOf(Response);
+                await expect(response.text()).resolves.toBe("fetch-success");
+            });
         });
 
         test("Retries on 500 error code", async () => {
@@ -230,6 +287,29 @@ describe("fetch", () => {
 
             expect(await response.text()).toBe("test-string");
             expect.assertions(1);
+        });
+
+        test("Throws eventually even if the server keeps responding with a retryable error", async () => {
+            mswServer.use(
+                http.get("https://fetch.test/", () => {
+                    const error = { code: "TestError", message: "Test error" };
+                    return HttpResponse.json(formatBodyError(error), {
+                        status: 500,
+                        headers: formatHeadersError(error),
+                    });
+                }),
+            );
+
+            const fetchPromise = fetch("https://fetch.test/");
+
+            expect.assertions(2);
+            await expect(fetchPromise).rejects.toBeInstanceOf(Error);
+            await expect(fetchPromise).rejects.toMatchInlineSnapshot(`
+              [DigiMeSdkApiError: Digi.me API responded with the following error:
+               • Code: TestError
+               • Message: Test error
+               • Reference: --MOCKED ERROR--]
+            `);
         });
     });
 });
