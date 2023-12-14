@@ -7,13 +7,7 @@ import { mswServer } from "./src/mocks/server";
 
 beforeAll(() =>
     mswServer.listen({
-        onUnhandledRequest: (request, print) => {
-            if (request.url.includes("intentionally-unhandled")) {
-                return;
-            }
-
-            print.error();
-        },
+        onUnhandledRequest: "error",
     }),
 );
 

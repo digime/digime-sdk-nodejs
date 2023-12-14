@@ -6,8 +6,7 @@ import { describe, test, expect, vi } from "vitest";
 import { mswServer } from "../mocks/server";
 import { fetch } from "./fetch";
 import { HttpResponse, http } from "msw";
-import { randomUUID } from "node:crypto";
-import { DigiMeSdkApiError } from "../errors/errors";
+import { DigiMeSdkApiError, DigiMeSdkError } from "../errors/errors";
 import { formatBodyError, formatHeadersError } from "../mocks/utilities";
 
 describe("fetch", () => {
@@ -42,7 +41,7 @@ describe("fetch", () => {
                         status: 500,
                         headers: {
                             // Correctly functioning fetch wrapper should respect this header
-                            // and attempt to wait for 9 seconds.
+                            // and attempt to wait for 2 seconds.
                             "Retry-After": "2",
                         },
                     }),
@@ -125,9 +124,8 @@ describe("fetch", () => {
 
             const fetchPromise = fetch("https://fetch-retry-after-long.test/");
 
-            // TODO: Spec error
-            // await expect(fetchPromise).rejects.toThrowError(Error);
-            // await expect(fetchPromise).rejects.toThrowError(DigiMeSdkError);
+            await expect(fetchPromise).rejects.toThrowError(Error);
+            await expect(fetchPromise).rejects.toThrowError(DigiMeSdkError);
             await expect(fetchPromise).rejects.toThrowErrorMatchingInlineSnapshot(
                 `[DigiMeSdkError: Encountered a retryable response, but the "Retry-After" specified a delay over 10000ms]`,
             );
@@ -169,7 +167,7 @@ describe("fetch", () => {
                 advancedByTime += 1000;
 
                 if (!allHandlersUsed) {
-                    throw new Error("All handlers still unused");
+                    throw new Error("Unused handlers present");
                 }
             });
 
@@ -195,37 +193,22 @@ describe("fetch", () => {
             const response = await fetch("https://fetch.test/");
 
             expect.assertions(3);
-
             expect(response).toBeInstanceOf(Response);
             await expect(response.text()).resolves.toBe("fetch-success");
             expect(mswServer.listHandlers()).toMatchObject([{ isUsed: true }, { isUsed: true }]);
         });
 
-        test("Retries on ENOTFOUND network error", async () => {
-            // Alter the base to try and force the ENOTFOUND the network request
-            const url = `https://intentionally-unhandled.${randomUUID()}/`;
-            const handlerTracker = vi.fn();
+        test("Retries on network errors", async () => {
+            mswServer.use(
+                http.get("https://fetch.test", () => HttpResponse.error(), { once: true }),
+                http.get("https://fetch.test", () => HttpResponse.text("fetch-success", { status: 200 })),
+            );
 
-            const unhandledRequestHandler = () => {
-                handlerTracker();
+            const response = await fetch("https://fetch.test");
 
-                if (handlerTracker.mock.calls.length >= 2) {
-                    mswServer.use(http.get(url, () => HttpResponse.text("fetch-success", { status: 200 })));
-                }
-            };
-            const emitter = mswServer.events.on("request:unhandled", unhandledRequestHandler);
-
-            const response = await fetch(url);
-
-            expect.assertions(4);
-
+            expect.assertions(2);
             expect(response).toBeInstanceOf(Response);
             await expect(response.text()).resolves.toBe("fetch-success");
-            expect(handlerTracker).toHaveBeenCalledTimes(2);
-
-            // Clean up and ensure listener was removed
-            mswServer.events.removeListener("request:unhandled", unhandledRequestHandler);
-            expect(emitter.listenerCount("request:unhandled")).toBe(0);
         });
 
         test("Can retry requests with consumable bodies", async () => {

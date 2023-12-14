@@ -3,7 +3,6 @@
  */
 
 import { createMachine, assign } from "xstate";
-import { ErrorWithCauseCode } from "../types/error-with-cause-code";
 import { logFetch } from "../debug-log";
 import { DigiMeSdkApiError, DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 import { ApiErrorFromHeaders } from "../types/external/api-error-response";
@@ -11,7 +10,6 @@ import { ApiErrorFromHeaders } from "../types/external/api-error-response";
 const RETRY_DEFAULTS = {
     maxAttempts: 3,
     retryableStatusCodes: [408, 429, 500, 502, 503, 504, 521, 522, 524],
-    retryableErrorCodes: ["ENOTFOUND", "ENETUNREACH", "EAI_AGAIN", "ECONNREFUSED", "ECONNRESET"],
 };
 
 const abortableDelay = (milliseconds: number, signal?: AbortSignal): Promise<void> => {
@@ -66,15 +64,19 @@ const getRetryAfterDelay = (response: Response): number | undefined => {
     return undefined;
 };
 
-const getFetchErrorCauseCode = (value: unknown): string => {
-    try {
-        return ErrorWithCauseCode.parse(value).cause.code;
-    } catch (e) {
-        return "";
-    }
+/**
+ * NOTE: Only accounts for Node.js Undici implementation errors
+ * Add handling for other implementations if needed
+ */
+const fetchNetworkErrorMessages = new Set([
+    "Failed to fetch", // MSW
+    "fetch failed", // Node.js (Undici)
+]);
+
+const isFetchNetworkError = (value: unknown): boolean => {
+    return Boolean(value && value instanceof TypeError && fetchNetworkErrorMessages.has(value.message));
 };
 
-// TODO: Handle aborts in other parts of the machine
 export const fetchMachine = createMachine(
     {
         /** @xstate-layout N4IgpgJg5mDOIC5QDMwBcDGALAsgQ2wEsA7MAOkIgBswBiAMQFEAVAYQAkBtABgF1FQABwD2sQmkLDiAkAA9EAWgBMAZgCMZAGwqAHAE41Adk1KArABY1+gDQgAnoiU6ye7rpWm9m7kc1rzAL4BtqiYuARYJOShRMRQtBBS5CQAbsIA1tHo2PixWWEkUAipwhh4ElI8vFUyImIV0khyikp6hmQ6VqY6TobchipKbrYOCE7cZCoDqoatJiompkEh2eF5ZDGRcQlJFMRpmRuruVv5sUUlZQ1VnGr8TXXiko2g8ggKKp9khmrq3J06FTcTSGHSmEaIT7tUymPyGcyg1Qg7TLECbE5RI4FbaJUh7A5nNanLHnYr7UrlZ43JT3ISiJ5SGRvZQ6TRkbjcPRcwygoGaMGGCEIFRcrS+AxqUwDNRDQLBNHHCKYzaFWhgABO6uE6rIgio5WQ2oAtiSicrVoUyWkrlS+DUHvSGkzEKYJoDLCCOR4-FyhWo2XolLMdMCdOZLEDDKj0Uq8SrthqtTq9QbjaaMXGLXErRTrna7rVHc9nQhLEoyDLjIZTEpWvDYUKgWRzG4w6Z-JpNJ42kt5TH1gB3PBPOLMYQAJXQ6rsOzxJUO-eJQ5HUDHk7Q05zNsqdr4hfqxaab0l5Z8pg8YfMSl+UvB9kQVmcwNBbT0YP6V+jisHw4ko4nU4zom2q6vqaCGuqJqLpiy5-quAEbnYW6Uju1R7g6B6MkekLeC4nQLNwV6eEM8JCuMkzTEMUxTC2xhfmEGbkOqcDCFQKRgIwmrapOsAiMQsB0LiyTkgu37EsxsCsexnFJjxfECcheZobSICPE62HCqYLiGAYPStl4waNj0kxKNooIWGo-zqPROSxkxLFsRxXHqnJUgCWqzmgamkHpnZZASVJTmyXA8lgIptrKfuDIvM0wpspoCL+kCPjmIC-xCu25jfCGFhTNwTjdkE8rEMIEBwDI0GkFF6mvIougaD8fwAny5lCgovxZayOmst6XhqDZZpztQYDVYetXvEM5bVte8JKFefSAneowKAikwglyPgqFe-oJQNjGmoUo1YeNLLlq45g1j8roeOYfquuyIL6Jybg6bWKh7X5yDDjQEBHTFby6BMCLwiYeipYGehTI2XgdMiYacgi50fesGDCEaeroCNGHRSWWmfFt+VdlYc3cmRPJaKoqj5VCHa9isDF+bBhRroBf0loMejNrWmheAYIpBiofraA9OkcsY3hejoyPiQ50nOa5-FY3SmH-S0YPsjWXgItwNY6HrQrmH4WiciTetgi2vZBEAA */
@@ -85,7 +87,6 @@ export const fetchMachine = createMachine(
                 maxAttempts: number;
                 maxRetryAfterDelay: number;
                 retryableStatusCodes: number[];
-                retryableErrorCodes: string[];
                 lastError?: unknown;
             },
             events: {} as { type: "FETCH"; request: Request },
@@ -106,7 +107,6 @@ export const fetchMachine = createMachine(
             maxAttempts: RETRY_DEFAULTS.maxAttempts,
             maxRetryAfterDelay: 10000,
             retryableStatusCodes: RETRY_DEFAULTS.retryableStatusCodes,
-            retryableErrorCodes: RETRY_DEFAULTS.retryableErrorCodes,
             lastError: new Error("TEMP: Default lastError"),
         },
 
@@ -128,7 +128,7 @@ export const fetchMachine = createMachine(
                         {
                             target: "waitingToRetry",
                             cond: "isRetryableError",
-                            actions: ["setLastError", "logRetryableError"],
+                            actions: ["setLastError"],
                         },
                         {
                             target: "failed",
@@ -206,13 +206,6 @@ export const fetchMachine = createMachine(
             setLastError: assign({
                 lastError: (context, event) => event.data,
             }),
-
-            logRetryableError: (context, event) => {
-                if (logFetch.enabled) {
-                    const causeCode = getFetchErrorCauseCode(event.data);
-                    logFetch(`[${context.request?.url}] Retrying due to retryable error code: ${causeCode}`);
-                }
-            },
         },
 
         guards: {
@@ -222,13 +215,7 @@ export const fetchMachine = createMachine(
                 return context.retryableStatusCodes.includes(event.data.status);
             },
 
-            isRetryableError: (context, event) => {
-                try {
-                    return context.retryableErrorCodes.includes(getFetchErrorCauseCode(event.data));
-                } catch {
-                    return false;
-                }
-            },
+            isRetryableError: (context, event) => isFetchNetworkError(event.data),
         },
 
         services: {
