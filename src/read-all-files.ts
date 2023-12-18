@@ -34,7 +34,7 @@ type AccessTokenChangeHandler = (response: UserAccessToken) => void;
 
 export interface ReadAllFilesResponse {
     stopPolling: () => void;
-    filePromise: Promise<unknown>;
+    filePromise: Promise<CAFileListResponse["status"]>;
 }
 
 const readAllFiles = (options: ReadAllFilesOptions, sdkConfig: SDKConfiguration): ReadAllFilesResponse => {
@@ -50,21 +50,22 @@ const readAllFiles = (options: ReadAllFilesOptions, sdkConfig: SDKConfiguration)
     let allowPollingToContinue = true;
 
     // eslint-disable-next-line no-async-promise-executor
-    const allFilesPromise: Promise<void> = new Promise(async (resolve, reject) => {
+    const allFilesPromise: Promise<CAFileListResponse["status"]> = new Promise(async (resolve, reject) => {
         const filePromises: Array<Promise<unknown>> = [];
         const handledFiles: { [name: string]: number } = {};
         let state: CAFileListResponse["status"]["state"] | undefined = "pending";
+        let status: CAFileListResponse["status"];
 
         try {
             while (allowPollingToContinue && state !== "partial" && state !== "completed") {
-                const {
-                    status,
-                    fileList,
-                    userAccessToken: updatedUserAccessToken,
-                }: CAFileListResponse = await readFileList(
+                const readFileResponse = await readFileList(
                     { sessionKey, contractId, privateKey, userAccessToken },
                     sdkConfig
                 );
+
+                const fileList = readFileResponse.fileList;
+                const updatedUserAccessToken = readFileResponse.userAccessToken;
+                status = readFileResponse.status;
 
                 // if readFileList returns refreshed access token we need to use that for readFile method
                 if (updatedUserAccessToken && userAccessToken.accessToken !== updatedUserAccessToken.accessToken) {
@@ -138,7 +139,7 @@ const readAllFiles = (options: ReadAllFilesOptions, sdkConfig: SDKConfiguration)
             }
             Promise.all(filePromises)
                 .then(() => {
-                    resolve();
+                    resolve(status);
                 })
                 .catch((e) => {
                     reject(e);
