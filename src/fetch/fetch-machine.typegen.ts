@@ -28,6 +28,7 @@
 "setLastError": "error.platform.fetchMachine.fetching:invocation[0]" | "error.platform.fetchMachine.resolveResponseError:invocation[0]" | "error.platform.fetchMachine.waitingToRetry:invocation[0]";
 "setLastErrorFromResolvedError": "done.invoke.fetchMachine.resolveResponseError:invocation[0]";
 "setRequest": "FETCH";
+"setRetryOptions": "FETCH";
         };
         eventsCausingDelays: {
 

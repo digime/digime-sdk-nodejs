@@ -7,6 +7,7 @@ import { fetchMachine } from "./fetch-machine";
 import { waitFor } from "xstate/lib/waitFor";
 import { logFetch } from "../debug-log";
 import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
+import { RetryOptions } from "./retry";
 
 /**
  * Extends [`Response`](https://developer.mozilla.org/docs/Web/API/Response) to
@@ -16,8 +17,19 @@ export interface DigiMeFetchResponse extends Response {
     json(): Promise<unknown>;
 }
 
-export async function fetch(...parameters: ConstructorParameters<typeof Request>): Promise<DigiMeFetchResponse> {
-    const outgoingRequest = new Request(...parameters);
+/**
+ * Extra configuration options for the wrapper
+ */
+interface FetchWrapperConfig {
+    retryOptions?: Partial<RetryOptions>;
+}
+
+export async function fetch(
+    input: ConstructorParameters<typeof Request>[0],
+    init?: ConstructorParameters<typeof Request>[1],
+    wrapperConfig?: FetchWrapperConfig,
+): Promise<DigiMeFetchResponse> {
+    const outgoingRequest = new Request(input, init);
 
     logFetch(`[${outgoingRequest.url}] Initializing`);
 
@@ -28,7 +40,7 @@ export async function fetch(...parameters: ConstructorParameters<typeof Request>
         .start();
 
     logFetch(`[${outgoingRequest.url}] Sending FETCH to state machine`);
-    fetchActor.send({ type: "FETCH", request: outgoingRequest });
+    fetchActor.send({ type: "FETCH", request: outgoingRequest, retryOptions: wrapperConfig?.retryOptions });
 
     const endState = await waitFor(fetchActor, (state) => Boolean(state.done), { timeout: Infinity });
     logFetch(`[${endState.context.request?.url}] Fetch machine resolved in: "${endState.value}"`);

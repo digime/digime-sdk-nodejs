@@ -6,7 +6,7 @@ import { describe, test, expect, vi } from "vitest";
 import { mswServer } from "../mocks/server";
 import { fetch } from "./fetch";
 import { HttpResponse, http } from "msw";
-import { DigiMeSdkApiError, DigiMeSdkError } from "../errors/errors";
+import { DigiMeSdkApiError, DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 import { formatBodyError, formatHeadersError } from "../mocks/utilities";
 
 describe("fetch", () => {
@@ -19,6 +19,70 @@ describe("fetch", () => {
 
         expect(response).toBeInstanceOf(Response);
         await expect(response.text()).resolves.toBe("fetch-success");
+    });
+
+    describe("Wrapper config", () => {
+        test("Can limit max retry attempts", async () => {
+            mswServer.use(
+                http.get("https://fetch.test/", () => HttpResponse.text("fetch-500", { status: 500 }), { once: true }),
+                http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 }), {
+                    once: true,
+                }),
+            );
+
+            const fetchPromise = fetch("https://fetch.test/", undefined, {
+                retryOptions: {
+                    maxAttempts: 0,
+                },
+            });
+
+            expect.assertions(3);
+            await expect(fetchPromise).rejects.toBeInstanceOf(Error);
+            await expect(fetchPromise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+            await expect(fetchPromise).rejects.toMatchInlineSnapshot(
+                `[DigiMeSdkTypeError: Received unexpected error response from the Digi.me API]`,
+            );
+        });
+
+        test("Can provide custom delay calculator", async () => {
+            mswServer.use(
+                http.get("https://fetch.test/", () => HttpResponse.text("fetch-500", { status: 500 }), { once: true }),
+                http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 }), {
+                    once: true,
+                }),
+            );
+
+            const fetchPromise = fetch("https://fetch.test/", undefined, {
+                retryOptions: {
+                    calculateDelay: () => {
+                        throw new Error("Custom calculateDelay error");
+                    },
+                },
+            });
+
+            expect.assertions(2);
+            await expect(fetchPromise).rejects.toBeInstanceOf(Error);
+            await expect(fetchPromise).rejects.toMatchInlineSnapshot(`[Error: Custom calculateDelay error]`);
+        });
+
+        test("Can provide custom status codes to retry on", async () => {
+            mswServer.use(
+                http.get("https://fetch.test/", () => HttpResponse.text("fetch-402", { status: 402 }), { once: true }),
+                http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 }), {
+                    once: true,
+                }),
+            );
+
+            const response = await fetch("https://fetch.test/", undefined, {
+                retryOptions: {
+                    statusCodes: [402],
+                },
+            });
+
+            expect.assertions(2);
+            expect(response).toBeInstanceOf(Response);
+            await expect(response.text()).resolves.toBe("fetch-success");
+        });
     });
 
     describe("Aborting", () => {
@@ -128,7 +192,7 @@ describe("fetch", () => {
                 await expect(fetchPromise).rejects.toThrowError(Error);
                 await expect(fetchPromise).rejects.toThrowError(DigiMeSdkError);
                 await expect(fetchPromise).rejects.toThrowErrorMatchingInlineSnapshot(
-                    `[DigiMeSdkError: Encountered a retryable response, but the "Retry-After" specified a delay over 10000ms]`,
+                    `[DigiMeSdkTypeError: Received unexpected error response from the Digi.me API]`,
                 );
             });
 
@@ -150,7 +214,7 @@ describe("fetch", () => {
                 await expect(fetchPromise).rejects.toThrowError(Error);
                 await expect(fetchPromise).rejects.toThrowError(DigiMeSdkError);
                 await expect(fetchPromise).rejects.toThrowErrorMatchingInlineSnapshot(
-                    `[DigiMeSdkError: Encountered a retryable response, but the "Retry-After" specified a delay over 10000ms]`,
+                    `[DigiMeSdkTypeError: Received unexpected error response from the Digi.me API]`,
                 );
             });
         });
