@@ -25,11 +25,6 @@ export type RetryOptions = {
     statusCodes: readonly number[];
 
     /**
-     * Baseline for the random noise added to the calculated delay
-     */
-    noise: number;
-
-    /**
      * Function that determines if the error thrown by `fetch` is retryable
      */
     isErrorRetryable: (error: unknown) => boolean;
@@ -88,7 +83,7 @@ export const defaultCalculateDelay = async ({
     }
 
     // Introduce some delay noise to stagger parallel requests
-    const noise = Math.round(Math.random() * retryOptions.noise);
+    const noise = Math.round(Math.random() * 100);
 
     return retryAfter ?? Math.pow(2, attempts - 2) * 1000 + noise;
 };
@@ -97,6 +92,5 @@ export const DEFAULT_RETRY_OPTIONS = {
     maxAttempts: 3,
     maxRetryAfterDelay: 10000,
     statusCodes: [408, 429, 500, 502, 503, 504, 521, 522, 524],
-    noise: 100,
     isErrorRetryable: isFetchNetworkError,
 } satisfies RetryOptions;

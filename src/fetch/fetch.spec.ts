@@ -22,7 +22,7 @@ describe("fetch", () => {
     });
 
     describe("Wrapper config", () => {
-        test("Can limit max retry attempts", async () => {
+        test("Uses custom maximum retry attempts", async () => {
             mswServer.use(
                 http.get("https://fetch.test/", () => HttpResponse.text("fetch-500", { status: 500 }), { once: true }),
                 http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 }), {
@@ -44,7 +44,7 @@ describe("fetch", () => {
             );
         });
 
-        test("Can provide custom delay calculator", async () => {
+        test("Uses custom delay calculator", async () => {
             mswServer.use(
                 http.get("https://fetch.test/", () => HttpResponse.text("fetch-500", { status: 500 }), { once: true }),
                 http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 }), {
@@ -65,7 +65,7 @@ describe("fetch", () => {
             await expect(fetchPromise).rejects.toMatchInlineSnapshot(`[Error: Custom calculateDelay error]`);
         });
 
-        test("Can provide custom status codes to retry on", async () => {
+        test("Uses custom retryable status codes", async () => {
             mswServer.use(
                 http.get("https://fetch.test/", () => HttpResponse.text("fetch-402", { status: 402 }), { once: true }),
                 http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 }), {
@@ -82,6 +82,56 @@ describe("fetch", () => {
             expect.assertions(2);
             expect(response).toBeInstanceOf(Response);
             await expect(response.text()).resolves.toBe("fetch-success");
+        });
+
+        test("Uses custom error retry checker", async () => {
+            mswServer.use(
+                http.get("https://fetch.test", () => HttpResponse.error(), { once: true }),
+                http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 }), {
+                    once: true,
+                }),
+            );
+
+            const fetchPromise = fetch("https://fetch.test/", undefined, {
+                retryOptions: {
+                    isErrorRetryable: () => {
+                        return false;
+                    },
+                },
+            });
+
+            expect.assertions(2);
+            await expect(fetchPromise).rejects.toBeInstanceOf(Error);
+            await expect(fetchPromise).rejects.toMatchInlineSnapshot(`[TypeError: Failed to fetch]`);
+        });
+
+        test("Uses custom limit for `Retry-After` header", async () => {
+            mswServer.use(
+                http.get(
+                    "https://fetch.test/",
+                    () =>
+                        HttpResponse.text("fetch-503", {
+                            status: 503,
+                            headers: { "Retry-After": "2" },
+                        }),
+                    { once: true },
+                ),
+                http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 }), {
+                    once: true,
+                }),
+            );
+
+            const fetchPromise = fetch("https://fetch.test/", undefined, {
+                retryOptions: {
+                    maxRetryAfterDelay: 1000,
+                },
+            });
+
+            expect.assertions(2);
+            await expect(fetchPromise).rejects.toBeInstanceOf(Error);
+            await expect(fetchPromise).rejects.toMatchInlineSnapshot(
+                `[DigiMeSdkTypeError: Received unexpected error response from the Digi.me API]`,
+            );
         });
     });
 
