@@ -35,6 +35,12 @@ export interface GetReauthorizeAccountUrlOptions {
      * AccountID to reauthorize.
      */
     accountId: string;
+    /**
+     * Send prefared locale for authorization client to be used.
+     * If passed locale is not supported then language will fallback to browser language.
+     * If browser locale is not supported we will fallback to default locale (en).
+     */
+    locale?: string;
 }
 
 const GetReauthorizeAccountUrlOptionsCodec: t.Type<GetReauthorizeAccountUrlOptions> = t.type({
@@ -111,7 +117,7 @@ const _getReauthorizeAccountUrl = async (
         throw new TypeValidationError("Error on getReauthorizeAccountUrl(). Incorrect parameters passed in.");
     }
 
-    const { userAccessToken, contractDetails, callback } = props;
+    const { userAccessToken, contractDetails, callback, locale } = props;
     const { contractId, privateKey } = contractDetails;
 
     const jwt: string = sign(
@@ -158,6 +164,7 @@ const _getReauthorizeAccountUrl = async (
     result.search = new URLSearchParams({
         code,
         accountRef,
+        ...(locale && { lng: locale }),
     }).toString();
 
     return {
