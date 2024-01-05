@@ -57,12 +57,14 @@ const contractDetails = {
 // contractDetails - The same one used in getAuthorizeUrl().
 // accountId - accountId returned in error from above example
 // userAccessToken - The user access token from the authorization step.
+// locale - (Optional) Send prefared locale for authorization client to be used. Default is en.
 
 const { url } = await sdk.getReauthorizeAccountUrl({
     callback,
     contractDetails,
     accountId,
     userAccessToken,
+    locale,
 });
 
 ```
