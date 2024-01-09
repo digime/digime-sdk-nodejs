@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { logFetch } from "../debug-log";
+import { logFetchWrapper } from "../debug-log";
 import { isFetchNetworkError } from "./is-fetch-network-error";
 
 type CalculateDelay = (options: CalculateDelayOptions) => Promise<number | undefined>;
@@ -70,13 +70,13 @@ export const defaultCalculateDelay = async ({
 }: CalculateDelayOptions): Promise<number> => {
     // No attempts remaining
     if (attempts > retryOptions.maxAttempts) {
-        logFetch(`Retry aborted, no attempts remaining`);
+        logFetchWrapper(`Retry aborted, no attempts remaining`);
         throw error;
     }
 
     // In case "Retry-After" is too long, we should just fail
     if (retryAfter && retryAfter > retryOptions.maxRetryAfterDelay) {
-        logFetch(
+        logFetchWrapper(
             `Retry aborted, encountered a retryable response but the "Retry-After" specified a delay over ${retryOptions.maxRetryAfterDelay}ms`,
         );
         throw error;

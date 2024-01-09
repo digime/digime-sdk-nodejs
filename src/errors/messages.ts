@@ -3,13 +3,13 @@
  */
 
 export const errorMessages = {
-    /** A method was called that requires a TokenPair, but is wasn't provided yet */
-    noTokenPairProvided: [
-        "You tried to call a method that needs a TokenPair, but you didn't provide it.",
+    /** A method was called that requires an OAuth token, but is wasn't provided yet */
+    noOauthTokenProvided: [
+        "You tried to call a method that needs a token, but you didn't provide it.",
         "",
         "You can provide it by:",
-        ' • Instantiating the DigiMeSDK instance with the "tokenPair" option',
-        " • Calling the `.setTokenPair()` method on the SDK instance",
+        ' • Instantiating the DigiMeSDK instance with the "token" option',
+        " • Calling the `.setToken()` method on the SDK instance",
     ].join("\n"),
 
     /** A method was called that requires ContractDetails, but it wasn't provided yet */

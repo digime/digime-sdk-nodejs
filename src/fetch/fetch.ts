@@ -5,7 +5,7 @@
 import { interpret } from "xstate";
 import { fetchMachine } from "./fetch-machine";
 import { waitFor } from "xstate/lib/waitFor";
-import { logFetch } from "../debug-log";
+import { logFetchWrapper } from "../debug-log";
 import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 import { RetryOptions } from "./retry";
 
@@ -13,7 +13,7 @@ import { RetryOptions } from "./retry";
  * Extends [`Response`](https://developer.mozilla.org/docs/Web/API/Response) to
  * make `.json()` method return `Promise<unknown>` instead of `Promise<any>`
  */
-export interface DigiMeFetchResponse extends Response {
+export interface DigiMeFetchWrapperResponse extends Response {
     json(): Promise<unknown>;
 }
 
@@ -24,26 +24,26 @@ interface FetchWrapperConfig {
     retryOptions?: Partial<RetryOptions>;
 }
 
-export async function fetch(
+export async function fetchWrapper(
     input: ConstructorParameters<typeof Request>[0],
     init?: ConstructorParameters<typeof Request>[1],
     wrapperConfig?: FetchWrapperConfig,
-): Promise<DigiMeFetchResponse> {
+): Promise<DigiMeFetchWrapperResponse> {
     const outgoingRequest = new Request(input, init);
 
-    logFetch(`[${outgoingRequest.url}] Initializing`);
+    logFetchWrapper(`[${outgoingRequest.url}] Initializing`);
 
     const fetchActor = interpret(fetchMachine)
         .onTransition((state) => {
-            logFetch(`[${state.context.request?.url || outgoingRequest.url}] State: ${state.value}`);
+            logFetchWrapper(`[${state.context.request?.url || outgoingRequest.url}] State: ${state.value}`);
         })
         .start();
 
-    logFetch(`[${outgoingRequest.url}] Sending FETCH to state machine`);
+    logFetchWrapper(`[${outgoingRequest.url}] Sending FETCH to state machine`);
     fetchActor.send({ type: "FETCH", request: outgoingRequest, retryOptions: wrapperConfig?.retryOptions });
 
     const endState = await waitFor(fetchActor, (state) => Boolean(state.done), { timeout: Infinity });
-    logFetch(`[${endState.context.request?.url}] Fetch machine resolved in: "${endState.value}"`);
+    logFetchWrapper(`[${endState.context.request?.url}] Fetch machine resolved in: "${endState.value}"`);
 
     // XState types don't expose `data`, even though it should be there, so we check for it
     if (!("data" in endState.event)) {

@@ -3,7 +3,7 @@
  */
 
 import { createMachine, assign } from "xstate";
-import { logFetch } from "../debug-log";
+import { logFetchWrapper } from "../debug-log";
 import { DigiMeSdkApiError, DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 import { ApiErrorFromHeaders } from "../types/external/api-error-response";
 import { abortableDelay } from "../abortable-delay";
@@ -186,7 +186,9 @@ export const fetchMachine = createMachine(
                     (await context.retryOptions.calculateDelay?.(calculatedDelayOptions)) ??
                     calculatedDelayOptions.computedDelay;
 
-                logFetch(`[${context.request?.url}] Delaying attempt #${context.attempts + 1} for ${resolvedDelay}ms`);
+                logFetchWrapper(
+                    `[${context.request?.url}] Delaying attempt #${context.attempts + 1} for ${resolvedDelay}ms`,
+                );
 
                 await abortableDelay(resolvedDelay, context.request?.signal);
 
@@ -194,7 +196,9 @@ export const fetchMachine = createMachine(
             },
 
             fetch: async (context) => {
-                logFetch(`[${context.request?.url}] Attempt: ${context.attempts}/${context.retryOptions.maxAttempts}`);
+                logFetchWrapper(
+                    `[${context.request?.url}] Attempt: ${context.attempts}/${context.retryOptions.maxAttempts}`,
+                );
 
                 // We're not using typestates, so we have to guard against this
                 // See: https://xstate.js.org/docs/guides/typescript.html#typestates
@@ -204,10 +208,10 @@ export const fetchMachine = createMachine(
 
                 const response = await globalThis.fetch(context.request.clone());
 
-                if (logFetch.enabled) {
+                if (logFetchWrapper.enabled) {
                     const clonedResponse = response.clone();
                     const responseBody = await clonedResponse.text();
-                    logFetch(
+                    logFetchWrapper(
                         `[${context.request?.url}] Received response:\n====\n${clonedResponse.status} ${clonedResponse.statusText}\n----\n${responseBody}\n====`,
                     );
                 }
