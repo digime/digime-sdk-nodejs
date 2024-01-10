@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import { DigiMeSdk } from "../digi-me-sdk/digi-me-sdk";
-import { AuthorizationCredentials } from "../authorization-credentials";
+import { UserAuthorization } from "../user-authorization";
 
 /**
  * Input configuration options for Digi.me SDK
@@ -17,15 +17,15 @@ export const DigiMeSdkAuthorizedConfig = z.object(
         /**
          * TODO
          */
-        authorizationCredentials: z.instanceof(AuthorizationCredentials),
+        userAuthorization: z.instanceof(UserAuthorization),
 
         /**
-         * Callback that will provide new AuthorizationCredentials if the ones provided are automatically updated by
+         * Callback that will provide new UserAuthorization if the ones provided are automatically updated by
          * the SDK.
          *
          * TODO: Correct function types
          */
-        onAuthorizationCredentialsUpdated: z.function().optional(),
+        onUserAuthorizationUpdated: z.function().optional(),
     },
     {
         required_error: "DigiMeSdkAuthorized config is required",

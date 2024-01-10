@@ -33,7 +33,7 @@ export type AccessOrRefreshToken = z.infer<typeof AccessOrRefreshToken>;
 /**
  * Expected payload of the JWT provided by `/oauth/token`
  */
-export const OauthTokenPayload = z
+export const UserAuthorizationPayload = z
     .object({
         /**
          * TODO: Document
@@ -59,7 +59,7 @@ export const OauthTokenPayload = z
     })
     .passthrough();
 
-export type OauthTokenPayload = z.infer<typeof OauthTokenPayload>;
+export type UserAuthorizationPayload = z.infer<typeof UserAuthorizationPayload>;
 
 /**
  * Legacy compatibility things
@@ -87,7 +87,7 @@ export type LegacyAccessOrRefreshToken = z.infer<typeof LegacyAccessOrRefreshTok
 /**
  * Legacy shape of the returned OAuth Token payload
  */
-export const LegacyOauthTokenPayload = z
+export const LegacyUserAuthorizationPayload = z
     .object({
         /**
          * TODO: DOcument
@@ -116,9 +116,11 @@ export const LegacyOauthTokenPayload = z
     })
     .passthrough();
 
-export type LegacyOauthTokenPayload = z.infer<typeof LegacyOauthTokenPayload>;
+export type LegacyUserAuthorizationPayload = z.infer<typeof LegacyUserAuthorizationPayload>;
 
-export const fromLegacyOauthTokenPayload = (legacyPayload: LegacyOauthTokenPayload): OauthTokenPayload => {
+export const fromLegacyUserAuthorizationPayload = (
+    legacyPayload: LegacyUserAuthorizationPayload,
+): UserAuthorizationPayload => {
     const {
         accessToken: { expiry: accessTokenExpiry, ...accessTokenRest },
         refreshToken: { expiry: refreshTokenExpiry, ...refreshTokenRest },
@@ -126,7 +128,7 @@ export const fromLegacyOauthTokenPayload = (legacyPayload: LegacyOauthTokenPaylo
         ...payloadRest
     } = legacyPayload;
 
-    const payload: OauthTokenPayload = {
+    const payload: UserAuthorizationPayload = {
         access_token: {
             expires_on: accessTokenExpiry,
             ...accessTokenRest,
@@ -145,7 +147,7 @@ export const fromLegacyOauthTokenPayload = (legacyPayload: LegacyOauthTokenPaylo
     return payload;
 };
 
-export const toLegacyOauthTokenPayload = (payload: OauthTokenPayload): LegacyOauthTokenPayload => {
+export const toLegacyUserAuthorizationPayload = (payload: UserAuthorizationPayload): LegacyUserAuthorizationPayload => {
     const {
         access_token: { expires_on: accessTokenExpiresOn, ...accessTokenRest },
         refresh_token: { expires_on: refreshTokenExpiresOn, ...refreshTokenRest },
@@ -153,7 +155,7 @@ export const toLegacyOauthTokenPayload = (payload: OauthTokenPayload): LegacyOau
         ...payloadRest
     } = payload;
 
-    const legacyPayload: LegacyOauthTokenPayload = {
+    const legacyPayload: LegacyUserAuthorizationPayload = {
         accessToken: {
             expiry: accessTokenExpiresOn,
             ...accessTokenRest,

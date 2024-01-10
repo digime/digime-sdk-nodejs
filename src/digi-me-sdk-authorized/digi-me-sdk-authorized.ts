@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { AuthorizationCredentials } from "../authorization-credentials";
+import { UserAuthorization } from "../user-authorization";
 import { DigiMeSdkTypeError } from "../errors/errors";
 import { errorMessages } from "../errors/messages";
 import { parseWithSchema } from "../zod/zod-parse";
@@ -19,32 +19,32 @@ export class DigiMeSdkAuthorized {
         );
     }
 
-    async refreshAuthorizationCredentials(): Promise<AuthorizationCredentials> {
-        const newAuthorizationCredentials = await this.#config.digiMeSdkInstance.refreshAuthorizationCredentials(
-            this.#config.authorizationCredentials,
+    async refreshUserAuthorization(): Promise<UserAuthorization> {
+        const newUserAuthorization = await this.#config.digiMeSdkInstance.refreshUserAuthorization(
+            this.#config.userAuthorization,
         );
 
         // Call the update hook
-        if (this.#config.onAuthorizationCredentialsUpdated) {
-            this.#config.onAuthorizationCredentialsUpdated({
-                oldAuthorizationCredentials: this.#config.authorizationCredentials,
-                newAuthorizationCredentials,
+        if (this.#config.onUserAuthorizationUpdated) {
+            this.#config.onUserAuthorizationUpdated({
+                oldUserAuthorization: this.#config.userAuthorization,
+                newUserAuthorization,
             });
         }
 
-        this.#config.authorizationCredentials = newAuthorizationCredentials;
+        this.#config.userAuthorization = newUserAuthorization;
 
-        return newAuthorizationCredentials;
+        return newUserAuthorization;
     }
 
-    async #getCurrentAuthorizationCredentialsOrThrow() {
-        const { access_token, refresh_token } = this.#config.authorizationCredentials.asPayload();
+    async #getCurrentUserAuthorizationOrThrow() {
+        const { access_token, refresh_token } = this.#config.userAuthorization.asPayload();
 
         const now = Math.floor(Date.now() / 1000);
         const accessTokenExpired = access_token.expires_on + 10 > now;
 
         if (!accessTokenExpired) {
-            return this.#config.authorizationCredentials;
+            return this.#config.userAuthorization;
         }
 
         const refreshTokenExpired = refresh_token.expires_on + 10 > now;
@@ -53,7 +53,7 @@ export class DigiMeSdkAuthorized {
             throw new DigiMeSdkTypeError(errorMessages.accessAndRefreshTokenExpired);
         }
 
-        return await this.refreshAuthorizationCredentials();
+        return await this.refreshUserAuthorization();
     }
 
     readAccounts() {}

@@ -14,7 +14,7 @@ import { parseWithSchema } from "../zod/zod-parse";
 import { DEFAULT_BASE_URL, DigiMeSdkConfig, InputDigiMeSdkConfig } from "./config";
 import { fetchWrapper } from "../fetch/fetch";
 import { signTokenPayload } from "../sign-token-payload";
-import { AuthorizationCredentials } from "../authorization-credentials";
+import { UserAuthorization } from "../user-authorization";
 import { createRemoteJWKSet } from "jose";
 import { LRUCache } from "lru-cache";
 import { getVerifiedTokenPayload } from "../get-verified-token-payload";
@@ -242,15 +242,13 @@ export class DigiMeSdk {
         }
     }
 
-    async refreshAuthorizationCredentials(
-        authorizationCredentials: AuthorizationCredentials,
-    ): Promise<AuthorizationCredentials> {
+    async refreshUserAuthorization(userAuthorization: UserAuthorization): Promise<UserAuthorization> {
         const signedToken = await signTokenPayload(
             {
                 client_id: `${this.applicationId}_${this.contractId}`,
                 grant_type: "refresh_token",
                 nonce: getRandomAlphaNumeric(32),
-                refresh_token: authorizationCredentials.asPayload().refresh_token.value,
+                refresh_token: userAuthorization.asPayload().refresh_token.value,
                 timestamp: Date.now(),
             },
             this.contractPrivateKey,
@@ -266,6 +264,6 @@ export class DigiMeSdk {
 
         const responseData = parseWithSchema(await response.json(), OauthTokenResponse);
 
-        return AuthorizationCredentials.fromJwt(responseData.token);
+        return UserAuthorization.fromJwt(responseData.token);
     }
 }
