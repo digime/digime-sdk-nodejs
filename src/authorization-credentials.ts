@@ -3,7 +3,7 @@
  */
 
 import { DigiMeSdkError } from "./errors/errors";
-import { getTokenPayload } from "./get-token-payload";
+import { getVerifiedTokenPayload } from "./get-verified-token-payload";
 import {
     LegacyOauthTokenPayload,
     OauthTokenPayload,
@@ -35,7 +35,7 @@ export class AuthorizationCredentials {
     }
 
     static async fromJwt(jwt: string): Promise<AuthorizationCredentials> {
-        const payload = await getTokenPayload(jwt, OauthTokenPayload);
+        const payload = await getVerifiedTokenPayload(jwt, OauthTokenPayload);
         return new AuthorizationCredentials(CONSTRUCTOR_TOKEN, { jwt, payload });
     }
 
@@ -66,7 +66,7 @@ export class AuthorizationCredentials {
     asJwt(): string {
         if (!this.#jwt) {
             // Make self-signed or unsigned token?
-            throw new Error("TODO");
+            throw new DigiMeSdkError("TODO");
         }
 
         return this.#jwt;

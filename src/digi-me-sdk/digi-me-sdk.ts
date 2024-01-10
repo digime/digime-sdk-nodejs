@@ -11,38 +11,87 @@ import { PayloadPreauthorizationCode } from "../types/external/jwt-payloads";
 import { GetAuthorizeUrlReturn } from "./get-authorize-url";
 import { OauthTokenResponse } from "../types/external/oauth-token";
 import { parseWithSchema } from "../zod/zod-parse";
-import { DigiMeSdkConfig, InputDigiMeSdkConfig } from "./config";
+import { DEFAULT_BASE_URL, DigiMeSdkConfig, InputDigiMeSdkConfig } from "./config";
 import { fetchWrapper } from "../fetch/fetch";
 import { signTokenPayload } from "../sign-token-payload";
-import { getTokenPayload } from "../get-token-payload";
 import { AuthorizationCredentials } from "../authorization-credentials";
+import { createRemoteJWKSet } from "jose";
+import { LRUCache } from "lru-cache";
+import { getVerifiedTokenPayload } from "../get-verified-token-payload";
+import { DigiMeSdkError } from "../errors/errors";
 
 /**
  * Digi.me SDK
  */
 export class DigiMeSdk {
+    static #defaultJwksUrl = new URL("jwks/oauth", DEFAULT_BASE_URL).toString();
+    static #jwksCache = new LRUCache<string, ReturnType<typeof createRemoteJWKSet>>({
+        max: 10,
+    });
+
     #config: DigiMeSdkConfig;
 
     constructor(sdkConfig: InputDigiMeSdkConfig) {
         this.#config = parseWithSchema(sdkConfig, DigiMeSdkConfig, 'DigiMeSDK constructor parameter "sdkConfig"');
+
+        // Add the current instance's expected JWKS location to the JWKS cache
+        DigiMeSdk.addUrlToJwksCache(new URL("/jwks/oauth", this.#config.baseUrl).toString());
     }
 
+    static addUrlToJwksCache(url: string): void {
+        const jwks = createRemoteJWKSet(new URL(url), { headers: { Accept: "application/json" } });
+        DigiMeSdk.#jwksCache.set(url, jwks);
+    }
+
+    /**
+     * TODO: Describe
+     */
+    static getJwksForUrl(url: string): ReturnType<typeof createRemoteJWKSet> {
+        // Add the default JWKS as the most common use case
+        if (!this.#jwksCache.has(this.#defaultJwksUrl)) {
+            this.addUrlToJwksCache(this.#defaultJwksUrl);
+        }
+
+        const jwks = this.#jwksCache.get(url);
+
+        if (!jwks) {
+            throw new DigiMeSdkError("TODO: Explain");
+        }
+
+        return jwks;
+    }
+
+    /**
+     * The `applicationId` this instance has been instantiated with
+     */
     public get applicationId() {
         return this.#config.applicationId;
     }
 
+    /**
+     * The `contractId` this instance has been instantiated with
+     */
     public get contractId() {
         return this.#config.contractId;
     }
 
+    /**
+     * The `contractPrivateKey` this instance has been instantiated with
+     */
     public get contractPrivateKey() {
         return this.#config.contractPrivateKey;
     }
 
+    /**
+     * The `baseUrl` this instance has been instantiated with
+     */
     public get baseUrl() {
         return this.#config.baseUrl;
     }
 
+    /**
+     * The `onboardUrl` this instance has been instantiated with
+     */
     public get onboardUrl() {
         return this.#config.onboardUrl;
     }
@@ -55,7 +104,7 @@ export class DigiMeSdk {
      * However, if you pass in the `contractId` parameter, Digi.me Discovery API will instead
      * return only the services that can be onboarded with the provided contract
      */
-    public async getAvailableServices({
+    async getAvailableServices({
         contractId,
         signal,
     }: {
@@ -83,7 +132,7 @@ export class DigiMeSdk {
     /**
      * TODO: Write docs for this
      */
-    public async getAuthorizeUrl(parameters: GetAuthorizeUrlParameters): Promise<GetAuthorizeUrlReturn> {
+    async getAuthorizeUrl(parameters: GetAuthorizeUrlParameters): Promise<GetAuthorizeUrlReturn> {
         const {
             callback,
             state,
@@ -137,7 +186,7 @@ export class DigiMeSdk {
 
             // Process response data
             const responseData = parseWithSchema(await response.json(), OauthAuthorizeResponse);
-            const preauthTokenPayload = await getTokenPayload(responseData.token, PayloadPreauthorizationCode);
+            const preauthTokenPayload = await getVerifiedTokenPayload(responseData.token, PayloadPreauthorizationCode);
 
             // Set up onboard URL
             const onboardUrl = new URL(`authorize`, this.onboardUrl);

@@ -8,6 +8,7 @@
   "scripts": {
     "#build": "npm run clear-dist && npm run compile",
     "build": "tsup-node",
+    "check": "npm run lint && npm run typecheck && npm run test",
     "#compile": "npm run compile:main && npm run compile:module",
     "#compile:main": "./node_modules/.bin/tsc -p tsconfig.dist.json",
     "#compile:module": "./node_modules/.bin/tsc -p tsconfig.module.json",

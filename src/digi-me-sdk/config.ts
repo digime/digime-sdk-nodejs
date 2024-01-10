@@ -4,6 +4,9 @@
 
 import { z } from "zod";
 
+export const DEFAULT_BASE_URL = "https://api.digi.me/v1.7/";
+export const DEFAULT_ONBOARD_URL = "https://api.digi.me/apps/saas/";
+
 // Transform and casting to have a more specific type for typechecking
 const UrlWithTrailingSlash = z
     .string()
@@ -30,14 +33,14 @@ export const DigiMeSdkConfig = z.object(
          * Must end with a trailing slash
          * @defaultValue `"https://api.digi.me/v1.7/"`
          */
-        baseUrl: UrlWithTrailingSlash.default("https://api.digi.me/v1.7/"),
+        baseUrl: UrlWithTrailingSlash.default(DEFAULT_BASE_URL),
 
         /**
          * Root URL for the digi.me web onboard
          * Must end with a trailing slash
          * @defaultValue `"https://api.digi.me/apps/saas/"`
          */
-        onboardUrl: UrlWithTrailingSlash.default("https://api.digi.me/apps/saas/"),
+        onboardUrl: UrlWithTrailingSlash.default(DEFAULT_ONBOARD_URL),
     },
     {
         required_error: "SdkConfig is required",
