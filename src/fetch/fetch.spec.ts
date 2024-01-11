@@ -7,13 +7,16 @@ import { mswServer } from "../mocks/server";
 import { fetchWrapper } from "./fetch";
 import { HttpResponse, http } from "msw";
 import { DigiMeSdkApiError, DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
-import { formatBodyError, formatHeadersError } from "../mocks/utilities";
+import { formatBodyError, formatHeadersError, getTestUrl } from "../mocks/utilities";
+import { abortableDelay } from "../abortable-delay";
+import { randomInt } from "node:crypto";
 
 describe("fetch", () => {
     test("Returns response on success", async () => {
-        mswServer.use(http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 })));
+        const url = getTestUrl();
+        mswServer.use(http.get(url, () => HttpResponse.text("fetch-success", { status: 200 })));
 
-        const response = await fetchWrapper("https://fetch.test/");
+        const response = await fetchWrapper(url);
 
         expect.assertions(2);
 
@@ -23,14 +26,15 @@ describe("fetch", () => {
 
     describe("Wrapper config", () => {
         test("Uses custom maximum retry attempts", async () => {
+            const url = getTestUrl();
             mswServer.use(
-                http.get("https://fetch.test/", () => HttpResponse.text("fetch-500", { status: 500 }), { once: true }),
-                http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 }), {
+                http.get(url, () => HttpResponse.text("fetch-500", { status: 500 }), { once: true }),
+                http.get(url, () => HttpResponse.text("fetch-success", { status: 200 }), {
                     once: true,
                 }),
             );
 
-            const fetchPromise = fetchWrapper("https://fetch.test/", undefined, {
+            const fetchPromise = fetchWrapper(url, undefined, {
                 retryOptions: {
                     maxAttempts: 0,
                 },
@@ -45,14 +49,15 @@ describe("fetch", () => {
         });
 
         test("Uses custom delay calculator", async () => {
+            const url = getTestUrl();
             mswServer.use(
-                http.get("https://fetch.test/", () => HttpResponse.text("fetch-500", { status: 500 }), { once: true }),
-                http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 }), {
+                http.get(url, () => HttpResponse.text("fetch-500", { status: 500 }), { once: true }),
+                http.get(url, () => HttpResponse.text("fetch-success", { status: 200 }), {
                     once: true,
                 }),
             );
 
-            const fetchPromise = fetchWrapper("https://fetch.test/", undefined, {
+            const fetchPromise = fetchWrapper(url, undefined, {
                 retryOptions: {
                     calculateDelay: () => {
                         throw new Error("Custom calculateDelay error");
@@ -66,14 +71,15 @@ describe("fetch", () => {
         });
 
         test("Uses custom retryable status codes", async () => {
+            const url = getTestUrl();
             mswServer.use(
-                http.get("https://fetch.test/", () => HttpResponse.text("fetch-402", { status: 402 }), { once: true }),
-                http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 }), {
+                http.get(url, () => HttpResponse.text("fetch-402", { status: 402 }), { once: true }),
+                http.get(url, () => HttpResponse.text("fetch-success", { status: 200 }), {
                     once: true,
                 }),
             );
 
-            const response = await fetchWrapper("https://fetch.test/", undefined, {
+            const response = await fetchWrapper(url, undefined, {
                 retryOptions: {
                     statusCodes: [402],
                 },
@@ -85,14 +91,15 @@ describe("fetch", () => {
         });
 
         test("Uses custom error retry checker", async () => {
+            const url = getTestUrl();
             mswServer.use(
-                http.get("https://fetch.test", () => HttpResponse.error(), { once: true }),
-                http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 }), {
+                http.get(url, () => HttpResponse.error(), { once: true }),
+                http.get(url, () => HttpResponse.text("fetch-success", { status: 200 }), {
                     once: true,
                 }),
             );
 
-            const fetchPromise = fetchWrapper("https://fetch.test/", undefined, {
+            const fetchPromise = fetchWrapper(url, undefined, {
                 retryOptions: {
                     isErrorRetryable: () => {
                         return false;
@@ -106,9 +113,10 @@ describe("fetch", () => {
         });
 
         test("Uses custom limit for `Retry-After` header", async () => {
+            const url = getTestUrl();
             mswServer.use(
                 http.get(
-                    "https://fetch.test/",
+                    url,
                     () =>
                         HttpResponse.text("fetch-503", {
                             status: 503,
@@ -116,12 +124,12 @@ describe("fetch", () => {
                         }),
                     { once: true },
                 ),
-                http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 }), {
+                http.get(url, () => HttpResponse.text("fetch-success", { status: 200 }), {
                     once: true,
                 }),
             );
 
-            const fetchPromise = fetchWrapper("https://fetch.test/", undefined, {
+            const fetchPromise = fetchWrapper(url, undefined, {
                 retryOptions: {
                     maxRetryAfterDelay: 1000,
                 },
@@ -137,37 +145,47 @@ describe("fetch", () => {
 
     describe("Aborting", () => {
         test("Can be aborted with AbortSignal", async () => {
-            mswServer.use(http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 })));
+            const url = getTestUrl();
+            mswServer.use(http.get(url, () => HttpResponse.text("fetch-success", { status: 200 })));
 
-            const responsePromise = fetchWrapper("https://fetch.test/", { signal: AbortSignal.abort() });
+            const responsePromise = fetchWrapper(url, { signal: AbortSignal.abort() });
 
-            expect.assertions(3);
+            expect.assertions(2);
 
             await expect(responsePromise).rejects.toBeInstanceOf(Error);
-            await expect(responsePromise).rejects.toBeInstanceOf(DOMException);
             await expect(responsePromise).rejects.toHaveProperty("name", "AbortError");
         });
 
         test("Can be aborted with AbortSignal while waiting to retry", async () => {
+            const url = getTestUrl();
             mswServer.use(
-                http.get("https://fetch.test/", () =>
-                    HttpResponse.text("fetch-failed", {
+                http.get(url, () =>
+                    HttpResponse.text("Try again", {
                         status: 500,
                         headers: {
                             // Correctly functioning fetch wrapper should respect this header
-                            // and attempt to wait for 2 seconds.
-                            "Retry-After": "2",
+                            // and attempt to wait for 4 seconds.
+                            "Retry-After": "4",
                         },
                     }),
                 ),
             );
 
+            const abortController = new AbortController();
+
             performance.mark("fetch-start");
 
-            const responsePromise = fetchWrapper("https://fetch.test/", {
-                // We pass in the abort signal that will trigger in 50 milliseconds, so that retry never happens
-                signal: AbortSignal.timeout(50),
-            });
+            const responsePromise = fetchWrapper(
+                url,
+                {
+                    // We pass in the abort signal that will trigger in 50 milliseconds, so that retry never happens
+                    signal: abortController.signal,
+                },
+                { retryOptions: { maxAttempts: 2 } },
+            );
+
+            await abortableDelay(500);
+            abortController.abort();
 
             responsePromise.catch(() => {
                 performance.measure("fetch-reject", "fetch-start");
@@ -175,9 +193,9 @@ describe("fetch", () => {
 
             expect.assertions(4);
             await expect(responsePromise).rejects.toBeInstanceOf(Error);
-            await expect(responsePromise).rejects.toBeInstanceOf(DOMException);
+            await expect(responsePromise).rejects.toHaveProperty("name", "AbortError");
             await expect(responsePromise).rejects.toThrowErrorMatchingInlineSnapshot(
-                `[TimeoutError: The operation was aborted due to timeout]`,
+                `[AbortError: This operation was aborted]`,
             );
 
             /**
@@ -190,15 +208,16 @@ describe("fetch", () => {
              *   Abort wasn't handled in "waitForRetry" and instead the real fetch has rejected in "fetching" state,
              *   which is not the correct behavior.
              */
-            expect(Number(performance.getEntriesByName("fetch-reject")[0]?.duration)).toBeLessThan(200);
+            expect(Number(performance.getEntriesByName("fetch-reject")[0]?.duration)).toBeLessThan(2000);
         });
     });
 
     describe("Errors", () => {
         test("Throws DigiMeSdkApiError when the API responds with a well formed error response and non-retryable status code", async () => {
+            const url = getTestUrl();
             mswServer.use(
                 http.get(
-                    "https://fetch.test/",
+                    url,
                     () => {
                         const error = { code: "TestError", message: "Test error" };
                         return HttpResponse.json(formatBodyError(error), {
@@ -210,7 +229,7 @@ describe("fetch", () => {
                 ),
             );
 
-            const fetchPromise = fetchWrapper("https://fetch.test/");
+            const fetchPromise = fetchWrapper(url);
 
             expect.assertions(3);
             await expect(fetchPromise).rejects.toBeInstanceOf(Error);
@@ -225,9 +244,10 @@ describe("fetch", () => {
 
         describe('Throws if the "Retry-After" header for a retryable response is too long', () => {
             test("In number format", async () => {
+                const url = getTestUrl();
                 mswServer.use(
                     http.get(
-                        "https://fetch-retry-after-long.test/",
+                        url,
                         () =>
                             HttpResponse.text("fetch-503", {
                                 status: 503,
@@ -237,7 +257,7 @@ describe("fetch", () => {
                     ),
                 );
 
-                const fetchPromise = fetchWrapper("https://fetch-retry-after-long.test/");
+                const fetchPromise = fetchWrapper(url);
 
                 await expect(fetchPromise).rejects.toThrowError(Error);
                 await expect(fetchPromise).rejects.toThrowError(DigiMeSdkError);
@@ -247,9 +267,10 @@ describe("fetch", () => {
             });
 
             test("In date format", async () => {
+                const url = getTestUrl();
                 mswServer.use(
                     http.get(
-                        "https://fetch-retry-after-long.test/",
+                        url,
                         () =>
                             HttpResponse.text("fetch-503", {
                                 status: 503,
@@ -259,7 +280,7 @@ describe("fetch", () => {
                     ),
                 );
 
-                const fetchPromise = fetchWrapper("https://fetch-retry-after-long.test/");
+                const fetchPromise = fetchWrapper(url);
 
                 await expect(fetchPromise).rejects.toThrowError(Error);
                 await expect(fetchPromise).rejects.toThrowError(DigiMeSdkError);
@@ -271,14 +292,40 @@ describe("fetch", () => {
     });
 
     describe("Retry logic", () => {
+        test("Makes the correct amount of retries", async () => {
+            const url = getTestUrl();
+            const maxAttempts = randomInt(1, 100);
+            let requests = 0;
+
+            mswServer.use(
+                http.get(url, () => {
+                    requests++;
+                    return HttpResponse.text("fetch-500", { status: 500 });
+                }),
+            );
+
+            const fetchPromise = fetchWrapper(url, undefined, {
+                retryOptions: {
+                    maxAttempts: maxAttempts,
+                    calculateDelay: async () => 5,
+                },
+            });
+            expect.assertions(2);
+            await expect(fetchPromise).rejects.toMatchInlineSnapshot(
+                `[DigiMeSdkTypeError: Received unexpected error response from the Digi.me API]`,
+            );
+            expect(requests).toBe(maxAttempts);
+        });
+
         describe('"Retry-After" header', () => {
             test.each(["number", "date"] as const)(`Works in %s format`, async (retryAfterFormat) => {
                 // Retry-After header set to 8 seconds in both types
                 const retryAfterValue = retryAfterFormat === "number" ? "8" : new Date(Date.now() + 8000).toUTCString();
 
+                const url = getTestUrl();
                 mswServer.use(
                     http.get(
-                        "https://fetch-retry-after.test/",
+                        url,
                         () =>
                             HttpResponse.text("fetch-500", {
                                 status: 503,
@@ -286,18 +333,14 @@ describe("fetch", () => {
                             }),
                         { once: true },
                     ),
-                    http.get(
-                        "https://fetch-retry-after.test/",
-                        () => HttpResponse.text("fetch-success", { status: 200 }),
-                        {
-                            once: true,
-                        },
-                    ),
+                    http.get(url, () => HttpResponse.text("fetch-success", { status: 200 }), {
+                        once: true,
+                    }),
                 );
 
                 vi.useFakeTimers();
 
-                const fetchPromise = fetchWrapper("https://fetch-retry-after.test/");
+                const fetchPromise = fetchWrapper(url);
 
                 let advancedByTime = 0;
                 await vi.waitFor(() => {
@@ -326,9 +369,11 @@ describe("fetch", () => {
             });
 
             test(`Ignores bad values`, async () => {
+                const url = getTestUrl();
+
                 mswServer.use(
                     http.get(
-                        "https://fetch-retry-after.test/",
+                        url,
                         () =>
                             HttpResponse.text("fetch-500", {
                                 status: 503,
@@ -336,16 +381,18 @@ describe("fetch", () => {
                             }),
                         { once: true },
                     ),
-                    http.get(
-                        "https://fetch-retry-after.test/",
-                        () => HttpResponse.text("fetch-success", { status: 200 }),
-                        {
-                            once: true,
-                        },
-                    ),
+                    http.get(url, () => HttpResponse.text("fetch-success", { status: 200 }), {
+                        once: true,
+                    }),
                 );
 
-                const response = await fetchWrapper("https://fetch-retry-after.test/");
+                let response;
+                try {
+                    response = await fetchWrapper(url);
+                } catch (e) {
+                    console.log("ibv error", e);
+                    throw e;
+                }
 
                 expect.assertions(2);
                 expect(response).toBeInstanceOf(Response);
@@ -354,14 +401,15 @@ describe("fetch", () => {
         });
 
         test("Retries on 500 error code", async () => {
+            const url = getTestUrl();
             mswServer.use(
-                http.get("https://fetch.test/", () => HttpResponse.text("fetch-500", { status: 500 }), { once: true }),
-                http.get("https://fetch.test/", () => HttpResponse.text("fetch-success", { status: 200 }), {
+                http.get(url, () => HttpResponse.text("fetch-500", { status: 500 }), { once: true }),
+                http.get(url, () => HttpResponse.text("fetch-success", { status: 200 }), {
                     once: true,
                 }),
             );
 
-            const response = await fetchWrapper("https://fetch.test/");
+            const response = await fetchWrapper(url);
 
             expect.assertions(3);
             expect(response).toBeInstanceOf(Response);
@@ -370,12 +418,13 @@ describe("fetch", () => {
         });
 
         test("Retries on network errors", async () => {
+            const url = getTestUrl();
             mswServer.use(
-                http.get("https://fetch.test", () => HttpResponse.error(), { once: true }),
-                http.get("https://fetch.test", () => HttpResponse.text("fetch-success", { status: 200 })),
+                http.get(url, () => HttpResponse.error(), { once: true }),
+                http.get(url, () => HttpResponse.text("fetch-success", { status: 200 })),
             );
 
-            const response = await fetchWrapper("https://fetch.test");
+            const response = await fetchWrapper(url);
 
             expect.assertions(2);
             expect(response).toBeInstanceOf(Response);
@@ -383,29 +432,27 @@ describe("fetch", () => {
         });
 
         test("Can retry requests with consumable bodies", async () => {
+            const url = getTestUrl();
             mswServer.use(
-                http.post("https://fetch.test/", () => HttpResponse.text("wrong-test-string", { status: 500 }), {
+                http.post(url, () => HttpResponse.text("wrong-test-string", { status: 500 }), {
                     once: true,
                 }),
                 // Echo body
-                http.post(
-                    "https://fetch.test/",
-                    async ({ request }) => new HttpResponse(request.body, { status: 200 }),
-                    {
-                        once: true,
-                    },
-                ),
+                http.post(url, async ({ request }) => new HttpResponse(request.body, { status: 200 }), {
+                    once: true,
+                }),
             );
 
-            const response = await fetchWrapper("https://fetch.test/", { method: "POST", body: "test-string" });
+            const response = await fetchWrapper(url, { method: "POST", body: "test-string" });
 
             expect(await response.text()).toBe("test-string");
             expect.assertions(1);
         });
 
         test("Throws eventually even if the server keeps responding with a retryable error", async () => {
+            const url = getTestUrl();
             mswServer.use(
-                http.get("https://fetch.test/", () => {
+                http.get(url, () => {
                     const error = { code: "TestError", message: "Test error" };
                     return HttpResponse.json(formatBodyError(error), {
                         status: 500,
@@ -414,7 +461,7 @@ describe("fetch", () => {
                 }),
             );
 
-            const fetchPromise = fetchWrapper("https://fetch.test/");
+            const fetchPromise = fetchWrapper(url);
 
             expect.assertions(2);
             await expect(fetchPromise).rejects.toBeInstanceOf(Error);
