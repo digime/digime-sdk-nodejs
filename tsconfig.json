@@ -39,93 +39,101 @@
         "pluginPages": {
             "pages": [
                 {
-                    "title": "Guides",
+                    "name": "Guides",
                     "childrenSourceDir": "./guides",
                     "childrenOutputDir": "guides",
                     "children": [
                         {
-                            "title": "Getting Started",
+                            "name": "Getting Started",
                             "source": "start.md"
                         },
                         {
-                            "title": "Reading data - Step by step guide",
+                            "name": "Reading data - Step by step guide",
                             "source": "read-data-overview.md"
                         },
                         {
-                            "title": "Pushing data - Step by step guide",
+                            "name": "Pushing data - Step by step guide",
                             "source": "push-data-overview.md"
                         }
                     ],
                     "output": "guides"
                 },
                 {
-                    "title": "Fundamentals",
+                    "name": "Fundamentals",
                     "childrenSourceDir": "./guides",
                     "childrenOutputDir": "fundamentals",
                     "children": [
                         {
-                            "title": "Contracts",
+                            "name": "Contracts",
                             "source": "contracts.md"
                         },
                         {
-                            "title": "Initializing the SDK",
+                            "name": "Initializing the SDK",
                             "source": "initialise-sdk.md"
                         },
                         {
-                            "title": "Getting Available Services",
+                            "name": "Getting Available Services",
                             "source": "available-services.md"
                         }
                         ,
                         {
-                            "title": "Authorizing",
+                            "name": "Authorizing",
                             "source": "authorize.md"
                         },
                         {
-                            "title": "Onboarding Additional Services",
+                            "name": "Onboarding Additional Services",
                             "source": "onboard.md"
                         },
                         {
-                            "title": "Sample datasets",
+                            "name": "Sample datasets",
                             "source": "sample-datasets.md"
                         },
                         {
-                            "title": "Reauthorizing account",
+                            "name": "Reauthorizing account",
                             "source": "reauthorize.md"
                         },
                         {
-                            "title": "Read accounts",
+                            "name": "Read accounts",
                             "source": "read-accounts.md"
                         },
                         {
-                            "title": "Reading Data",
+                            "name": "Delete account",
+                            "source": "delete-account.md"
+                        },
+                        {
+                            "name": "Revoke account",
+                            "source": "revoke-account.md"
+                        },
+                        {
+                            "name": "Reading Data",
                             "source": "read.md",
                             "childrenSourceDir": "../guides",
                             "output": "read.html",
                             "children": [
                                 {
-                                    "title": "File Metadata",
+                                    "name": "File Metadata",
                                     "source": "file-meta.md"
                                 }
                             ]
                         },
                         {
-                            "title": "Push Data",
+                            "name": "Push Data",
                             "source": "push.md"
                         },
                         {
-                            "title": "User Access Tokens",
+                            "name": "User Access Tokens",
                             "source": "access-token.md"
                         },
                         {
-                            "title": "Handling Errors",
+                            "name": "Handling Errors",
                             "source": "handling-errors.md"
                         },
                         {
-                            "title": "Example Applications",
+                            "name": "Example Applications",
                             "source": "example-applications.md"
                         },
                         {
-                            "title": "Portability report",
+                            "name": "Portability report",
                             "source": "portability-report.md"
                         }
                     ],
