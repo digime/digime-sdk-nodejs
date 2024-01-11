@@ -56,6 +56,7 @@ export interface AccountsResponse {
     username?: string;
     providerFavIcon?: string;
     providerLogo?: string;
+    sample?: boolean;
 }
 
 export type ReadAccountsResponse = {
@@ -109,6 +110,7 @@ export const AccountsResponseCodec: t.Type<AccountsResponse> = t.intersection([
         username: t.string,
         providerFavIcon: t.string,
         providerLogo: t.string,
+        sample: t.boolean,
     }),
 ]);
 

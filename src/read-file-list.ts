@@ -54,70 +54,10 @@ const _readFileList = async (
         retry: sdkConfig.retryOptions,
     });
 
-    // Start of temporary solution for error format until BE adds improvement for this
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const currentFileListResponse: any = response.body;
-
-    for (const key in currentFileListResponse?.status?.details) {
-        if (currentFileListResponse.status.details.hasOwnProperty.call(currentFileListResponse.status.details, key)) {
-            const item = currentFileListResponse.status.details[key];
-
-            if (item.state === "partial" && item.error) {
-                let code = item.error?.code;
-                const statusCode = item.error?.statuscode || item.error?.statusCode;
-                let message = item.error?.message;
-                let reauth;
-                let retryAfter;
-                let objectTypeErrors;
-                if (item.error?.error) {
-                    message = item.error?.error?.message;
-                    reauth = item.error?.error?.reauth;
-                    retryAfter = item.error?.error?.retryAfter;
-                    if (statusCode === 206 && code !== "SyncInProgress") {
-                        if (item.error.objectTypeErrors) {
-                            objectTypeErrors = item.error.objectTypeErrors;
-                        } else {
-                            try {
-                                const parsedMessages = JSON.parse(item.error.error.message);
-                                objectTypeErrors = [];
-                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                parsedMessages.map((parsedMessage: any) => {
-                                    objectTypeErrors.push({
-                                        error: {
-                                            code: parsedMessage.error.code.toString(),
-                                            message: parsedMessage.error.error.message,
-                                            statusCode: parsedMessage.error.statuscode,
-                                        },
-                                        objectType: parsedMessage.objectType,
-                                    });
-                                });
-                                code = "PartialObjectTypes";
-                                message = "Errors occured for some object types";
-                            } catch {
-                                // skip parsing of message if parsing is not possible
-                            }
-                        }
-                    }
-                }
-                currentFileListResponse.status.details[key].error = {
-                    code,
-                    statusCode,
-                    message,
-                    reauth,
-                    retryAfter,
-                    objectTypeErrors,
-                };
-            }
-        }
-    }
-
-    assertIsCAFileListResponse(currentFileListResponse);
-
-    // End of temporary solution for error format until BE adds improvement for this
+    assertIsCAFileListResponse(response.body);
 
     return {
-        ...currentFileListResponse,
+        ...response.body,
         userAccessToken,
     };
 };
