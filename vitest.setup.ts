@@ -4,12 +4,24 @@
 
 import { beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
 import { mswServer } from "./src/mocks/server";
+import { serverJWKS } from "./src/mocks/mock-keys";
 
-beforeAll(() =>
+beforeAll(() => {
     mswServer.listen({
         onUnhandledRequest: "error",
-    }),
-);
+    });
+
+    /**
+     * We currently can't intercept JOSE's createRemoteJWKSet network calls as MSW can't intercept
+     * the way JOSE imports http/https methods.
+     *
+     * So for a remote JWKS we're always creating a static local JWKSet and returning it from creaateRemoteJWKSet
+     */
+    vi.mock("jose", async (importOriginal) => {
+        const original = await importOriginal<typeof import("jose")>();
+        return { ...original, createRemoteJWKSet: () => serverJWKS };
+    });
+});
 
 afterAll(() => {
     mswServer.close();

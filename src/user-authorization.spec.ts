@@ -6,6 +6,7 @@ import { describe, test, expect } from "vitest";
 import { UserAuthorization } from "./user-authorization";
 import { DigiMeSdkError } from "./errors/errors";
 import { LegacyUserAuthorizationPayload, UserAuthorizationPayload } from "./types/external/oauth-token";
+import { serverSignTokenPayload } from "./mocks/mock-keys";
 
 const SAMPLE_PAYLOAD = {
     access_token: {
@@ -51,8 +52,12 @@ describe("UserAuthorization", () => {
     });
 
     describe("Instantiate from", () => {
-        test.todo("JWT", async () => {
-            // const promise = UserAuthorization.fromJwt("");
+        test.only("JWT", async () => {
+            const testToken = await serverSignTokenPayload(SAMPLE_PAYLOAD);
+            const instance = await UserAuthorization.fromJwt(testToken);
+
+            expect(instance).toBeInstanceOf(UserAuthorization);
+            expect(instance.asPayload()).toMatchObject(SAMPLE_PAYLOAD);
         });
 
         test("Payload", () => {

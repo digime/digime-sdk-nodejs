@@ -12,7 +12,7 @@ import { DigiMeSdkTypeError } from "./errors/errors";
 export const signTokenPayload = (
     payload: Record<string, unknown>,
     secret: Parameters<typeof createPrivateKey>[0],
-    headerParameters?: JWTHeaderParameters,
+    headerParameters: Partial<JWTHeaderParameters> = {},
 ): Promise<string> => {
     if (!secret) {
         throw new DigiMeSdkTypeError("No secret provided");
