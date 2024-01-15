@@ -52,7 +52,7 @@ describe("UserAuthorization", () => {
     });
 
     describe("Instantiate from", () => {
-        test.only("JWT", async () => {
+        test("JWT", async () => {
             const testToken = await serverSignTokenPayload(SAMPLE_PAYLOAD);
             const instance = await UserAuthorization.fromJwt(testToken);
 
