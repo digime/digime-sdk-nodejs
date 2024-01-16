@@ -16,9 +16,9 @@ describe("DigiMeSDK", () => {
             expect(
                 () =>
                     new DigiMeSdk({
-                        applicationId: "test-application-id",
-                        contractId: "test-contract-id",
-                        contractPrivateKey: "test-contract-private-key",
+                        applicationId: mockSdkConsumerCredentials.applicationId,
+                        contractId: mockSdkConsumerCredentials.applicationId,
+                        contractPrivateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
                     }),
             ).not.toThrow();
         });
@@ -102,9 +102,9 @@ describe("DigiMeSDK", () => {
             mswServer.use(...discoveryServicesHandlers);
 
             const sdk = new DigiMeSdk({
-                applicationId: "test-application-id",
-                contractId: "test-contract-id",
-                contractPrivateKey: "test-contract-private-key",
+                applicationId: mockSdkConsumerCredentials.applicationId,
+                contractId: mockSdkConsumerCredentials.contractId,
+                contractPrivateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
             });
 
             await expect(sdk.getAvailableServices()).resolves.toMatchObject({
@@ -118,9 +118,9 @@ describe("DigiMeSDK", () => {
             mswServer.use(...discoveryServicesHandlers);
 
             const sdk = new DigiMeSdk({
-                applicationId: "test-application-id",
-                contractId: "test-contract-id",
-                contractPrivateKey: "test-contract-private-key",
+                applicationId: mockSdkConsumerCredentials.applicationId,
+                contractId: mockSdkConsumerCredentials.contractId,
+                contractPrivateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
             });
 
             await expect(sdk.getAvailableServices({ contractId: "test" })).resolves.toMatchObject({
@@ -136,6 +136,7 @@ describe("DigiMeSDK", () => {
     describe(".getAuthorizeUrl()", () => {
         test("Minimal parameters", async () => {
             mswServer.use(...oauthAuthorizeHandlers);
+
             const sdk = new DigiMeSdk({
                 applicationId: mockSdkConsumerCredentials.applicationId,
                 contractId: mockSdkConsumerCredentials.contractId,

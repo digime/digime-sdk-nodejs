@@ -3,27 +3,24 @@
  */
 
 import { HttpResponse, http } from "msw";
-import { fromApiBase } from "../../../utilities";
+import { fromMockApiBase } from "../../../utilities";
 import { assertAcceptsJson } from "../../../handler-utilities";
 import { mockApiInternals } from "../../../api-internals";
 
 const HOUR_IN_MS = 3600000;
 
-export const implementations = {
-    default: [
-        fromApiBase("oauth/authorize"),
-        async ({ request }) => {
-            assertAcceptsJson(request);
+export const makeHandlers = (baseUrl?: string) => [
+    http.post(fromMockApiBase("oauth/authorize", baseUrl), async ({ request }) => {
+        assertAcceptsJson(request);
 
-            return HttpResponse.json({
-                session: {
-                    expiry: Date.now() + HOUR_IN_MS,
-                    key: "test-session-key",
-                },
-                token: await mockApiInternals.signTokenPayload({ preauthorization_code: "test-preauthorization-code" }),
-            });
-        },
-    ],
-} satisfies Record<string, Parameters<typeof http.all>>;
+        return HttpResponse.json({
+            session: {
+                expiry: Date.now() + HOUR_IN_MS,
+                key: "test-session-key",
+            },
+            token: await mockApiInternals.signTokenPayload({ preauthorization_code: "test-preauthorization-code" }),
+        });
+    }),
+];
 
-export const handlers = [http.post(...implementations.default)];
+export const handlers = makeHandlers();

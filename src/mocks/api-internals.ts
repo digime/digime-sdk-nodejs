@@ -4,28 +4,32 @@
 
 import { SignJWT, createLocalJWKSet, exportJWK, generateKeyPair } from "jose";
 import { randomUUID } from "node:crypto";
-import { DEFAULT_BASE_URL } from "../digi-me-sdk/config";
+import { fromMockApiBase } from "./utilities";
 
-const apiKeyPair = await generateKeyPair("PS512");
-const apiPublicKeyJwk = await exportJWK(apiKeyPair.publicKey);
-apiPublicKeyJwk.kid = randomUUID();
+export const buildMockApiInternals = async (baseUrl?: string) => {
+    const apiKeyPair = await generateKeyPair("PS512");
+    const apiPublicKeyJwk = await exportJWK(apiKeyPair.publicKey);
+    apiPublicKeyJwk.kid = randomUUID();
 
-export const mockApiInternals = {
-    ...apiKeyPair,
-    publicKeyJwk: apiPublicKeyJwk,
-    jwksKeyGetter: createLocalJWKSet({ keys: [apiPublicKeyJwk] }),
+    return {
+        ...apiKeyPair,
+        publicKeyJwk: apiPublicKeyJwk,
+        jwksKeyGetter: createLocalJWKSet({ keys: [apiPublicKeyJwk] }),
 
-    /**
-     * Signs a payload with the mock API credentials
-     */
-    signTokenPayload: async (payload: Record<string, unknown>) => {
-        return new SignJWT(payload)
-            .setProtectedHeader({
-                alg: "PS512",
-                typ: "JWT",
-                jku: new URL("jwks/oauth", DEFAULT_BASE_URL).toString(),
-                kid: mockApiInternals.publicKeyJwk.kid,
-            })
-            .sign(mockApiInternals.privateKey);
-    },
-} as const;
+        /**
+         * Signs a payload with the mock API credentials
+         */
+        signTokenPayload: async (payload: Record<string, unknown>) => {
+            return new SignJWT(payload)
+                .setProtectedHeader({
+                    alg: "PS512",
+                    typ: "JWT",
+                    jku: fromMockApiBase("jwks/oauth", baseUrl),
+                    kid: apiPublicKeyJwk.kid,
+                })
+                .sign(apiKeyPair.privateKey);
+        },
+    } as const;
+};
+
+export const mockApiInternals = await buildMockApiInternals();

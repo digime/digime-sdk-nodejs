@@ -2,29 +2,23 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import fs from "node:fs/promises";
 import { http, HttpResponse } from "msw";
-import { fromApiBase } from "../../../utilities";
+import { createReadableStream, fromMockApiBase } from "../../../utilities";
 import { assertAcceptsJson } from "../../../handler-utilities";
 
-export const implementations = {
-    // Default - Happy response
-    default: [
-        fromApiBase("discovery/services"),
-        async ({ request }) => {
-            assertAcceptsJson(request);
+export const makeHandlers = (baseUrl?: string) => [
+    // Default handler
+    http.get(fromMockApiBase("discovery/services", baseUrl), async ({ request }) => {
+        assertAcceptsJson(request);
 
-            if (request.headers.has("contractId")) {
-                return HttpResponse.text(
-                    await fs.readFile(new URL("./response-valid-with-contract-id.json", import.meta.url), "utf-8"),
-                );
-            }
-
-            return HttpResponse.text(
-                await fs.readFile(new URL("./response-valid-default.json", import.meta.url), "utf-8"),
+        if (request.headers.has("contractId")) {
+            return new HttpResponse(
+                createReadableStream(new URL("./response-valid-with-contract-id.json", import.meta.url)),
             );
-        },
-    ],
-} satisfies Record<string, Parameters<typeof http.all>>;
+        }
 
-export const handlers = [http.get(...implementations.default)];
+        return new HttpResponse(createReadableStream(new URL("./response-valid-default.json", import.meta.url)));
+    }),
+];
+
+export const handlers = makeHandlers();

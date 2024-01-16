@@ -3,8 +3,13 @@
  */
 
 import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import { Readable } from "node:stream";
 
-export const fromApiBase = (path: string): string => new URL(path, "https://api.digi.me/v1.7/").toString();
+const DEFAULT_MOCK_API_BASE_URL = "https://api.digi.me/v1.7/";
+
+export const fromMockApiBase = (path: string, base: string = DEFAULT_MOCK_API_BASE_URL): string =>
+    new URL(path, base).toString();
 
 export const formatBodyError = ({
     code,
@@ -37,3 +42,7 @@ export const formatHeadersError = ({
 });
 
 export const getTestUrl = (...parts: string[]): string => `https://${[...parts, randomUUID()].join(".")}.test`;
+
+export const createReadableStream = (...args: Parameters<typeof fs.createReadStream>): ReadableStream => {
+    return Readable.toWeb(fs.createReadStream(...args)) as ReadableStream;
+};
