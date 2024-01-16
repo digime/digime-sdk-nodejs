@@ -110,6 +110,25 @@ export const GetAuthorizeUrlParameters = z.object({
      * @defaultValue `"pull"`
      */
     sourceType: z.union([z.literal("pull"), z.literal("push")]).default("pull"),
+
+    /**
+     * Set the preferred locale to be used in the authorization interface
+     *
+     * - If `preferredLocale` is not set, the authorization interface will attempt to autodetect
+     * - If the provided locale is not supported, the authorization interface will attempt to autodetect
+     *
+     * Autodetection in the authorization interface works by detecting the preferred browser languages,
+     * and picking the best match that is supported. If that fails, it falls back to `en`.
+     */
+    preferredLocale: z.string().optional(),
+
+    /**
+     * Flag to indicate to the authorization interface if it should include
+     * sources that are only onboardable with sample data.
+     *
+     * By default, the authorization interface **does not** include sample only sources.
+     */
+    includeSampleDataOnlySources: z.boolean().optional(),
 });
 
 export type GetAuthorizeUrlParameters = z.infer<typeof GetAuthorizeUrlParameters>;

@@ -11,11 +11,11 @@ const HOUR_IN_MS = 3600000;
 const DAY_IN_MS = HOUR_IN_MS * 24;
 
 export const makeHandlers = (baseUrl?: string) => [
-    http.get(fromMockApiBase("oauth/token", baseUrl), async ({ request }) => {
+    http.post(fromMockApiBase("oauth/token", baseUrl), async ({ request }) => {
         assertAcceptsJson(request);
 
         return HttpResponse.json({
-            token: mockApiInternals.signTokenPayload({
+            token: await mockApiInternals.signTokenPayload({
                 access_token: {
                     expires_on: (Date.now() + HOUR_IN_MS) * 1000,
                     value: "mock-access-token-value",

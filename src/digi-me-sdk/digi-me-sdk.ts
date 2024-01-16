@@ -20,6 +20,7 @@ import { LRUCache } from "lru-cache";
 import { getVerifiedTokenPayload } from "../get-verified-token-payload";
 import { DigiMeSdkError } from "../errors/errors";
 import { GetAvailableServicesParameters } from "./get-available-services";
+import { z } from "zod";
 
 /**
  * Digi.me SDK
@@ -140,10 +141,15 @@ export class DigiMeSdk {
      * - `session` - You should keep, as it will be needed later to access the data user has authorized access to
      */
     async getAuthorizeUrl(parameters: GetAuthorizeUrlParametersInput): Promise<GetAuthorizeUrlReturn> {
-        const { callback, state, sessionOptions, serviceId, sourceType } = parseWithSchema(
-            parameters,
-            GetAuthorizeUrlParameters,
-        );
+        const {
+            callback,
+            state,
+            sessionOptions,
+            serviceId,
+            sourceType,
+            preferredLocale,
+            includeSampleDataOnlySources,
+        } = parseWithSchema(parameters, GetAuthorizeUrlParameters);
 
         const codeVerifier = toBase64Url(getRandomAlphaNumeric(32));
 
@@ -166,53 +172,62 @@ export class DigiMeSdk {
 
         const token = await signTokenPayload(tokenPayload, this.contractPrivateKey);
 
-        try {
-            const response = await fetchWrapper(new URL("oauth/authorize", this.baseUrl), {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/json",
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    agent: {
-                        sdk: {
-                            name: "nodejs",
-                            version: SDK_VERSION,
-                            meta: {
-                                node: process.version,
-                            },
+        const response = await fetchWrapper(new URL("oauth/authorize", this.baseUrl), {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                agent: {
+                    sdk: {
+                        name: "nodejs",
+                        version: SDK_VERSION,
+                        meta: {
+                            node: process.version,
                         },
                     },
-                    actions: sessionOptions,
-                }),
-            });
+                },
+                actions: sessionOptions,
+            }),
+        });
 
-            // Process response data
-            const responseData = parseWithSchema(await response.json(), OauthAuthorizeResponse);
-            const preauthTokenPayload = await getVerifiedTokenPayload(responseData.token, PayloadPreauthorizationCode);
+        // Process response data
+        const responseData = parseWithSchema(await response.json(), OauthAuthorizeResponse);
+        const preauthTokenPayload = await getVerifiedTokenPayload(responseData.token, PayloadPreauthorizationCode);
 
-            // Set up onboard URL
-            const onboardUrl = new URL(`authorize`, this.onboardUrl);
-            onboardUrl.searchParams.set("code", preauthTokenPayload.preauthorization_code);
-            onboardUrl.searchParams.set("sourceType", sourceType);
-            if (serviceId) onboardUrl.searchParams.set("service", serviceId.toString());
-
-            return {
-                url: onboardUrl.toString(),
-                codeVerifier,
-                session: responseData.session,
-            };
-        } catch (error) {
-            // TODO: Our errors
-            console.log("=== e", error);
-            throw error;
+        // Set up onboard URL
+        const onboardUrl = new URL(`authorize`, this.onboardUrl);
+        onboardUrl.searchParams.set("code", preauthTokenPayload.preauthorization_code);
+        onboardUrl.searchParams.set("sourceType", sourceType);
+        if (serviceId) onboardUrl.searchParams.set("service", serviceId.toString());
+        if (preferredLocale) onboardUrl.searchParams.set("lng", preferredLocale);
+        if (typeof includeSampleDataOnlySources !== "undefined") {
+            onboardUrl.searchParams.set("includeSampleDataOnlySources", String(includeSampleDataOnlySources));
         }
+
+        return {
+            url: onboardUrl.toString(),
+            codeVerifier,
+            session: responseData.session,
+        };
     }
 
-    async exchangeCodeForOauthToken(codeVerifier: string, authorizationCode: string): Promise<string> {
-        // TODO: Better parameters
-        // TODO: Validate parameters
+    /**
+     * Exchange `codeVerifier` and `authorizationCode` you received from the `getAuthorizeUrl` call and
+     * the callback provided to it for UserAuthorization.
+     */
+    async exchangeCodeForUserAuthorization(
+        /** codeVerifier received as a result of `getAuthorizeUrl` call */
+        codeVerifier: string,
+
+        /** authorizationCode received by the callback you provided to `getAuthorizeUrl` */
+        authorizationCode: string,
+    ): Promise<UserAuthorization> {
+        // Parse and validate parameters
+        codeVerifier = parseWithSchema(codeVerifier, z.string());
+        authorizationCode = parseWithSchema(authorizationCode, z.string());
 
         const token = await signTokenPayload(
             {
@@ -226,26 +241,21 @@ export class DigiMeSdk {
             this.contractPrivateKey,
         );
 
-        // eslint-disable-next-line no-useless-catch
-        try {
-            const response = await fetchWrapper(new URL("oauth/token", this.baseUrl), {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/json",
-                },
-            });
+        const response = await fetchWrapper(new URL("oauth/token", this.baseUrl), {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+            },
+        });
 
-            const responseData = parseWithSchema(await response.json(), OauthTokenResponse);
-            // TODO: Verify payload;
-            // return await this.#getJkuVerifiedTokenPayload(responseData.token, TokenPair);
-            return responseData.token;
-        } catch (error) {
-            // TODO: Do something useful here
-            throw error;
-        }
+        const responseData = parseWithSchema(await response.json(), OauthTokenResponse);
+        return UserAuthorization.fromJwt(responseData.token);
     }
 
+    /**
+     * Attempt to refresh any instance of a UserAuthorization and recieve a new one in return
+     */
     async refreshUserAuthorization(userAuthorization: UserAuthorization): Promise<UserAuthorization> {
         const signedToken = await signTokenPayload(
             {
@@ -267,7 +277,11 @@ export class DigiMeSdk {
         });
 
         const responseData = parseWithSchema(await response.json(), OauthTokenResponse);
-
         return UserAuthorization.fromJwt(responseData.token);
+    }
+
+    async getSampleDataSetsForSource(sourceId: number) {
+        // TODO
+        console.log("sourceId", sourceId);
     }
 }

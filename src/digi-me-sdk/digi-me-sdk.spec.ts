@@ -9,6 +9,8 @@ import { handlers as discoveryServicesHandlers } from "../mocks/api/discovery/se
 import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 import { mockSdkConsumerCredentials } from "../mocks/sdk-consumer-credentials";
 import { handlers as oauthAuthorizeHandlers } from "../mocks/api/oauth/authorize/handlers";
+import { handlers as oauthTokenHandlers } from "../mocks/api/oauth/token/handlers";
+import { UserAuthorization } from "../user-authorization";
 
 describe("DigiMeSDK", () => {
     describe("constructor", () => {
@@ -134,7 +136,7 @@ describe("DigiMeSDK", () => {
     });
 
     describe(".getAuthorizeUrl()", () => {
-        test("Minimal parameters", async () => {
+        test("Works with minimal parameters", async () => {
             mswServer.use(...oauthAuthorizeHandlers);
 
             const sdk = new DigiMeSdk({
@@ -143,19 +145,128 @@ describe("DigiMeSDK", () => {
                 contractPrivateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
             });
 
-            const returnData = await sdk.getAuthorizeUrl({
+            const result = await sdk.getAuthorizeUrl({
                 callback: "test-callback",
                 state: "",
             });
 
-            expect(returnData).toEqual(expect.any(Object));
-            expect(returnData.codeVerifier).toEqual(expect.any(String));
-            expect(returnData.url).toMatchInlineSnapshot(
+            expect(result).toEqual(expect.any(Object));
+            expect(result.codeVerifier).toEqual(expect.any(String));
+            expect(result.url).toMatchInlineSnapshot(
                 `"https://api.digi.me/apps/saas/authorize?code=test-preauthorization-code&sourceType=pull"`,
             );
-            expect(returnData.session).toEqual(expect.any(Object));
-            expect(returnData.session.expiry).toEqual(expect.any(Number));
-            expect(returnData.session.key).toMatchInlineSnapshot(`"test-session-key"`);
+            expect(result.session).toEqual(expect.any(Object));
+            expect(result.session.expiry).toEqual(expect.any(Number));
+            expect(result.session.key).toMatchInlineSnapshot(`"test-session-key"`);
+        });
+
+        test("Adds the `serviceId` to the URL when provided", async () => {
+            mswServer.use(...oauthAuthorizeHandlers);
+
+            const sdk = new DigiMeSdk({
+                applicationId: mockSdkConsumerCredentials.applicationId,
+                contractId: mockSdkConsumerCredentials.contractId,
+                contractPrivateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
+            });
+
+            const result = await sdk.getAuthorizeUrl({
+                callback: "test-callback",
+                state: "",
+                serviceId: 7357,
+            });
+
+            expect(result).toEqual(expect.any(Object));
+            expect(result.url).toMatchInlineSnapshot(
+                `"https://api.digi.me/apps/saas/authorize?code=test-preauthorization-code&sourceType=pull&service=7357"`,
+            );
+        });
+
+        test("Sets the correct `sourceType` on the URL when provided", async () => {
+            mswServer.use(...oauthAuthorizeHandlers);
+
+            const sdk = new DigiMeSdk({
+                applicationId: mockSdkConsumerCredentials.applicationId,
+                contractId: mockSdkConsumerCredentials.contractId,
+                contractPrivateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
+            });
+
+            const result = await sdk.getAuthorizeUrl({
+                callback: "test-callback",
+                state: "",
+                sourceType: "push",
+            });
+
+            expect(result).toEqual(expect.any(Object));
+            expect(result.url).toMatchInlineSnapshot(
+                `"https://api.digi.me/apps/saas/authorize?code=test-preauthorization-code&sourceType=push"`,
+            );
+        });
+
+        test("Adds the `lng` to the URL when provided", async () => {
+            mswServer.use(...oauthAuthorizeHandlers);
+
+            const sdk = new DigiMeSdk({
+                applicationId: mockSdkConsumerCredentials.applicationId,
+                contractId: mockSdkConsumerCredentials.contractId,
+                contractPrivateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
+            });
+
+            const result = await sdk.getAuthorizeUrl({
+                callback: "test-callback",
+                state: "",
+                preferredLocale: "jp-JP",
+            });
+
+            expect(result).toEqual(expect.any(Object));
+            expect(result.url).toMatchInlineSnapshot(
+                `"https://api.digi.me/apps/saas/authorize?code=test-preauthorization-code&sourceType=pull&lng=jp-JP"`,
+            );
+        });
+    });
+
+    describe(".exchangeCodeForUserAuthorization()", () => {
+        test("Works with minimal parameters", async () => {
+            mswServer.use(...oauthTokenHandlers);
+
+            const sdk = new DigiMeSdk({
+                applicationId: mockSdkConsumerCredentials.applicationId,
+                contractId: mockSdkConsumerCredentials.contractId,
+                contractPrivateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
+            });
+
+            const result = await sdk.exchangeCodeForUserAuthorization("test-code-verifier", "test-authorization-code");
+
+            expect(result).toBeInstanceOf(UserAuthorization);
+            expect(result.asJwt()).toEqual(expect.any(String));
+        });
+    });
+
+    describe(".refreshUserAuthorization()", () => {
+        test("Returns a new UserAuthorization instance", async () => {
+            mswServer.use(...oauthTokenHandlers);
+
+            const sdk = new DigiMeSdk({
+                applicationId: mockSdkConsumerCredentials.applicationId,
+                contractId: mockSdkConsumerCredentials.contractId,
+                contractPrivateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
+            });
+
+            const userAuthorization = UserAuthorization.fromPayload({
+                access_token: {
+                    value: "test-access-token",
+                    expires_on: 1,
+                },
+                refresh_token: {
+                    value: "test-refresh-token",
+                    expires_on: 2,
+                },
+                sub: "test-sub",
+            });
+            const result = await sdk.refreshUserAuthorization(userAuthorization);
+
+            expect(result).toBeInstanceOf(UserAuthorization);
+            expect(result.asJwt()).toEqual(expect.any(String));
+            expect(result).not.toBe(userAuthorization);
         });
     });
 });

@@ -19,6 +19,11 @@ export class DigiMeSdkAuthorized {
         );
     }
 
+    /**
+     * Attempt to refresh the instance of UserAuthorization attached to this instance and recieve a new one in return
+     *
+     * **NOTE**: This will also trigger this instances `onUserAuthorizationUpdated` callback, if one was provided!
+     */
     async refreshUserAuthorization(): Promise<UserAuthorization> {
         const newUserAuthorization = await this.#config.digiMeSdkInstance.refreshUserAuthorization(
             this.#config.userAuthorization,
