@@ -6,7 +6,7 @@ import { describe, test, expect } from "vitest";
 import { UserAuthorization } from "./user-authorization";
 import { DigiMeSdkError } from "./errors/errors";
 import { LegacyUserAuthorizationPayload, UserAuthorizationPayload } from "./types/external/oauth-token";
-import { serverSignTokenPayload } from "./mocks/mock-keys";
+import { mockApiInternals } from "./mocks/api-internals";
 
 const SAMPLE_PAYLOAD = {
     access_token: {
@@ -53,7 +53,7 @@ describe("UserAuthorization", () => {
 
     describe("Instantiate from", () => {
         test("JWT", async () => {
-            const testToken = await serverSignTokenPayload(SAMPLE_PAYLOAD);
+            const testToken = await mockApiInternals.signTokenPayload(SAMPLE_PAYLOAD);
             const instance = await UserAuthorization.fromJwt(testToken);
 
             expect(instance).toBeInstanceOf(UserAuthorization);

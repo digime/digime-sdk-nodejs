@@ -4,7 +4,7 @@
 
 import { beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
 import { mswServer } from "./src/mocks/server";
-import { serverJWKS } from "./src/mocks/mock-keys";
+import { mockApiInternals } from "./src/mocks/api-internals";
 
 /**
  * We currently can't intercept JOSE's createRemoteJWKSet network calls as MSW can't intercept
@@ -14,7 +14,7 @@ import { serverJWKS } from "./src/mocks/mock-keys";
  */
 vi.mock("jose", async (importOriginal) => {
     const original = await importOriginal<typeof import("jose")>();
-    return { ...original, createRemoteJWKSet: () => serverJWKS };
+    return { ...original, createRemoteJWKSet: () => mockApiInternals.jwksKeyGetter };
 });
 
 beforeAll(() => {

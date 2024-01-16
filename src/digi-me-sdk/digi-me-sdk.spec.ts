@@ -5,8 +5,10 @@
 import { describe, test, expect } from "vitest";
 import { DigiMeSdk } from "../index";
 import { mswServer } from "../mocks/server";
-import { handlers } from "../mocks/api/discovery/services/handlers";
+import { handlers as discoveryServicesHandlers } from "../mocks/api/discovery/services/handlers";
 import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
+import { mockSdkConsumerCredentials } from "../mocks/sdk-consumer-credentials";
+import { handlers as oauthAuthorizeHandlers } from "../mocks/api/oauth/authorize/handlers";
 
 describe("DigiMeSDK", () => {
     describe("constructor", () => {
@@ -97,7 +99,7 @@ describe("DigiMeSDK", () => {
 
     describe(".getAvailableServices()", () => {
         test("No parameters", async () => {
-            mswServer.use(...handlers);
+            mswServer.use(...discoveryServicesHandlers);
 
             const sdk = new DigiMeSdk({
                 applicationId: "test-application-id",
@@ -113,7 +115,7 @@ describe("DigiMeSDK", () => {
         });
 
         test('With "contractId" parameter', async () => {
-            mswServer.use(...handlers);
+            mswServer.use(...discoveryServicesHandlers);
 
             const sdk = new DigiMeSdk({
                 applicationId: "test-application-id",
@@ -131,20 +133,28 @@ describe("DigiMeSDK", () => {
         test.todo("Aborts when abort signal is triggered");
     });
 
-    describe.skip(".getAuthorizeUrl()", () => {
-        test("Runs", async () => {
+    describe(".getAuthorizeUrl()", () => {
+        test("Minimal parameters", async () => {
+            mswServer.use(...oauthAuthorizeHandlers);
             const sdk = new DigiMeSdk({
-                applicationId: "test-application-id",
-                contractId: "test-contract-id",
-                contractPrivateKey: "test-contract-private-key",
+                applicationId: mockSdkConsumerCredentials.applicationId,
+                contractId: mockSdkConsumerCredentials.contractId,
+                contractPrivateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
             });
 
-            await sdk.getAuthorizeUrl({
-                callback: "abc",
+            const returnData = await sdk.getAuthorizeUrl({
+                callback: "test-callback",
                 state: "",
             });
 
-            expect(true).toBe(false);
+            expect(returnData).toEqual(expect.any(Object));
+            expect(returnData.codeVerifier).toEqual(expect.any(String));
+            expect(returnData.url).toMatchInlineSnapshot(
+                `"https://api.digi.me/apps/saas/authorize?code=test-preauthorization-code&sourceType=pull"`,
+            );
+            expect(returnData.session).toEqual(expect.any(Object));
+            expect(returnData.session.expiry).toEqual(expect.any(Number));
+            expect(returnData.session.key).toMatchInlineSnapshot(`"test-session-key"`);
         });
     });
 });

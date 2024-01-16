@@ -4,21 +4,15 @@
 
 import fs from "node:fs/promises";
 import { http, HttpResponse } from "msw";
-import { formatBodyError, formatHeadersError, fromApiBase } from "../../../utilities";
+import { fromApiBase } from "../../../utilities";
+import { assertAcceptsJson } from "../../../handler-utilities";
 
 export const implementations = {
     // Default - Happy response
     default: [
         fromApiBase("discovery/services"),
-        // Remove `any` when this is fixed: https://github.com/mswjs/msw/issues/1691
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        async ({ request }): Promise<any> => {
-            const accept = request.headers.get("Accept");
-
-            if (accept !== "application/json") {
-                const error = { code: "ValidationErrors", message: "Parameter validation errors" };
-                return HttpResponse.json(formatBodyError(error), { status: 406, headers: formatHeadersError(error) });
-            }
+        async ({ request }) => {
+            assertAcceptsJson(request);
 
             if (request.headers.has("contractId")) {
                 return HttpResponse.text(

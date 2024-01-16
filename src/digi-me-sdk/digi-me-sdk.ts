@@ -3,7 +3,7 @@
  */
 
 import { DiscoveryAPIServicesData, DiscoveryAPIServicesResponse } from "../types/external/discovery-api-services";
-import { GetAuthorizeUrlParameters } from "./get-authorize-url";
+import { GetAuthorizeUrlParameters, GetAuthorizeUrlParametersInput } from "./get-authorize-url";
 import { getRandomAlphaNumeric, getSha256Hash, toBase64Url } from "../crypto";
 import SDK_VERSION from "../sdk-version";
 import { OauthAuthorizeResponse } from "../types/external/oauth-authorize";
@@ -19,13 +19,14 @@ import { createRemoteJWKSet } from "jose";
 import { LRUCache } from "lru-cache";
 import { getVerifiedTokenPayload } from "../get-verified-token-payload";
 import { DigiMeSdkError } from "../errors/errors";
+import { GetAvailableServicesParameters } from "./get-available-services";
 
 /**
  * Digi.me SDK
  */
 export class DigiMeSdk {
-    static #defaultJwksUrl = new URL("jwks/oauth", DEFAULT_BASE_URL).toString();
-    static #jwksCache = new LRUCache<string, ReturnType<typeof createRemoteJWKSet>>({
+    static #defaultTrustedJwksUrl = new URL("jwks/oauth", DEFAULT_BASE_URL).toString();
+    static #trustedJwksCache = new LRUCache<string, ReturnType<typeof createRemoteJWKSet>>({
         max: 10,
     });
 
@@ -35,24 +36,31 @@ export class DigiMeSdk {
         this.#config = parseWithSchema(sdkConfig, DigiMeSdkConfig, 'DigiMeSDK constructor parameter "sdkConfig"');
 
         // Add the current instance's expected JWKS location to the JWKS cache
-        DigiMeSdk.addUrlToJwksCache(new URL("/jwks/oauth", this.#config.baseUrl).toString());
-    }
-
-    static addUrlToJwksCache(url: string): void {
-        const jwks = createRemoteJWKSet(new URL(url), { headers: { Accept: "application/json" } });
-        DigiMeSdk.#jwksCache.set(url, jwks);
+        DigiMeSdk.addUrlAsTrustedJwks(new URL("/jwks/oauth", this.#config.baseUrl).toString());
     }
 
     /**
-     * TODO: Describe
+     * Adds the URL as a trusted JWKS URL
+     * - JWT verifications via JKU will fail if they reference an untrusted JWKS URL
+     * - Default Digi.me OAuth JWKS URL is trusted by default, and it doesn't need to be manually added
+     * - When a new `DigiMeSdk` instance is created, `<instance base url>/jwks/oauth` is automatically added as a trusted JWKS URL
      */
-    static getJwksForUrl(url: string): ReturnType<typeof createRemoteJWKSet> {
+    static addUrlAsTrustedJwks(url: string): void {
+        const jwks = createRemoteJWKSet(new URL(url), { headers: { Accept: "application/json" } });
+        DigiMeSdk.#trustedJwksCache.set(url, jwks);
+    }
+
+    /**
+     * Retrieves a JWKS key resolver for a given URL.
+     * - URL must be first added with the `DigiMeSdk.addUrlAsTrustedJwks()` method
+     */
+    static getJwksKeyResolverForUrl(url: string): ReturnType<typeof createRemoteJWKSet> {
         // Add the default JWKS as the most common use case
-        if (!this.#jwksCache.has(this.#defaultJwksUrl)) {
-            this.addUrlToJwksCache(this.#defaultJwksUrl);
+        if (!this.#trustedJwksCache.has(this.#defaultTrustedJwksUrl)) {
+            this.addUrlAsTrustedJwks(this.#defaultTrustedJwksUrl);
         }
 
-        const jwks = this.#jwksCache.get(url);
+        const jwks = this.#trustedJwksCache.get(url);
 
         if (!jwks) {
             throw new DigiMeSdkError("TODO: Explain");
@@ -104,14 +112,8 @@ export class DigiMeSdk {
      * However, if you pass in the `contractId` parameter, Digi.me Discovery API will instead
      * return only the services that can be onboarded with the provided contract
      */
-    async getAvailableServices({
-        contractId,
-        signal,
-    }: {
-        contractId?: string;
-        signal?: AbortSignal;
-    } = {}): Promise<DiscoveryAPIServicesData> {
-        // TODO: Parse parameters
+    async getAvailableServices(parameters: GetAvailableServicesParameters = {}): Promise<DiscoveryAPIServicesData> {
+        const { contractId, signal } = parseWithSchema(parameters, GetAvailableServicesParameters);
 
         const headers: HeadersInit = {
             Accept: "application/json",
@@ -130,16 +132,18 @@ export class DigiMeSdk {
     }
 
     /**
-     * TODO: Write docs for this
+     * TODO: Explain better. Rename? Reimplement better?
+     *
+     * Returns an object with the following:
+     * - `url` - A URL you should redirect to for user authorization an onboarding
+     * - `codeVerifier` - You should keep, as it will be needed later to exchange for `UserAuthorization`
+     * - `session` - You should keep, as it will be needed later to access the data user has authorized access to
      */
-    async getAuthorizeUrl(parameters: GetAuthorizeUrlParameters): Promise<GetAuthorizeUrlReturn> {
-        const {
-            callback,
-            state,
-            sessionOptions,
-            serviceId,
-            sourceType = "pull",
-        } = parseWithSchema(parameters, GetAuthorizeUrlParameters);
+    async getAuthorizeUrl(parameters: GetAuthorizeUrlParametersInput): Promise<GetAuthorizeUrlReturn> {
+        const { callback, state, sessionOptions, serviceId, sourceType } = parseWithSchema(
+            parameters,
+            GetAuthorizeUrlParameters,
+        );
 
         const codeVerifier = toBase64Url(getRandomAlphaNumeric(32));
 

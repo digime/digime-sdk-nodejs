@@ -18,7 +18,7 @@ export const jkuToJwks: JWTVerifyGetKey = (...args) => {
         throw new DigiMeSdkError("JKU is missing in the provided token");
     }
 
-    const keyGetter = DigiMeSdk.getJwksForUrl(jku);
+    const keyGetter = DigiMeSdk.getJwksKeyResolverForUrl(jku);
 
     if (!keyGetter) {
         throw new DigiMeSdkError("TODO: JKU not in cache, explain");

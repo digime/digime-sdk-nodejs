@@ -83,7 +83,7 @@ const PullSessionOptions = z.object({
 });
 
 /**
- * getAuthorizeUrl input parameters
+ * `<instance>.getAuthorizeUrl()` input parameters
  */
 export const GetAuthorizeUrlParameters = z.object({
     /** URL to be called after authorization is done */
@@ -109,13 +109,14 @@ export const GetAuthorizeUrlParameters = z.object({
      * Only show services of specific sourceType
      * @defaultValue `"pull"`
      */
-    sourceType: z.union([z.literal("pull"), z.literal("push")]).optional(),
+    sourceType: z.union([z.literal("pull"), z.literal("push")]).default("pull"),
 });
 
 export type GetAuthorizeUrlParameters = z.infer<typeof GetAuthorizeUrlParameters>;
+export type GetAuthorizeUrlParametersInput = z.input<typeof GetAuthorizeUrlParameters>;
 
 /**
- * getAuthorizeUrl return type
+ * `<instance>.getAuthorizeUrl()` return type
  */
 export type GetAuthorizeUrlReturn = {
     url: string;
