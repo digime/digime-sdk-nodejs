@@ -3,25 +3,18 @@
  */
 
 export const abortableDelay = (milliseconds: number, signal?: AbortSignal): Promise<void> => {
-    const delayPromises = [new Promise<void>((resolve) => setTimeout(resolve, milliseconds))];
+    return new Promise((resolve, reject) => {
+        signal?.throwIfAborted();
+        signal?.addEventListener("abort", handler, { once: true });
 
-    if (signal) {
-        delayPromises.push(
-            new Promise<void>((_, reject) => {
-                signal.addEventListener(
-                    "abort",
-                    () => {
-                        try {
-                            signal.throwIfAborted();
-                        } catch (e) {
-                            reject(e);
-                        }
-                    },
-                    { once: true, signal: AbortSignal.timeout(milliseconds + 1) },
-                );
-            }),
-        );
-    }
+        const timeoutId = setTimeout(() => {
+            signal?.removeEventListener("abort", handler);
+            resolve();
+        }, milliseconds);
 
-    return Promise.race(delayPromises);
+        function handler() {
+            clearTimeout(timeoutId);
+            reject(signal?.reason);
+        }
+    });
 };

@@ -4,18 +4,14 @@
 
 import { beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
 import { mswServer } from "./src/mocks/server";
-import { mockApiInternals } from "./src/mocks/api-internals";
 
 /**
- * We currently can't intercept JOSE's createRemoteJWKSet network calls as MSW can't intercept
- * the way JOSE imports http/https methods.
- *
- * So for a remote JWKS we're always creating a static local JWKSet and returning it from creaateRemoteJWKSet
+ * We're mocking `jose`'s internal fetch_jwks implementation as the wildcard ESM imports
+ * are bypassing MSW interceptors for those requests, so we're replacing it with a replica.
  */
-vi.mock("jose", async (importOriginal) => {
-    const original = await importOriginal<typeof import("jose")>();
-    return { ...original, createRemoteJWKSet: () => mockApiInternals.jwksKeyGetter };
-});
+vi.mock("./node_modules/jose/dist/node/esm/runtime/fetch_jwks.js", async () => ({
+    default: (await import("./src/mocks/jose/fetch-jwks")).fetchJwks,
+}));
 
 beforeAll(() => {
     mswServer.listen({

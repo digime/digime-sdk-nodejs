@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { SignJWT, createLocalJWKSet, exportJWK, generateKeyPair } from "jose";
+import { SignJWT, exportJWK, generateKeyPair } from "jose";
 import { randomUUID } from "node:crypto";
 import { fromMockApiBase } from "./utilities";
 
@@ -14,7 +14,6 @@ export const buildMockApiInternals = async (baseUrl?: string) => {
     return {
         ...apiKeyPair,
         publicKeyJwk: apiPublicKeyJwk,
-        jwksKeyGetter: createLocalJWKSet({ keys: [apiPublicKeyJwk] }),
 
         /**
          * Signs a payload with the mock API credentials

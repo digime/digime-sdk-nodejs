@@ -294,7 +294,7 @@ describe("fetch", () => {
     describe("Retry logic", () => {
         test("Makes the correct amount of retries", async () => {
             const url = getTestUrl();
-            const maxAttempts = randomInt(1, 100);
+            const maxAttempts = randomInt(0, 10);
             let requests = 0;
 
             mswServer.use(
@@ -346,9 +346,10 @@ describe("fetch", () => {
                 await vi.waitFor(() => {
                     advancedByTime += 50;
 
-                    const handlers = mswServer.listHandlers();
-
-                    const allHandlersUsed = handlers.every((handler) => handler.isUsed);
+                    const allHandlersUsed =
+                        mswServer.listHandlers().filter((handler) => {
+                            return handler.info.header === `GET ${url}` && handler.isUsed;
+                        }).length === 2;
 
                     vi.advanceTimersByTime(1000);
                     advancedByTime += 1000;
@@ -404,9 +405,7 @@ describe("fetch", () => {
             const url = getTestUrl();
             mswServer.use(
                 http.get(url, () => HttpResponse.text("fetch-500", { status: 500 }), { once: true }),
-                http.get(url, () => HttpResponse.text("fetch-success", { status: 200 }), {
-                    once: true,
-                }),
+                http.get(url, () => HttpResponse.text("fetch-success", { status: 200 }), { once: true }),
             );
 
             const response = await fetchWrapper(url);
@@ -414,7 +413,10 @@ describe("fetch", () => {
             expect.assertions(3);
             expect(response).toBeInstanceOf(Response);
             await expect(response.text()).resolves.toBe("fetch-success");
-            expect(mswServer.listHandlers()).toMatchObject([{ isUsed: true }, { isUsed: true }]);
+            const usedHandlers = mswServer.listHandlers().filter((handler) => {
+                return handler.info.header === `GET ${url}` && handler.isUsed;
+            }).length;
+            expect(usedHandlers).toBe(2);
         });
 
         test("Retries on network errors", async () => {

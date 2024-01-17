@@ -3,5 +3,6 @@
  */
 
 import { setupServer } from "msw/node";
+import { handlers as jwksOauthHandlers } from "./api/jwks/oauth/handlers";
 
-export const mswServer = setupServer();
+export const mswServer = setupServer(...jwksOauthHandlers);
