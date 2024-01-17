@@ -15,6 +15,7 @@ import { readFileList, ReadFileListOptions } from "./read-file-list";
 import { readAllFiles, ReadAllFilesOptions } from "./read-all-files";
 import { readAccounts, ReadAccountsOptions } from "./read-accounts";
 import { deleteUser, DeleteUserOptions } from "./delete-user";
+import { deleteAccount, DeleteAccountOptions } from "./delete-account";
 import { TypeValidationError } from "./errors";
 import { DigimeSDK } from "./sdk";
 import { getReauthorizeAccountUrl, GetReauthorizeAccountUrlOptions } from "./get-reauthorize-account-url";
@@ -54,6 +55,7 @@ const init = (config: SDKConfiguration): DigimeSDK => {
         pushData: (props: PushDataOptions) => pushData(props, sdkConfig),
         readSession: (props: ReadSessionOptions) => readSession(props, sdkConfig),
         deleteUser: (props: DeleteUserOptions) => deleteUser(props, sdkConfig),
+        deleteAccount: (props: DeleteAccountOptions) => deleteAccount(props, sdkConfig),
         getAvailableServices: (props: GetAvailableServicesOptions) => getAvailableServices(props, sdkConfig),
         readFile: (props: ReadFileOptions) => readFile(props, sdkConfig),
         readFileList: (props: ReadFileListOptions) => readFileList(props, sdkConfig),
