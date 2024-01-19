@@ -21,6 +21,7 @@ import { getVerifiedTokenPayload } from "../get-verified-token-payload";
 import { DigiMeSdkError } from "../errors/errors";
 import { GetAvailableServicesParameters } from "./get-available-services";
 import { z } from "zod";
+import { errorMessages } from "../errors/messages";
 
 /**
  * Digi.me SDK
@@ -47,6 +48,7 @@ export class DigiMeSdk {
      * - When a new `DigiMeSdk` instance is created, `<instance base url>/jwks/oauth` is automatically added as a trusted JWKS URL
      */
     static addUrlAsTrustedJwks(url: string): void {
+        url = parseWithSchema(url, z.string().url(), "`url` argument");
         const jwks = createRemoteJWKSet(new URL(url), { headers: { Accept: "application/json" } });
         DigiMeSdk.#trustedJwksCache.set(url, jwks);
     }
@@ -56,6 +58,8 @@ export class DigiMeSdk {
      * - URL must be first added with the `DigiMeSdk.addUrlAsTrustedJwks()` method
      */
     static getJwksKeyResolverForUrl(url: string): ReturnType<typeof createRemoteJWKSet> {
+        url = parseWithSchema(url, z.string().url(), "`url` argument");
+
         // Add the default JWKS as the most common use case
         if (!this.#trustedJwksCache.has(this.#defaultTrustedJwksUrl)) {
             this.addUrlAsTrustedJwks(this.#defaultTrustedJwksUrl);
@@ -64,7 +68,7 @@ export class DigiMeSdk {
         const jwks = this.#trustedJwksCache.get(url);
 
         if (!jwks) {
-            throw new DigiMeSdkError("TODO: Explain");
+            throw new DigiMeSdkError(errorMessages.gettingUntrustedJwksKeyResolver);
         }
 
         return jwks;
@@ -149,7 +153,7 @@ export class DigiMeSdk {
             sourceType,
             preferredLocale,
             includeSampleDataOnlySources,
-        } = parseWithSchema(parameters, GetAuthorizeUrlParameters);
+        } = parseWithSchema(parameters, GetAuthorizeUrlParameters, "`getAuthorizeUrl` parameters");
 
         const codeVerifier = toBase64Url(getRandomAlphaNumeric(32));
 

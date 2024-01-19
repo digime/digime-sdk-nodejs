@@ -41,7 +41,7 @@ export const formatHeadersError = ({
     "X-Error-Reference": reference,
 });
 
-export const getTestUrl = (...parts: string[]): string => `https://${[...parts, randomUUID()].join(".")}.test`;
+export const getTestUrl = (...parts: string[]): string => `https://${[...parts, randomUUID()].join(".")}.test/`;
 
 export const createReadableStream = (...args: Parameters<typeof fs.createReadStream>): ReadableStream => {
     return Readable.toWeb(fs.createReadStream(...args)) as ReadableStream;

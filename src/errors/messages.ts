@@ -25,4 +25,13 @@ export const errorMessages = {
     // TODO: Describe what to do in this situation. What to do is TBD.
     accessAndRefreshTokenExpired:
         "SDK tried to refresh the TokenPair's access token that has expired, but the provided refresh token has also expired",
+
+    gettingUntrustedJwksKeyResolver: [
+        "Attempted to get a JWKS key resolver for an URL that has not yet been added as a trusted JWKS URL.",
+        "",
+        "A JWKS URL is marked as trusted when:",
+        "• You manually call `addUrlAsTrustedJWKS` with a URL",
+        "• Instantiate a DigiMeSDK instance with a `baseUrl` other than the default one,",
+        '  This adds "<baseUrl>/jwks/oauth" as a trusted JWKS URL',
+    ].join("\n"),
 } satisfies Record<string, string>;

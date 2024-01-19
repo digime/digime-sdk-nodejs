@@ -85,51 +85,56 @@ const PullSessionOptions = z.object({
 /**
  * `<instance>.getAuthorizeUrl()` input parameters
  */
-export const GetAuthorizeUrlParameters = z.object({
-    /** URL to be called after authorization is done */
-    callback: z.string(),
+export const GetAuthorizeUrlParameters = z.object(
+    {
+        /** URL to be called after authorization is done */
+        callback: z.string(),
 
-    /** Extra state data to be passed back after the authorization flow */
-    state: z.string(),
+        /** Extra state data to be passed back after the authorization flow */
+        state: z.string(),
 
-    /** Onboard a specific service while authorizing */
-    serviceId: z.number().optional(),
+        /** Onboard a specific service while authorizing */
+        serviceId: z.number().optional(),
 
-    /** Any optional parameters for the share */
-    sessionOptions: z
-        .object({
-            pull: PullSessionOptions.optional(),
-        })
-        .optional(),
+        /** Any optional parameters for the share */
+        sessionOptions: z
+            .object({
+                pull: PullSessionOptions.optional(),
+            })
+            .optional(),
 
-    /** TokenPair you may already have for this user */
-    // tokenPair: TokenPayload.optional(),
+        /** TokenPair you may already have for this user */
+        // tokenPair: TokenPayload.optional(),
 
-    /**
-     * Only show services of specific sourceType
-     * @defaultValue `"pull"`
-     */
-    sourceType: z.union([z.literal("pull"), z.literal("push")]).default("pull"),
+        /**
+         * Only show services of specific sourceType
+         * @defaultValue `"pull"`
+         */
+        sourceType: z.union([z.literal("pull"), z.literal("push")]).default("pull"),
 
-    /**
-     * Set the preferred locale to be used in the authorization interface
-     *
-     * - If `preferredLocale` is not set, the authorization interface will attempt to autodetect
-     * - If the provided locale is not supported, the authorization interface will attempt to autodetect
-     *
-     * Autodetection in the authorization interface works by detecting the preferred browser languages,
-     * and picking the best match that is supported. If that fails, it falls back to `en`.
-     */
-    preferredLocale: z.string().optional(),
+        /**
+         * Set the preferred locale to be used in the authorization interface
+         *
+         * - If `preferredLocale` is not set, the authorization interface will attempt to autodetect
+         * - If the provided locale is not supported, the authorization interface will attempt to autodetect
+         *
+         * Autodetection in the authorization interface works by detecting the preferred browser languages,
+         * and picking the best match that is supported. If that fails, it falls back to `en`.
+         */
+        preferredLocale: z.string().optional(),
 
-    /**
-     * Flag to indicate to the authorization interface if it should include
-     * sources that are only onboardable with sample data.
-     *
-     * By default, the authorization interface **does not** include sample only sources.
-     */
-    includeSampleDataOnlySources: z.boolean().optional(),
-});
+        /**
+         * Flag to indicate to the authorization interface if it should include
+         * sources that are only onboardable with sample data.
+         *
+         * By default, the authorization interface **does not** include sample only sources.
+         */
+        includeSampleDataOnlySources: z.boolean().optional(),
+    },
+    {
+        required_error: "`getAuthorizeUrl` parameters are required",
+    },
+);
 
 export type GetAuthorizeUrlParameters = z.infer<typeof GetAuthorizeUrlParameters>;
 export type GetAuthorizeUrlParametersInput = z.input<typeof GetAuthorizeUrlParameters>;
