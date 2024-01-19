@@ -69,7 +69,7 @@ export const defaultCalculateDelay = async ({
     error,
 }: CalculateDelayOptions): Promise<number> => {
     // No attempts remaining
-    if (attempts >= retryOptions.maxAttempts) {
+    if (attempts > retryOptions.maxAttempts) {
         logFetchWrapper(`Retry aborted, no attempts remaining`);
         throw error;
     }

@@ -294,19 +294,28 @@ describe("fetch", () => {
     describe("Retry logic", () => {
         test("Makes the correct amount of retries", async () => {
             const url = getTestUrl();
-            const maxAttempts = randomInt(0, 10);
-            let requests = 0;
+            const maxRetryAttempts = randomInt(0, 9);
+            let retryRequests = 0;
 
             mswServer.use(
+                // First request is always made
+                http.get(
+                    url,
+                    () => {
+                        return HttpResponse.text("fetch-500", { status: 500 });
+                    },
+                    { once: true },
+                ),
+                // Count retry requests
                 http.get(url, () => {
-                    requests++;
+                    retryRequests++;
                     return HttpResponse.text("fetch-500", { status: 500 });
                 }),
             );
 
             const fetchPromise = fetchWrapper(url, undefined, {
                 retryOptions: {
-                    maxAttempts: maxAttempts,
+                    maxAttempts: maxRetryAttempts,
                     calculateDelay: async () => 5,
                 },
             });
@@ -314,7 +323,7 @@ describe("fetch", () => {
             await expect(fetchPromise).rejects.toMatchInlineSnapshot(
                 `[DigiMeSdkTypeError: Received unexpected error response from the Digi.me API]`,
             );
-            expect(requests).toBe(maxAttempts);
+            expect(retryRequests).toBe(maxRetryAttempts);
         });
 
         describe('"Retry-After" header', () => {

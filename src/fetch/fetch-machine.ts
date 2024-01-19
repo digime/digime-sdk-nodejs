@@ -197,7 +197,7 @@ export const fetchMachine = createMachine(
 
             fetch: async (context) => {
                 logFetchWrapper(
-                    `[${context.request?.url}] Attempt: ${context.attempts}/${context.retryOptions.maxAttempts}`,
+                    `[${context.request?.url}] Attempt: ${context.attempts}/${context.retryOptions.maxAttempts + 1}`,
                 );
 
                 // We're not using typestates, so we have to guard against this
