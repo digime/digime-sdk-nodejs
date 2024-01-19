@@ -31,7 +31,7 @@ describe("crypto", () => {
             expect(assertion).toThrowErrorMatchingInlineSnapshot(`[TypeError: Size parameter must be greater than 0]`);
         });
 
-        test("Collision test, 10000 iterations at size 32", () => {
+        test("Has no collisions over 10000 iterations at size 32", () => {
             const randomStrings = new Set();
             const maxIterations = 10000;
 

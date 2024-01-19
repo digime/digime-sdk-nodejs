@@ -51,7 +51,7 @@ describe("UserAuthorization", () => {
         `);
     });
 
-    describe("Instantiate from", () => {
+    describe("Can instantiate from", () => {
         test("JWT", async () => {
             const testToken = await mockApiInternals.signTokenPayload(SAMPLE_PAYLOAD);
             const instance = await UserAuthorization.fromJwt(testToken);

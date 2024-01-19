@@ -100,7 +100,7 @@ describe("DigiMeSDK", () => {
     });
 
     describe(".getAvailableServices()", () => {
-        test("No parameters", async () => {
+        test("Works without parameters", async () => {
             mswServer.use(...discoveryServicesHandlers);
 
             const sdk = new DigiMeSdk({
@@ -116,7 +116,7 @@ describe("DigiMeSDK", () => {
             });
         });
 
-        test('With "contractId" parameter', async () => {
+        test('Uses the "contractId" parameter', async () => {
             mswServer.use(...discoveryServicesHandlers);
 
             const sdk = new DigiMeSdk({
@@ -160,27 +160,6 @@ describe("DigiMeSDK", () => {
             expect(result.session.key).toMatchInlineSnapshot(`"test-session-key"`);
         });
 
-        test("Adds the `serviceId` to the URL when provided", async () => {
-            mswServer.use(...oauthAuthorizeHandlers);
-
-            const sdk = new DigiMeSdk({
-                applicationId: mockSdkConsumerCredentials.applicationId,
-                contractId: mockSdkConsumerCredentials.contractId,
-                contractPrivateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
-            });
-
-            const result = await sdk.getAuthorizeUrl({
-                callback: "test-callback",
-                state: "",
-                serviceId: 7357,
-            });
-
-            expect(result).toEqual(expect.any(Object));
-            expect(result.url).toMatchInlineSnapshot(
-                `"https://api.digi.me/apps/saas/authorize?code=test-preauthorization-code&sourceType=pull&service=7357"`,
-            );
-        });
-
         test("Sets the correct `sourceType` on the URL when provided", async () => {
             mswServer.use(...oauthAuthorizeHandlers);
 
@@ -199,6 +178,27 @@ describe("DigiMeSDK", () => {
             expect(result).toEqual(expect.any(Object));
             expect(result.url).toMatchInlineSnapshot(
                 `"https://api.digi.me/apps/saas/authorize?code=test-preauthorization-code&sourceType=push"`,
+            );
+        });
+
+        test("Adds the `serviceId` to the URL when provided", async () => {
+            mswServer.use(...oauthAuthorizeHandlers);
+
+            const sdk = new DigiMeSdk({
+                applicationId: mockSdkConsumerCredentials.applicationId,
+                contractId: mockSdkConsumerCredentials.contractId,
+                contractPrivateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
+            });
+
+            const result = await sdk.getAuthorizeUrl({
+                callback: "test-callback",
+                state: "",
+                serviceId: 7357,
+            });
+
+            expect(result).toEqual(expect.any(Object));
+            expect(result.url).toMatchInlineSnapshot(
+                `"https://api.digi.me/apps/saas/authorize?code=test-preauthorization-code&sourceType=pull&service=7357"`,
             );
         });
 
