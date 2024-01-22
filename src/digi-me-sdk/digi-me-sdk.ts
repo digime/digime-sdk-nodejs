@@ -118,7 +118,11 @@ export class DigiMeSdk {
      * return only the services that can be onboarded with the provided contract
      */
     async getAvailableServices(parameters: GetAvailableServicesParameters = {}): Promise<DiscoveryAPIServicesData> {
-        const { contractId, signal } = parseWithSchema(parameters, GetAvailableServicesParameters);
+        const { contractId, signal } = parseWithSchema(
+            parameters,
+            GetAvailableServicesParameters,
+            "`getAvailableServices` parameters",
+        );
 
         const headers: HeadersInit = {
             Accept: "application/json",
@@ -230,8 +234,8 @@ export class DigiMeSdk {
         authorizationCode: string,
     ): Promise<UserAuthorization> {
         // Parse and validate parameters
-        codeVerifier = parseWithSchema(codeVerifier, z.string());
-        authorizationCode = parseWithSchema(authorizationCode, z.string());
+        codeVerifier = parseWithSchema(codeVerifier, z.string(), "`codeVerifier` argument");
+        authorizationCode = parseWithSchema(authorizationCode, z.string(), "`authorizationCode` argument");
 
         const token = await signTokenPayload(
             {
@@ -261,6 +265,12 @@ export class DigiMeSdk {
      * Attempt to refresh any instance of a UserAuthorization and recieve a new one in return
      */
     async refreshUserAuthorization(userAuthorization: UserAuthorization): Promise<UserAuthorization> {
+        userAuthorization = parseWithSchema(
+            userAuthorization,
+            z.instanceof(UserAuthorization),
+            "`userAuthorization` argument",
+        );
+
         const signedToken = await signTokenPayload(
             {
                 client_id: `${this.applicationId}_${this.contractId}`,

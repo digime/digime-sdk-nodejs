@@ -3,7 +3,7 @@
  */
 
 import { HttpResponse, http } from "msw";
-import { assertAcceptsJson } from "../../../handler-utilities";
+import { assertAcceptsJson, assertBearerToken } from "../../../handler-utilities";
 import { fromMockApiBase } from "../../../utilities";
 import { mockApiInternals } from "../../../api-internals";
 
@@ -13,6 +13,7 @@ const DAY_IN_MS = HOUR_IN_MS * 24;
 export const makeHandlers = (baseUrl?: string) => [
     http.post(fromMockApiBase("oauth/token", baseUrl), async ({ request }) => {
         assertAcceptsJson(request);
+        await assertBearerToken(request);
 
         return HttpResponse.json({
             token: await mockApiInternals.signTokenPayload({

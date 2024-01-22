@@ -4,7 +4,7 @@
 
 import { HttpResponse, http } from "msw";
 import { fromMockApiBase } from "../../../utilities";
-import { assertAcceptsJson } from "../../../handler-utilities";
+import { assertAcceptsJson, assertBearerToken, assertContentTypeJson } from "../../../handler-utilities";
 import { mockApiInternals } from "../../../api-internals";
 
 const HOUR_IN_MS = 3600000;
@@ -12,6 +12,8 @@ const HOUR_IN_MS = 3600000;
 export const makeHandlers = (baseUrl?: string) => [
     http.post(fromMockApiBase("oauth/authorize", baseUrl), async ({ request }) => {
         assertAcceptsJson(request);
+        assertContentTypeJson(request);
+        await assertBearerToken(request);
 
         return HttpResponse.json({
             session: {
