@@ -25,12 +25,12 @@ export class TrustedJwks {
     static addUrlAsTrustedJwks(url: string): void {
         url = parseWithSchema(url, z.string().url(), "`url` argument");
         const jwks = createRemoteJWKSet(new URL(url), { headers: { Accept: "application/json" } });
-        TrustedJwks.#trustedJwksCache.set(url, jwks);
+        this.#trustedJwksCache.set(url, jwks);
     }
 
     /**
      * Retrieves a JWKS key resolver for a given URL.
-     * - URL must be first added with the `DigiMeSdk.addUrlAsTrustedJwks()` method
+     * - URL must be first added with the `TrustedJwks.addUrlAsTrustedJwks()` method
      */
     static getJwksKeyResolverForUrl(url: string): ReturnType<typeof createRemoteJWKSet> {
         url = parseWithSchema(url, z.string().url(), "`url` argument");
