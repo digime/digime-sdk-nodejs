@@ -5,8 +5,8 @@
 import { JWTVerifyGetKey, JWTVerifyOptions, jwtVerify } from "jose";
 import { z } from "zod";
 import { parseWithSchema } from "./zod/zod-parse";
-import { DigiMeSdk } from "./digi-me-sdk/digi-me-sdk";
 import { DigiMeSdkError } from "./errors/errors";
+import { TrustedJwks } from "./trusted-jwks";
 
 /**
  * Utility function to get the JWKS from the JWT `jku` header
@@ -18,7 +18,7 @@ export const jkuToJwks: JWTVerifyGetKey = (...args) => {
         throw new DigiMeSdkError("JKU is missing in the provided token");
     }
 
-    const keyGetter = DigiMeSdk.getJwksKeyResolverForUrl(jku);
+    const keyGetter = TrustedJwks.getJwksKeyResolverForUrl(jku);
 
     if (!keyGetter) {
         throw new DigiMeSdkError("TODO: JKU not in cache, explain");

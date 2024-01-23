@@ -12,7 +12,6 @@ import { handlers as permissionAccessSampleDataSetsHandlers } from "../mocks/api
 import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 import { mockSdkConsumerCredentials } from "../mocks/sdk-consumer-credentials";
 import { UserAuthorization } from "../user-authorization";
-import { fromMockApiBase, getTestUrl } from "../mocks/utilities";
 import { randomInt } from "node:crypto";
 
 export const mockSdkOptions = {
@@ -22,67 +21,13 @@ export const mockSdkOptions = {
 } as const satisfies ConstructorParameters<typeof DigiMeSdk>[0];
 
 describe("DigiMeSDK", () => {
-    describe("Static", () => {
-        describe("getJwksKeyResolverForUrl", () => {
-            test("Gets the default JWKS without manually adding it", () => {
-                const result = DigiMeSdk.getJwksKeyResolverForUrl(fromMockApiBase("jwks/oauth"));
-                expect(result).toBeInstanceOf(Function);
-            });
-
-            test("Throws when trying to get a JWKS that was not added as trusted", () => {
-                const operation = () => {
-                    DigiMeSdk.getJwksKeyResolverForUrl(new URL(".well-known/jwks", getTestUrl()).toString());
-                };
-
-                expect(operation).toThrow(DigiMeSdkError);
-                expect(operation).toThrowErrorMatchingInlineSnapshot(`
-                  [DigiMeSdkError: Attempted to get a JWKS key resolver for an URL that has not yet been added as a trusted JWKS URL.
-
-                  A JWKS URL is marked as trusted when:
-                  • You manually call \`addUrlAsTrustedJWKS\` with a URL
-                  • Instantiate a DigiMeSDK instance with a \`baseUrl\` other than the default one,
-                    This adds "<baseUrl>/jwks/oauth" as a trusted JWKS URL]
-                `);
-            });
-
-            test("Throws when the URL is malformed", () => {
-                const operation = () => DigiMeSdk.getJwksKeyResolverForUrl("test/.well-known/jwks");
-                expect(operation).toThrow(DigiMeSdkTypeError);
-                expect(operation).toThrowErrorMatchingInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`url\` argument (1 issue):
-                   • Invalid url]
-                `);
-            });
-        });
-
-        describe("addUrlAsTrustedJwks", () => {
-            test("Adds a valid URL", () => {
-                const url = getTestUrl(".well-known/jwks");
-                const result = DigiMeSdk.addUrlAsTrustedJwks(url);
-                const keyGetter = DigiMeSdk.getJwksKeyResolverForUrl(url);
-
-                expect(result).toBe(undefined);
-                expect(keyGetter).toBeInstanceOf(Function);
-            });
-
-            test("Throws when the URL is malformed", () => {
-                const operation = () => DigiMeSdk.addUrlAsTrustedJwks("test/.well-known/jwks");
-                expect(operation).toThrow(DigiMeSdkTypeError);
-                expect(operation).toThrowErrorMatchingInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`url\` argument (1 issue):
-                   • Invalid url]
-                `);
-            });
-        });
-    });
-
     describe("Instanced", () => {
         describe("Constructor", () => {
             test("Works with minimal arguments", () => {
                 expect(() => new DigiMeSdk(mockSdkOptions)).not.toThrow();
             });
 
-            test("Throws when provided with no config", () => {
+            test("Throws if provided no config", () => {
                 try {
                     // @ts-expect-error Not passing in arguments on purpose
                     new DigiMeSdk();
@@ -98,7 +43,7 @@ describe("DigiMeSDK", () => {
                 }
             });
 
-            test("Throws when given wrong type as config", () => {
+            test("Throws if given wrong type as config", () => {
                 try {
                     // @ts-expect-error Passing in wrong arguments on purpose
                     new DigiMeSdk([]);
@@ -114,7 +59,7 @@ describe("DigiMeSDK", () => {
                 }
             });
 
-            test("Throws when provided an empty object as config", () => {
+            test("Throws if provided an empty object as config", () => {
                 try {
                     // @ts-expect-error Passing empty object on purpose
                     new DigiMeSdk({});
@@ -132,7 +77,7 @@ describe("DigiMeSDK", () => {
                 }
             });
 
-            test("Throws when the values are of the wrong type in the provided config ", () => {
+            test("Throws if the values are of the wrong type in the provided config ", () => {
                 try {
                     new DigiMeSdk({
                         // @ts-expect-error Intentionally wrong
@@ -181,9 +126,19 @@ describe("DigiMeSDK", () => {
                 });
             });
 
-            test.todo("Aborts when abort signal is triggered");
+            test("Throws if abort signal is triggered", async () => {
+                mswServer.use(...discoveryServicesHandlers);
 
-            test("Throws when `contractId` argument is of the wrong type", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const signal = AbortSignal.abort();
+
+                const promise = sdk.getAvailableServices({ signal });
+
+                await expect(promise).rejects.toBeInstanceOf(Error);
+                await expect(promise).rejects.toHaveProperty("name", "AbortError");
+            });
+
+            test("Throws if `contractId` argument is of the wrong type", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 // @ts-expect-error Providing wrong arguments on purpose
@@ -196,7 +151,7 @@ describe("DigiMeSDK", () => {
                 `);
             });
 
-            test("Throws when `signal` argument is of the wrong type", async () => {
+            test("Throws if `signal` argument is of the wrong type", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 // @ts-expect-error Providing wrong arguments on purpose
@@ -211,7 +166,7 @@ describe("DigiMeSDK", () => {
         });
 
         describe(".getAuthorizeUrl()", () => {
-            test("Works with minimal arguments", async () => {
+            test("Works with minimal parameters", async () => {
                 mswServer.use(...oauthAuthorizeHandlers);
 
                 const sdk = new DigiMeSdk(mockSdkOptions);
@@ -231,7 +186,7 @@ describe("DigiMeSDK", () => {
                 expect(result.session.key).toMatchInlineSnapshot(`"test-session-key"`);
             });
 
-            test("Sets the correct `sourceType` on the URL when provided", async () => {
+            test("Sets correct `sourceType` on the URL if provided", async () => {
                 mswServer.use(...oauthAuthorizeHandlers);
 
                 const sdk = new DigiMeSdk(mockSdkOptions);
@@ -248,7 +203,7 @@ describe("DigiMeSDK", () => {
                 );
             });
 
-            test("Adds the `serviceId` to the URL when provided", async () => {
+            test("Adds `serviceId` to the URL if provided", async () => {
                 mswServer.use(...oauthAuthorizeHandlers);
 
                 const sdk = new DigiMeSdk(mockSdkOptions);
@@ -265,7 +220,7 @@ describe("DigiMeSDK", () => {
                 );
             });
 
-            test("Adds the `lng` to the URL when provided", async () => {
+            test("Adds `lng` to the URL if provided", async () => {
                 mswServer.use(...oauthAuthorizeHandlers);
 
                 const sdk = new DigiMeSdk(mockSdkOptions);
@@ -282,7 +237,7 @@ describe("DigiMeSDK", () => {
                 );
             });
 
-            test("Adds the `includeSampleDataOnlySources` to the URL when provided", async () => {
+            test("Adds `includeSampleDataOnlySources` to the URL if provided", async () => {
                 mswServer.use(...oauthAuthorizeHandlers);
 
                 const sdk = new DigiMeSdk(mockSdkOptions);
@@ -299,7 +254,19 @@ describe("DigiMeSDK", () => {
                 );
             });
 
-            test("Throws when provided with no arguments", async () => {
+            test("Throws if the abort signal is triggered", async () => {
+                mswServer.use(...oauthAuthorizeHandlers);
+
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const signal = AbortSignal.abort();
+
+                const promise = sdk.getAuthorizeUrl({ callback: "test-callback", state: "", signal });
+
+                await expect(promise).rejects.toBeInstanceOf(Error);
+                await expect(promise).rejects.toHaveProperty("name", "AbortError");
+            });
+
+            test("Throws if provided no arguments", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 // @ts-expect-error Providing wrong arguments on purpose
@@ -312,7 +279,7 @@ describe("DigiMeSDK", () => {
                 `);
             });
 
-            test("Throws when the `parameters` argument is not an object", async () => {
+            test("Throws if `parameters` argument is not an object", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 // @ts-expect-error Providing wrong arguments on purpose
@@ -325,7 +292,7 @@ describe("DigiMeSDK", () => {
                 `);
             });
 
-            test("Throws when the `parameters` argument is empty object", async () => {
+            test("Throws if `parameters` argument is an empty object", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 // @ts-expect-error Providing wrong arguments on purpose
@@ -339,7 +306,7 @@ describe("DigiMeSDK", () => {
                 `);
             });
 
-            test("Throws when the `parameters` argument is an object with incorrect properties", async () => {
+            test("Throws if `parameters` argument is an object with incorrect properties", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 const promise = sdk.getAuthorizeUrl({
@@ -364,18 +331,32 @@ describe("DigiMeSDK", () => {
 
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
-                const result = await sdk.exchangeCodeForUserAuthorization(
-                    "test-code-verifier",
-                    "test-authorization-code",
-                );
+                const result = await sdk.exchangeCodeForUserAuthorization({
+                    codeVerifier: "test-code-verifier",
+                    authorizationCode: "test-authorization-code",
+                });
 
                 expect(result).toBeInstanceOf(UserAuthorization);
                 expect(result.asJwt()).toEqual(expect.any(String));
             });
 
-            test("Throws when provided with no arguments", async () => {
+            test("Throws if abort signal is triggered", async () => {
                 mswServer.use(...oauthTokenHandlers);
 
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const signal = AbortSignal.abort();
+
+                const promise = sdk.exchangeCodeForUserAuthorization({
+                    codeVerifier: "test-code-verifier",
+                    authorizationCode: "test-authorization-code",
+                    signal,
+                });
+
+                await expect(promise).rejects.toBeInstanceOf(Error);
+                await expect(promise).rejects.toHaveProperty("name", "AbortError");
+            });
+
+            test("Throws if provided no arguments", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 // @ts-expect-error Providing wrong type on purpose
@@ -383,59 +364,56 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`codeVerifier\` argument (1 issue):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`exchangeCodeForUserAuthorization\` parameters (1 issue):
                    • Required]
                 `);
             });
 
-            test("Throws when the `authorizationCode` argument is missing", async () => {
-                mswServer.use(...oauthTokenHandlers);
-
+            test("Throws if `parameters` argument is not an object", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 // @ts-expect-error Providing wrong type on purpose
-                const promise = sdk.exchangeCodeForUserAuthorization("test-code-verifier");
+                const promise = sdk.exchangeCodeForUserAuthorization([]);
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`authorizationCode\` argument (1 issue):
-                   • Required]
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`exchangeCodeForUserAuthorization\` parameters (1 issue):
+                   • Expected object, received array]
                 `);
             });
 
-            test("Throws when the `codeVerifier` argument is not a string", async () => {
-                mswServer.use(...oauthTokenHandlers);
-
+            test("Throws if `parameters` argument is an empty object", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
-                const promise = sdk.exchangeCodeForUserAuthorization(
-                    // @ts-expect-error Providing wrong type on purpose
-                    [],
-                    "test-authorization-code",
-                );
+                // @ts-expect-error Providing wrong type on purpose
+                const promise = sdk.exchangeCodeForUserAuthorization({});
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`codeVerifier\` argument (1 issue):
-                   • Expected string, received array]
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`exchangeCodeForUserAuthorization\` parameters (2 issues):
+                   • "codeVerifier": Required
+                   • "authorizationCode": Required]
                 `);
             });
 
-            test("Throws when the `authorizationCode` argument is not a string", async () => {
-                mswServer.use(...oauthTokenHandlers);
-
+            test("Throws if `parameters` argument is an object with incorrect shape", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
-                const promise = sdk.exchangeCodeForUserAuthorization(
-                    "test-code-verifier",
+                const promise = sdk.exchangeCodeForUserAuthorization({
                     // @ts-expect-error Providing wrong type on purpose
-                    {},
-                );
+                    codeVerifier: 1,
+                    // @ts-expect-error Providing wrong type on purpose
+                    authorizationCode: [],
+                    // @ts-expect-error Providing wrong type on purpose
+                    signal: "",
+                });
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`authorizationCode\` argument (1 issue):
-                   • Expected string, received object]
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`exchangeCodeForUserAuthorization\` parameters (3 issues):
+                   • "codeVerifier": Expected string, received number
+                   • "authorizationCode": Expected string, received array
+                   • "signal": Input not instance of AbortSignal]
                 `);
             });
         });
@@ -457,16 +435,37 @@ describe("DigiMeSDK", () => {
                     },
                     sub: "test-sub",
                 });
-                const result = await sdk.refreshUserAuthorization(userAuthorization);
+                const result = await sdk.refreshUserAuthorization({ userAuthorization });
 
                 expect(result).toBeInstanceOf(UserAuthorization);
                 expect(result.asJwt()).toEqual(expect.any(String));
                 expect(result).not.toBe(userAuthorization);
             });
 
-            test("Throws when provided with no arguments", async () => {
+            test("Throws if abort signal is triggered", async () => {
                 mswServer.use(...oauthTokenHandlers);
 
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const signal = AbortSignal.abort();
+                const userAuthorization = UserAuthorization.fromPayload({
+                    access_token: {
+                        value: "test-access-token",
+                        expires_on: 1,
+                    },
+                    refresh_token: {
+                        value: "test-refresh-token",
+                        expires_on: 2,
+                    },
+                    sub: "test-sub",
+                });
+
+                const promise = sdk.refreshUserAuthorization({ userAuthorization, signal });
+
+                await expect(promise).rejects.toBeInstanceOf(Error);
+                await expect(promise).rejects.toHaveProperty("name", "AbortError");
+            });
+
+            test("Throws if provided no arguments", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 // @ts-expect-error Providing wrong type on purpose
@@ -474,34 +473,63 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`userAuthorization\` argument (1 issue):
-                   • Input not instance of UserAuthorization]
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`refreshUserAuthorization\` parameters (1 issue):
+                   • Required]
                 `);
             });
 
-            test("Throws when the `userAuthorization` argument is not an instance of `UserAuthorization`", async () => {
-                mswServer.use(...oauthTokenHandlers);
-
+            test("Throws if `parameters` argument is not an object", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 // @ts-expect-error Providing wrong type on purpose
-                const promise = sdk.refreshUserAuthorization("test");
+                const promise = sdk.refreshUserAuthorization([]);
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`userAuthorization\` argument (1 issue):
-                   • Input not instance of UserAuthorization]
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`refreshUserAuthorization\` parameters (1 issue):
+                   • Expected object, received array]
+                `);
+            });
+
+            test("Throws if `parameters` argument is an empty object", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+
+                // @ts-expect-error Providing wrong type on purpose
+                const promise = sdk.refreshUserAuthorization({});
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`refreshUserAuthorization\` parameters (1 issue):
+                   • "userAuthorization": Input not instance of UserAuthorization]
+                `);
+            });
+
+            test("Throws if `parameters` argument is an object with incorrect shape", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+
+                const promise = sdk.refreshUserAuthorization({
+                    // @ts-expect-error Providing wrong type on purpose
+                    userAuthorization: 1,
+                    // @ts-expect-error Providing wrong type on purpose
+                    signal: "",
+                });
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`refreshUserAuthorization\` parameters (2 issues):
+                   • "userAuthorization": Input not instance of UserAuthorization
+                   • "signal": Input not instance of AbortSignal]
                 `);
             });
         });
 
         describe(".getSampleDataSetsForSource()", () => {
-            test("Works when`sourceId` argument is provided", async () => {
+            test("Works with minimal parameters", async () => {
                 mswServer.use(...permissionAccessSampleDataSetsHandlers);
 
                 const sdk = new DigiMeSdk(mockSdkOptions);
                 const mockedSourceId = randomInt(1, 10000);
-                await expect(sdk.getSampleDataSetsForSource(mockedSourceId)).resolves.toMatchObject({
+                await expect(sdk.getSampleDataSetsForSource({ sourceId: mockedSourceId })).resolves.toMatchObject({
                     [`mocked-${mockedSourceId}`]: expect.objectContaining({
                         description: expect.any(String),
                         name: `mocked-${mockedSourceId}`,
@@ -509,16 +537,72 @@ describe("DigiMeSDK", () => {
                 });
             });
 
-            test("Throws when `sourceId` argument is of the wrong type", async () => {
+            test("Throws if abort signal is triggered", async () => {
+                mswServer.use(...permissionAccessSampleDataSetsHandlers);
+
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const signal = AbortSignal.abort();
+
+                const promise = sdk.getSampleDataSetsForSource({ sourceId: 1, signal });
+
+                await expect(promise).rejects.toBeInstanceOf(Error);
+                await expect(promise).rejects.toHaveProperty("name", "AbortError");
+            });
+
+            test("Throws if provided no arguments", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
-                // @ts-expect-error Providing wrong arguments on purpose
+                // @ts-expect-error Providing wrong type on purpose
+                const promise = sdk.getSampleDataSetsForSource();
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getSampleDataSetsForSource\` parameters (1 issue):
+                   • Required]
+                `);
+            });
+
+            test("Throws if `parameters` argument is not an object", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+
+                // @ts-expect-error Providing wrong type on purpose
                 const promise = sdk.getSampleDataSetsForSource([]);
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`sourceId\` argument (1 issue):
-                   • Expected number, received array]
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getSampleDataSetsForSource\` parameters (1 issue):
+                   • Expected object, received array]
+                `);
+            });
+
+            test("Throws if `parameters` argument is an empty object", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+
+                // @ts-expect-error Providing wrong type on purpose
+                const promise = sdk.getSampleDataSetsForSource({});
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getSampleDataSetsForSource\` parameters (1 issue):
+                   • "sourceId": Required]
+                `);
+            });
+
+            test("Throws if `parameters` argument is an object with incorrect shape", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+
+                const promise = sdk.getSampleDataSetsForSource({
+                    // @ts-expect-error Providing wrong type on purpose
+                    sourceId: "1",
+                    // @ts-expect-error Providing wrong type on purpose
+                    signal: "",
+                });
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getSampleDataSetsForSource\` parameters (2 issues):
+                   • "sourceId": Expected number, received string
+                   • "signal": Input not instance of AbortSignal]
                 `);
             });
         });

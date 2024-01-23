@@ -9,10 +9,10 @@ import { DiscoveryAPIServicesData } from "../types/external/discovery-api-servic
  * `<instance>.getAvailableServices()` input parameters
  */
 export const GetAvailableServicesParameters = z.object({
-    /** URL to be called after authorization is done */
+    /** Contract ID to filter sources by */
     contractId: z.string().optional(),
 
-    /** Extra state data to be passed back after the authorization flow */
+    /** AbortSignal to abort this operation */
     signal: z.instanceof(AbortSignal).optional(),
 });
 

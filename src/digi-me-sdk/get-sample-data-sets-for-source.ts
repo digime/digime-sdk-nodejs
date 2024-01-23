@@ -14,7 +14,24 @@ export const SampleDataSet = z
     })
     .passthrough();
 
+export type SampleDataSet = z.infer<typeof SampleDataSet>;
+
 /**
  * A collection of sample data sets
  */
 export const SampleDataSets = z.record(z.string(), SampleDataSet);
+
+export type SampleDataSets = z.infer<typeof SampleDataSets>;
+
+/**
+ * `<instance>.getSampleDataSetsForSourceParameters()` input parameters
+ */
+export const GetSampleDataSetsForSourceParameters = z.object({
+    /** ID of the source to be queried for data sets */
+    sourceId: z.number(),
+
+    /** AbortSignal to abort this operation */
+    signal: z.instanceof(AbortSignal).optional(),
+});
+
+export type GetSampleDataSetsForSourceParameters = z.infer<typeof GetSampleDataSetsForSourceParameters>;

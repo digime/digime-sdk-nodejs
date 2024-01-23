@@ -11,68 +11,28 @@ import { PayloadPreauthorizationCode } from "../types/external/jwt-payloads";
 import { GetAuthorizeUrlReturn } from "./get-authorize-url";
 import { OauthTokenResponse } from "../types/external/oauth-token";
 import { parseWithSchema } from "../zod/zod-parse";
-import { DEFAULT_BASE_URL, DigiMeSdkConfig, InputDigiMeSdkConfig } from "./config";
+import { DigiMeSdkConfig, InputDigiMeSdkConfig } from "./config";
 import { fetchWrapper } from "../fetch/fetch";
 import { signTokenPayload } from "../sign-token-payload";
 import { UserAuthorization } from "../user-authorization";
-import { createRemoteJWKSet } from "jose";
-import { LRUCache } from "lru-cache";
 import { getVerifiedTokenPayload } from "../get-verified-token-payload";
-import { DigiMeSdkError } from "../errors/errors";
 import { GetAvailableServicesParameters } from "./get-available-services";
-import { z } from "zod";
-import { errorMessages } from "../errors/messages";
-import { SampleDataSets } from "./get-sample-data-sets-for-source";
+import { GetSampleDataSetsForSourceParameters, SampleDataSets } from "./get-sample-data-sets-for-source";
+import { ExchangeCodeForUserAuthorizationParameters } from "./exchange-code-for-user-authorization";
+import { RefreshUserAuthorizationParameters } from "./refresh-user-authorization";
+import { TrustedJwks } from "../trusted-jwks";
 
 /**
  * Digi.me SDK
  */
 export class DigiMeSdk {
-    static #defaultTrustedJwksUrl = new URL("jwks/oauth", DEFAULT_BASE_URL).toString();
-    static #trustedJwksCache = new LRUCache<string, ReturnType<typeof createRemoteJWKSet>>({
-        max: 10,
-    });
-
     #config: DigiMeSdkConfig;
 
     constructor(sdkConfig: InputDigiMeSdkConfig) {
         this.#config = parseWithSchema(sdkConfig, DigiMeSdkConfig, 'DigiMeSDK constructor parameter "sdkConfig"');
 
         // Add the current instance's expected JWKS location to the JWKS cache
-        DigiMeSdk.addUrlAsTrustedJwks(new URL("/jwks/oauth", this.#config.baseUrl).toString());
-    }
-
-    /**
-     * Adds the URL as a trusted JWKS URL
-     * - JWT verifications via JKU will fail if they reference an untrusted JWKS URL
-     * - Default Digi.me OAuth JWKS URL is trusted by default, and it doesn't need to be manually added
-     * - When a new `DigiMeSdk` instance is created, `<instance base url>/jwks/oauth` is automatically added as a trusted JWKS URL
-     */
-    static addUrlAsTrustedJwks(url: string): void {
-        url = parseWithSchema(url, z.string().url(), "`url` argument");
-        const jwks = createRemoteJWKSet(new URL(url), { headers: { Accept: "application/json" } });
-        DigiMeSdk.#trustedJwksCache.set(url, jwks);
-    }
-
-    /**
-     * Retrieves a JWKS key resolver for a given URL.
-     * - URL must be first added with the `DigiMeSdk.addUrlAsTrustedJwks()` method
-     */
-    static getJwksKeyResolverForUrl(url: string): ReturnType<typeof createRemoteJWKSet> {
-        url = parseWithSchema(url, z.string().url(), "`url` argument");
-
-        // Add the default JWKS as the most common use case
-        if (!this.#trustedJwksCache.has(this.#defaultTrustedJwksUrl)) {
-            this.addUrlAsTrustedJwks(this.#defaultTrustedJwksUrl);
-        }
-
-        const jwks = this.#trustedJwksCache.get(url);
-
-        if (!jwks) {
-            throw new DigiMeSdkError(errorMessages.gettingUntrustedJwksKeyResolver);
-        }
-
-        return jwks;
+        TrustedJwks.addUrlAsTrustedJwks(new URL("/jwks/oauth", this.#config.baseUrl).toString());
     }
 
     /**
@@ -158,6 +118,7 @@ export class DigiMeSdk {
             sourceType,
             preferredLocale,
             includeSampleDataOnlySources,
+            signal,
         } = parseWithSchema(parameters, GetAuthorizeUrlParameters, "`getAuthorizeUrl` parameters");
 
         const codeVerifier = toBase64Url(getRandomAlphaNumeric(32));
@@ -182,6 +143,7 @@ export class DigiMeSdk {
         const token = await signTokenPayload(tokenPayload, this.contractPrivateKey);
 
         const response = await fetchWrapper(new URL("oauth/authorize", this.baseUrl), {
+            signal,
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -228,15 +190,13 @@ export class DigiMeSdk {
      * the callback provided to it for UserAuthorization.
      */
     async exchangeCodeForUserAuthorization(
-        /** codeVerifier received as a result of `getAuthorizeUrl` call */
-        codeVerifier: string,
-
-        /** authorizationCode received by the callback you provided to `getAuthorizeUrl` */
-        authorizationCode: string,
+        parameters: ExchangeCodeForUserAuthorizationParameters,
     ): Promise<UserAuthorization> {
-        // Parse and validate parameters
-        codeVerifier = parseWithSchema(codeVerifier, z.string(), "`codeVerifier` argument");
-        authorizationCode = parseWithSchema(authorizationCode, z.string(), "`authorizationCode` argument");
+        const { codeVerifier, authorizationCode, signal } = parseWithSchema(
+            parameters,
+            ExchangeCodeForUserAuthorizationParameters,
+            "`exchangeCodeForUserAuthorization` parameters",
+        );
 
         const token = await signTokenPayload(
             {
@@ -251,6 +211,7 @@ export class DigiMeSdk {
         );
 
         const response = await fetchWrapper(new URL("oauth/token", this.baseUrl), {
+            signal,
             method: "POST",
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -265,11 +226,11 @@ export class DigiMeSdk {
     /**
      * Attempt to refresh any instance of a UserAuthorization and recieve a new one in return
      */
-    async refreshUserAuthorization(userAuthorization: UserAuthorization): Promise<UserAuthorization> {
-        userAuthorization = parseWithSchema(
-            userAuthorization,
-            z.instanceof(UserAuthorization),
-            "`userAuthorization` argument",
+    async refreshUserAuthorization(parameters: RefreshUserAuthorizationParameters): Promise<UserAuthorization> {
+        const { userAuthorization, signal } = parseWithSchema(
+            parameters,
+            RefreshUserAuthorizationParameters,
+            "`refreshUserAuthorization` parameters",
         );
 
         const signedToken = await signTokenPayload(
@@ -284,6 +245,7 @@ export class DigiMeSdk {
         );
 
         const response = await fetchWrapper(new URL("oauth/token", this.baseUrl), {
+            signal,
             method: "POST",
             headers: {
                 Authorization: `Bearer ${signedToken}`,
@@ -298,8 +260,12 @@ export class DigiMeSdk {
     /**
      * Retrieve available sample datasets for a given source
      */
-    async getSampleDataSetsForSource(sourceId: number) {
-        sourceId = parseWithSchema(sourceId, z.number(), "`sourceId` argument");
+    async getSampleDataSetsForSource(parameters: GetSampleDataSetsForSourceParameters): Promise<SampleDataSets> {
+        const { sourceId, signal } = parseWithSchema(
+            parameters,
+            GetSampleDataSetsForSourceParameters,
+            "`getSampleDataSetsForSource` parameters",
+        );
 
         const signedToken = await signTokenPayload(
             {
@@ -311,6 +277,7 @@ export class DigiMeSdk {
         );
 
         const response = await fetchWrapper(new URL(`permission-access/sample/datasets/${sourceId}`, this.baseUrl), {
+            signal,
             headers: {
                 Authorization: `Bearer ${signedToken}`,
                 Accept: "application/json",

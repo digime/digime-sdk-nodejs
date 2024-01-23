@@ -130,6 +130,9 @@ export const GetAuthorizeUrlParameters = z.object(
          * By default, the authorization interface **does not** include sample only sources.
          */
         includeSampleDataOnlySources: z.boolean().optional(),
+
+        /** AbortSignal to abort this operation */
+        signal: z.instanceof(AbortSignal).optional(),
     },
     {
         required_error: "`getAuthorizeUrl` parameters are required",

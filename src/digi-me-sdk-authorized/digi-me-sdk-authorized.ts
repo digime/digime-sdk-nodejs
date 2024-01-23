@@ -25,9 +25,9 @@ export class DigiMeSdkAuthorized {
      * **NOTE**: This will also trigger this instances `onUserAuthorizationUpdated` callback, if one was provided!
      */
     async refreshUserAuthorization(): Promise<UserAuthorization> {
-        const newUserAuthorization = await this.#config.digiMeSdkInstance.refreshUserAuthorization(
-            this.#config.userAuthorization,
-        );
+        const newUserAuthorization = await this.#config.digiMeSdkInstance.refreshUserAuthorization({
+            userAuthorization: this.#config.userAuthorization,
+        });
 
         // Call the update hook
         if (this.#config.onUserAuthorizationUpdated) {
