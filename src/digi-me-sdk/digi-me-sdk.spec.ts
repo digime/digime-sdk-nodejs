@@ -6,12 +6,14 @@ import { describe, test, expect } from "vitest";
 import { DigiMeSdk } from "../index";
 import { mswServer } from "../mocks/server";
 import { handlers as discoveryServicesHandlers } from "../mocks/api/discovery/services/handlers";
-import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
-import { mockSdkConsumerCredentials } from "../mocks/sdk-consumer-credentials";
 import { handlers as oauthAuthorizeHandlers } from "../mocks/api/oauth/authorize/handlers";
 import { handlers as oauthTokenHandlers } from "../mocks/api/oauth/token/handlers";
+import { handlers as permissionAccessSampleDataSetsHandlers } from "../mocks/api/permission-access/sample/datasets/handlers";
+import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
+import { mockSdkConsumerCredentials } from "../mocks/sdk-consumer-credentials";
 import { UserAuthorization } from "../user-authorization";
 import { fromMockApiBase, getTestUrl } from "../mocks/utilities";
+import { randomInt } from "node:crypto";
 
 export const mockSdkOptions = {
     applicationId: mockSdkConsumerCredentials.applicationId,
@@ -489,6 +491,34 @@ describe("DigiMeSDK", () => {
                 await expect(promise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for \`userAuthorization\` argument (1 issue):
                    • Input not instance of UserAuthorization]
+                `);
+            });
+        });
+
+        describe(".getSampleDataSetsForSource()", () => {
+            test("Works when`sourceId` argument is provided", async () => {
+                mswServer.use(...permissionAccessSampleDataSetsHandlers);
+
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const mockedSourceId = randomInt(1, 10000);
+                await expect(sdk.getSampleDataSetsForSource(mockedSourceId)).resolves.toMatchObject({
+                    [`mocked-${mockedSourceId}`]: expect.objectContaining({
+                        description: expect.any(String),
+                        name: `mocked-${mockedSourceId}`,
+                    }),
+                });
+            });
+
+            test("Throws when `sourceId` argument is of the wrong type", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+
+                // @ts-expect-error Providing wrong arguments on purpose
+                const promise = sdk.getSampleDataSetsForSource([]);
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`sourceId\` argument (1 issue):
+                   • Expected number, received array]
                 `);
             });
         });

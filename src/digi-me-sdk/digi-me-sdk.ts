@@ -22,6 +22,7 @@ import { DigiMeSdkError } from "../errors/errors";
 import { GetAvailableServicesParameters } from "./get-available-services";
 import { z } from "zod";
 import { errorMessages } from "../errors/messages";
+import { SampleDataSets } from "./get-sample-data-sets-for-source";
 
 /**
  * Digi.me SDK
@@ -294,8 +295,28 @@ export class DigiMeSdk {
         return UserAuthorization.fromJwt(responseData.token);
     }
 
+    /**
+     * Retrieve available sample datasets for a given source
+     */
     async getSampleDataSetsForSource(sourceId: number) {
-        // TODO
-        console.log("sourceId", sourceId);
+        sourceId = parseWithSchema(sourceId, z.number(), "`sourceId` argument");
+
+        const signedToken = await signTokenPayload(
+            {
+                client_id: `${this.applicationId}_${this.contractId}`,
+                nonce: getRandomAlphaNumeric(32),
+                timestamp: Date.now(),
+            },
+            this.contractPrivateKey,
+        );
+
+        const response = await fetchWrapper(new URL(`permission-access/sample/datasets/${sourceId}`, this.baseUrl), {
+            headers: {
+                Authorization: `Bearer ${signedToken}`,
+                Accept: "application/json",
+            },
+        });
+
+        return parseWithSchema(await response.json(), SampleDataSets);
     }
 }
