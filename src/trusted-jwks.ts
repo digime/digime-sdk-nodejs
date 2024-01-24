@@ -2,11 +2,11 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { createRemoteJWKSet } from "jose";
+import { JWTVerifyGetKey, createRemoteJWKSet } from "jose";
 import { DEFAULT_BASE_URL } from "./digi-me-sdk/config";
 import { LRUCache } from "lru-cache";
 import { parseWithSchema } from "./zod/zod-parse";
-import { DigiMeSdkError } from "./errors/errors";
+import { DigiMeSdkError, DigiMeSdkTypeError } from "./errors/errors";
 import { errorMessages } from "./errors/messages";
 import { z } from "zod";
 
@@ -48,4 +48,17 @@ export class TrustedJwks {
 
         return jwks;
     }
+
+    /**
+     * Utility function to get the JWKS from the JWT `jku` header
+     */
+    static jkuJwksKeyGetter: JWTVerifyGetKey = (...args) => {
+        const jku = args[0].jku;
+
+        if (!jku) {
+            throw new DigiMeSdkTypeError("JKU is missing in the provided token");
+        }
+
+        return this.getJwksKeyResolverForUrl(jku)(...args);
+    };
 }
