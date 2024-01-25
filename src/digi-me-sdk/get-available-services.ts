@@ -3,7 +3,7 @@
  */
 
 import { z } from "zod";
-import { DiscoveryAPIServicesData } from "../types/external/discovery-api-services";
+import type { DiscoveryAPIServicesData } from "../types/external/discovery-api-services";
 
 /**
  * `<instance>.getAvailableServices()` input parameters

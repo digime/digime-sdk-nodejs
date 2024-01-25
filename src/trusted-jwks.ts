@@ -2,13 +2,14 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { JWTVerifyGetKey, createRemoteJWKSet } from "jose";
-import { DEFAULT_BASE_URL } from "./digi-me-sdk/config";
+import type { JWTVerifyGetKey } from "jose";
+import { createRemoteJWKSet } from "jose";
 import { LRUCache } from "lru-cache";
 import { parseWithSchema } from "./zod/zod-parse";
 import { DigiMeSdkError, DigiMeSdkTypeError } from "./errors/errors";
 import { errorMessages } from "./errors/messages";
 import { z } from "zod";
+import { DEFAULT_BASE_URL } from "./constants";
 
 export class TrustedJwks {
     static #defaultTrustedJwksUrl = new URL("jwks/oauth", DEFAULT_BASE_URL).toString();

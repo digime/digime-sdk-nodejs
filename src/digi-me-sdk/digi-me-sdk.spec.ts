@@ -3,15 +3,15 @@
  */
 
 import { describe, test, expect } from "vitest";
-import { DigiMeSdk } from "../index";
-import { mswServer } from "../mocks/server";
-import { handlers as discoveryServicesHandlers } from "../mocks/api/discovery/services/handlers";
-import { handlers as oauthAuthorizeHandlers } from "../mocks/api/oauth/authorize/handlers";
-import { handlers as oauthTokenHandlers } from "../mocks/api/oauth/token/handlers";
-import { handlers as permissionAccessSampleDataSetsHandlers } from "../mocks/api/permission-access/sample/datasets/handlers";
-import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
-import { mockSdkConsumerCredentials } from "../mocks/sdk-consumer-credentials";
+import { mswServer } from "../../mocks/server";
+import { handlers as discoveryServicesHandlers } from "../../mocks/api/discovery/services/handlers";
+import { handlers as oauthAuthorizeHandlers } from "../../mocks/api/oauth/authorize/handlers";
+import { handlers as oauthTokenHandlers } from "../../mocks/api/oauth/token/handlers";
+import { handlers as permissionAccessSampleDataSetsHandlers } from "../../mocks/api/permission-access/sample/datasets/handlers";
+import { DigiMeSdk } from "./digi-me-sdk";
 import { UserAuthorization } from "../user-authorization";
+import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
+import { mockSdkConsumerCredentials } from "../../mocks/sdk-consumer-credentials";
 import { randomInt } from "node:crypto";
 
 export const mockSdkOptions = {
@@ -605,6 +605,17 @@ describe("DigiMeSDK", () => {
                    • "signal": Input not instance of AbortSignal]
                 `);
             });
+        });
+    });
+});
+
+describe("DigiMeSdkAuthorized", () => {
+    describe("Instanced", () => {
+        describe("Constructor", () => {
+            test("Throws if", () => {});
+            test("Throws if", () => {});
+            test("Throws if", () => {});
+            test("Throws if", () => {});
         });
     });
 });

@@ -4,10 +4,12 @@
 
 import { createMachine, assign } from "xstate";
 import { logFetchWrapper } from "../debug-log";
-import { DigiMeSdkApiError, DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
+import type { DigiMeSdkError } from "../errors/errors";
+import { DigiMeSdkApiError, DigiMeSdkTypeError } from "../errors/errors";
 import { ApiErrorFromHeaders } from "../types/external/api-error-response";
 import { abortableDelay } from "../abortable-delay";
-import { CalculateDelayOptions, DEFAULT_RETRY_OPTIONS, RetryOptions, defaultCalculateDelay } from "./retry";
+import type { CalculateDelayOptions, RetryOptions } from "./retry";
+import { DEFAULT_RETRY_OPTIONS, defaultCalculateDelay } from "./retry";
 import { getRetryAfterDelay } from "./get-retry-after-delay";
 
 /**

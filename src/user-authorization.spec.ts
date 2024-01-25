@@ -5,8 +5,8 @@
 import { describe, test, expect } from "vitest";
 import { UserAuthorization } from "./user-authorization";
 import { DigiMeSdkError } from "./errors/errors";
-import { LegacyUserAuthorizationPayload, UserAuthorizationPayload } from "./types/external/oauth-token";
-import { mockApiInternals } from "./mocks/api-internals";
+import type { LegacyUserAuthorizationPayload, UserAuthorizationPayload } from "./types/external/oauth-token";
+import { mockApiInternals } from "../mocks/api-internals";
 
 const SAMPLE_PAYLOAD = {
     access_token: {

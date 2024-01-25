@@ -39,6 +39,8 @@ module.exports = {
             },
             2,
         ],
+        "@typescript-eslint/consistent-type-imports": ["error", { disallowTypeAnnotations: false }],
+        "@typescript-eslint/no-import-type-side-effects": "error",
         "@typescript-eslint/explicit-function-return-type": "off",
         "@typescript-eslint/no-empty-interface": [
             "error",

@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { ApiError } from "../types/external/api-error-response";
+import type { ApiError } from "../types/external/api-error-response";
 
 /**
  * Generic catch-all Error thrown by the SDK.

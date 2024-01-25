@@ -3,14 +3,14 @@
  */
 
 import { beforeAll, beforeEach, afterAll, afterEach, vi } from "vitest";
-import { mswServer } from "./src/mocks/server";
+import { mswServer } from "./mocks/server";
 
 /**
  * We're mocking `jose`'s internal fetch_jwks implementation as the wildcard ESM imports
  * are bypassing MSW interceptors for those requests, so we're replacing it with a replica.
  */
 vi.mock("./node_modules/jose/dist/node/esm/runtime/fetch_jwks.js", async () => ({
-    default: (await import("./src/mocks/jose/fetch-jwks")).fetchJwks,
+    default: (await import("./mocks/jose/fetch-jwks")).fetchJwks,
 }));
 
 beforeAll(() => {

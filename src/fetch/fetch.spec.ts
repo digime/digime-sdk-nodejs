@@ -3,11 +3,11 @@
  */
 
 import { describe, test, expect, vi } from "vitest";
-import { mswServer } from "../mocks/server";
+import { mswServer } from "../../mocks/server";
 import { fetchWrapper } from "./fetch";
 import { HttpResponse, http } from "msw";
 import { DigiMeSdkApiError, DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
-import { formatBodyError, formatHeadersError, getTestUrl } from "../mocks/utilities";
+import { formatBodyError, formatHeadersError, getTestUrl } from "../../mocks/utilities";
 import { abortableDelay } from "../abortable-delay";
 import { randomInt } from "node:crypto";
 

@@ -3,7 +3,7 @@
  */
 
 import { JOSEError, JWKSTimeout } from "jose/errors";
-import { abortableDelay } from "../../abortable-delay";
+import { abortableDelay } from "../../src/abortable-delay";
 
 /**
  * NOTE: This is a replica of `jose`'s internal fetchJwks function. It's used as a mock in the tests.

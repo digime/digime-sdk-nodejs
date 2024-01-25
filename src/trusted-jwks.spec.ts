@@ -4,7 +4,7 @@
 
 import { describe, test, expect } from "vitest";
 import { TrustedJwks } from "./trusted-jwks";
-import { fromMockApiBase, getTestUrl } from "./mocks/utilities";
+import { fromMockApiBase, getTestUrl } from "../mocks/utilities";
 import { DigiMeSdkError, DigiMeSdkTypeError } from "./errors/errors";
 
 describe("TrustedJwks", () => {

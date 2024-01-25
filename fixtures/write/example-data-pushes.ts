@@ -4,8 +4,8 @@
 
 import NodeRSA from "node-rsa";
 import fs from "fs";
-import { PushDataOptions } from "../../src/push";
-import { ContractDetails } from "../../src/types/common";
+import type { PushDataOptions } from "../../src/push";
+import type { ContractDetails } from "../../src/types/common";
 import { SAMPLE_TOKEN } from "../../utils/test-constants";
 
 export const testKeyPair: NodeRSA = new NodeRSA({ b: 2048 });

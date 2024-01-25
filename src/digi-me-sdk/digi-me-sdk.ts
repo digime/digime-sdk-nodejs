@@ -2,25 +2,78 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { DiscoveryAPIServicesData, DiscoveryAPIServicesResponse } from "../types/external/discovery-api-services";
-import { GetAuthorizeUrlParameters, GetAuthorizeUrlParametersInput } from "./get-authorize-url";
+import type { DiscoveryAPIServicesData } from "../types/external/discovery-api-services";
+import { DiscoveryAPIServicesResponse } from "../types/external/discovery-api-services";
+import type { GetAuthorizeUrlParametersInput } from "./get-authorize-url";
+import { GetAuthorizeUrlParameters } from "./get-authorize-url";
 import { getRandomAlphaNumeric, getSha256Hash, toBase64Url } from "../crypto";
 import SDK_VERSION from "../sdk-version";
 import { OauthAuthorizeResponse } from "../types/external/oauth-authorize";
 import { PayloadPreauthorizationCode } from "../types/external/jwt-payloads";
-import { GetAuthorizeUrlReturn } from "./get-authorize-url";
+import type { GetAuthorizeUrlReturn } from "./get-authorize-url";
 import { OauthTokenResponse } from "../types/external/oauth-token";
 import { parseWithSchema } from "../zod/zod-parse";
-import { DigiMeSdkConfig, InputDigiMeSdkConfig } from "./config";
 import { fetchWrapper } from "../fetch/fetch";
 import { signTokenPayload } from "../sign-token-payload";
-import { UserAuthorization } from "../user-authorization";
 import { getVerifiedTokenPayload } from "../get-verified-token-payload";
 import { GetAvailableServicesParameters } from "./get-available-services";
 import { GetSampleDataSetsForSourceParameters, SampleDataSets } from "./get-sample-data-sets-for-source";
 import { ExchangeCodeForUserAuthorizationParameters } from "./exchange-code-for-user-authorization";
 import { RefreshUserAuthorizationParameters } from "./refresh-user-authorization";
 import { TrustedJwks } from "../trusted-jwks";
+import { UserAuthorization } from "../user-authorization";
+import { DigiMeSdkTypeError } from "../errors/errors";
+import { errorMessages } from "../errors/messages";
+import { GetPortabilityReportParameters } from "./get-portability-report";
+import { z } from "zod";
+import { DEFAULT_BASE_URL, DEFAULT_ONBOARD_URL } from "../constants";
+
+// Transform and casting to have a more specific type for typechecking
+const UrlWithTrailingSlash = z
+    .string()
+    .url()
+    .endsWith("/")
+    .transform((value) => value as `${string}/`);
+
+/**
+ * Configuration options for Digi.me SDK
+ */
+export const DigiMeSdkConfig = z.object(
+    {
+        /** Your customised application ID from digi.me */
+        applicationId: z.string(),
+
+        /** The ID of the contract you intend to use */
+        contractId: z.string(),
+
+        /** Private key in PKCS1 format of the contract you intend to use */
+        contractPrivateKey: z.string(),
+
+        /**
+         * Root URL for the digi.me API
+         * Must end with a trailing slash
+         * @defaultValue `"https://api.digi.me/v1.7/"`
+         */
+        baseUrl: UrlWithTrailingSlash.default(DEFAULT_BASE_URL),
+
+        /**
+         * Root URL for the digi.me web onboard
+         * Must end with a trailing slash
+         * @defaultValue `"https://api.digi.me/apps/saas/"`
+         */
+        onboardUrl: UrlWithTrailingSlash.default(DEFAULT_ONBOARD_URL),
+    },
+    {
+        required_error: "SdkConfig is required",
+        invalid_type_error: "SdkConfig must be an object",
+    },
+);
+export type DigiMeSdkConfig = z.infer<typeof DigiMeSdkConfig>;
+
+/**
+ * Input configuration options for Digi.me SDK
+ */
+export type InputDigiMeSdkConfig = z.input<typeof DigiMeSdkConfig>;
 
 /**
  * Digi.me SDK
@@ -38,36 +91,46 @@ export class DigiMeSdk {
     /**
      * The `applicationId` this instance has been instantiated with
      */
-    public get applicationId() {
+    get applicationId() {
         return this.#config.applicationId;
     }
 
     /**
      * The `contractId` this instance has been instantiated with
      */
-    public get contractId() {
+    get contractId() {
         return this.#config.contractId;
     }
 
     /**
      * The `contractPrivateKey` this instance has been instantiated with
      */
-    public get contractPrivateKey() {
+    get contractPrivateKey() {
         return this.#config.contractPrivateKey;
     }
 
     /**
      * The `baseUrl` this instance has been instantiated with
      */
-    public get baseUrl() {
+    get baseUrl() {
         return this.#config.baseUrl;
     }
 
     /**
      * The `onboardUrl` this instance has been instantiated with
      */
-    public get onboardUrl() {
+    get onboardUrl() {
         return this.#config.onboardUrl;
+    }
+
+    /**
+     * Get an instance of the `DigiMeSdkAuthorized` that can call methods that require `UserAuthorization`
+     */
+    withUserAuthorization(userAuthorization: UserAuthorization): DigiMeSdkAuthorized {
+        return new DigiMeSdkAuthorized({
+            digiMeSdkInstance: this,
+            userAuthorization: userAuthorization,
+        });
     }
 
     /**
@@ -286,4 +349,135 @@ export class DigiMeSdk {
 
         return parseWithSchema(await response.json(), SampleDataSets);
     }
+}
+
+/**
+ * Configuration options for Authorized Digi.me SDK
+ */
+export const DigiMeSdkAuthorizedConfig = z.object(
+    {
+        /** Instance of DigiMeSdk to bind this DigiMeSdkAuthorized instance to */
+        digiMeSdkInstance: z.instanceof(DigiMeSdk),
+
+        /**  Instance of the `UserAuthorization` to bind this DigiMeSdkAuthorized instance to */
+        userAuthorization: z.instanceof(UserAuthorization),
+
+        /**
+         * Callback that will provide new UserAuthorization if the ones provided are automatically updated by
+         * the SDK.
+         *
+         * TODO: Correct function types
+         */
+        onUserAuthorizationUpdated: z.function().optional(),
+    },
+    {
+        required_error: "DigiMeSdkAuthorized config is required",
+        invalid_type_error: "DigiMeSdkAuthorized config must be an object",
+    },
+);
+
+export type DigiMeSdkAuthorizedConfig = z.infer<typeof DigiMeSdkAuthorizedConfig>;
+
+export class DigiMeSdkAuthorized {
+    #config: DigiMeSdkAuthorizedConfig;
+
+    constructor(config: DigiMeSdkAuthorizedConfig) {
+        this.#config = parseWithSchema(
+            config,
+            DigiMeSdkAuthorizedConfig,
+            'DigiMeSdkAuthorized constructor parameter "config"',
+        );
+    }
+
+    /**
+     * Attempt to refresh the instance of UserAuthorization attached to this instance and recieve a new one in return
+     *
+     * **NOTE**: This will also trigger this instances `onUserAuthorizationUpdated` callback, if one was provided!
+     */
+    async refreshUserAuthorization(): Promise<UserAuthorization> {
+        const newUserAuthorization = await this.#config.digiMeSdkInstance.refreshUserAuthorization({
+            userAuthorization: this.#config.userAuthorization,
+        });
+
+        // Call the update hook
+        if (this.#config.onUserAuthorizationUpdated) {
+            this.#config.onUserAuthorizationUpdated({
+                oldUserAuthorization: this.#config.userAuthorization,
+                newUserAuthorization,
+            });
+        }
+
+        this.#config.userAuthorization = newUserAuthorization;
+
+        return newUserAuthorization;
+    }
+
+    async #getCurrentUserAuthorizationOrThrow() {
+        const { access_token, refresh_token } = this.#config.userAuthorization.asPayload();
+
+        const now = Math.floor(Date.now() / 1000);
+        const accessTokenExpired = access_token.expires_on + 10 > now;
+
+        if (!accessTokenExpired) {
+            return this.#config.userAuthorization;
+        }
+
+        const refreshTokenExpired = refresh_token.expires_on + 10 > now;
+
+        if (refreshTokenExpired) {
+            throw new DigiMeSdkTypeError(errorMessages.accessAndRefreshTokenExpired);
+        }
+
+        return await this.refreshUserAuthorization();
+    }
+
+    async readAccounts() {}
+
+    async readSession() {}
+
+    async getOnboardServiceUrl() {}
+
+    async getReauthorizeAccountUrl() {}
+
+    async deleteUser() {}
+
+    async getPortabilityReport(parameters: GetPortabilityReportParameters) {
+        const { serviceType, format, from, to, signal } = parseWithSchema(parameters, GetPortabilityReportParameters);
+
+        const token = await signTokenPayload(
+            {
+                access_token: this.#getCurrentUserAuthorizationOrThrow(),
+                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
+                    this.#config.digiMeSdkInstance.contractId
+                }`,
+                nonce: getRandomAlphaNumeric(32),
+                timestamp: Date.now(),
+            },
+            this.#config.digiMeSdkInstance.contractPrivateKey,
+        );
+
+        const url = new URL(`export/${serviceType}/report`, this.#config.digiMeSdkInstance.baseUrl);
+        url.searchParams.set("format", format);
+        if (from) url.searchParams.set("from", from.toString());
+        if (to) url.searchParams.set("to", to.toString());
+
+        const response = fetchWrapper(url, {
+            signal,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/octet-stream",
+            },
+        });
+
+        // TODO: Figure out the expected response
+        return response;
+    }
+
+    pushData() {}
+
+    readAllFiles() {}
+
+    readFile() {}
+
+    readFileList() {}
 }

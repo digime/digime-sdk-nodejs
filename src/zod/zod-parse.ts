@@ -2,7 +2,8 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import z, { ZodError } from "zod";
+import type z from "zod";
+import { ZodError } from "zod";
 import { DigiMeSdkTypeError } from "../errors/errors";
 
 /* ZodError issue formatter */

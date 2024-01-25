@@ -7,7 +7,7 @@ import { fetchMachine } from "./fetch-machine";
 import { waitFor } from "xstate/lib/waitFor";
 import { logFetchWrapper } from "../debug-log";
 import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
-import { RetryOptions } from "./retry";
+import type { RetryOptions } from "./retry";
 
 /**
  * Extends [`Response`](https://developer.mozilla.org/docs/Web/API/Response) to

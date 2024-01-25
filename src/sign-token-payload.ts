@@ -2,7 +2,8 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { JWTHeaderParameters, SignJWT } from "jose";
+import type { JWTHeaderParameters } from "jose";
+import { SignJWT } from "jose";
 import { createPrivateKey } from "node:crypto";
 import { DigiMeSdkTypeError } from "./errors/errors";
 
