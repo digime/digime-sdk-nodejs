@@ -27,7 +27,9 @@ import { errorMessages } from "../errors/messages";
 import { GetPortabilityReportParameters } from "./get-portability-report";
 import { z } from "zod";
 import { DEFAULT_BASE_URL, DEFAULT_ONBOARD_URL } from "../constants";
+import { ReadAccountsParameters } from "./read-accounts";
 import { DeleteUserParameters } from "./delete-user";
+import { ReadFileListParameters } from "./read-file-list";
 
 // Transform and casting to have a more specific type for typechecking
 const UrlWithTrailingSlash = z
@@ -433,7 +435,35 @@ export class DigiMeSdkAuthorized {
         return await this.refreshUserAuthorization();
     }
 
-    async readAccounts() {}
+    async readAccounts(parameters: ReadAccountsParameters = {}) {
+        const { signal } = parseWithSchema(parameters, ReadAccountsParameters, "`readAcccounts` parameters");
+        const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
+        const token = await signTokenPayload(
+            {
+                access_token: userAuthorization.asPayload().access_token.value,
+                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
+                    this.#config.digiMeSdkInstance.contractId
+                }`,
+                nonce: getRandomAlphaNumeric(32),
+                timestamp: Date.now(),
+            },
+            this.#config.digiMeSdkInstance.contractPrivateKey,
+        );
+
+        const response = await fetchWrapper(
+            new URL("permission-access/accounts", this.#config.digiMeSdkInstance.baseUrl),
+            {
+                signal,
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    // Accept: "application/json",
+                },
+            },
+        );
+
+        // TODO: Validate and return correctly
+        return response;
+    }
 
     async readSession() {}
 
@@ -469,12 +499,20 @@ export class DigiMeSdkAuthorized {
         });
     }
 
-    async getPortabilityReport(parameters: GetPortabilityReportParameters) {
-        const { serviceType, format, from, to, signal } = parseWithSchema(parameters, GetPortabilityReportParameters);
+    /**
+     * Retrieve the portability report
+     */
+    async getPortabilityReport(parameters: GetPortabilityReportParameters): Promise<string> {
+        const { serviceType, format, from, to, signal } = parseWithSchema(
+            parameters,
+            GetPortabilityReportParameters,
+            "`getPortabilityReport` parameters",
+        );
 
+        const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
         const token = await signTokenPayload(
             {
-                access_token: this.#getCurrentUserAuthorizationOrThrow(),
+                access_token: userAuthorization.asPayload().access_token.value,
                 client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
                     this.#config.digiMeSdkInstance.contractId
                 }`,
@@ -489,7 +527,7 @@ export class DigiMeSdkAuthorized {
         if (from) url.searchParams.set("from", from.toString());
         if (to) url.searchParams.set("to", to.toString());
 
-        const response = fetchWrapper(url, {
+        const response = await fetchWrapper(url, {
             signal,
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -497,15 +535,43 @@ export class DigiMeSdkAuthorized {
             },
         });
 
-        // TODO: Figure out the expected response
-        return response;
+        // TODO: Provide optional stream return type?
+        return await response.text();
     }
 
-    pushData() {}
+    async pushData() {}
 
-    readAllFiles() {}
+    async readAllFiles() {}
 
-    readFile() {}
+    async readFile() {}
 
-    readFileList() {}
+    async readFileList(parameters: ReadFileListParameters) {
+        const { sessionKey, signal } = parseWithSchema(parameters, ReadFileListParameters, "`readFileList` parameters");
+
+        const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
+        const token = await signTokenPayload(
+            {
+                access_token: userAuthorization.asPayload().access_token.value,
+                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
+                    this.#config.digiMeSdkInstance.contractId
+                }`,
+                nonce: getRandomAlphaNumeric(32),
+                timestamp: Date.now(),
+            },
+            this.#config.digiMeSdkInstance.contractPrivateKey,
+        );
+
+        const response = await fetchWrapper(
+            new URL(`permission-access/query/${sessionKey}`, this.#config.digiMeSdkInstance.baseUrl),
+            {
+                signal,
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    // Accept: "application/json",
+                },
+            },
+        );
+
+        return response;
+    }
 }

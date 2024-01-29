@@ -9,6 +9,7 @@ import { handlers as oauthAuthorizeHandlers } from "../../mocks/api/oauth/author
 import { handlers as oauthTokenHandlers } from "../../mocks/api/oauth/token/handlers";
 import { handlers as permissionAccessSampleDataSetsHandlers } from "../../mocks/api/permission-access/sample/datasets/handlers";
 import { handlers as userHandlers } from "../../mocks/api/user/handlers";
+import { handlers as exportHandlers } from "../../mocks/api/export/handlers";
 import { DigiMeSdk } from "./digi-me-sdk";
 import { UserAuthorization } from "../user-authorization";
 import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
@@ -612,11 +613,25 @@ describe("DigiMeSDK", () => {
 
 describe("DigiMeSdkAuthorized", () => {
     describe("Instanced", () => {
-        describe("Constructor", () => {
-            test("Throws if", () => {});
-            test("Throws if", () => {});
-            test("Throws if", () => {});
-            test("Throws if", () => {});
+        describe.todo("Constructor", () => {});
+
+        describe(".getPortabilityReport()", () => {
+            test("Works with minimal parameters", async () => {
+                mswServer.use(...exportHandlers);
+
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+
+                const result = await authorizedSdk.getPortabilityReport({
+                    serviceType: "medmij",
+                    format: "xml",
+                });
+
+                expect(result).toEqual(expect.any(String));
+            });
         });
 
         describe(".deleteUser()", () => {

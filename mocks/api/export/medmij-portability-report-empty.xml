@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <PortabiliteitsRapport xmlns="xmlns://afsprakenstelsel.medmij.nl/PortabiliteitsRapport/release1/">
+    <PortabiliteitsRapportMeta>
+        <Deelnemer>1337</Deelnemer>
+        <Van>2024-01-29T00:00:00.000Z</Van>
+        <Tot>2024-01-29T23:59:59.999Z</Tot>
+        <Tijdstempel>2024-01-29T11:51:35.049Z</Tijdstempel>
+    </PortabiliteitsRapportMeta>
+    <Zorgaanbieders></Zorgaanbieders>
+</PortabiliteitsRapport>
