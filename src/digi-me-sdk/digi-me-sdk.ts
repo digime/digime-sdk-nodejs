@@ -417,13 +417,14 @@ export class DigiMeSdkAuthorized {
         const { access_token, refresh_token } = this.#config.userAuthorization.asPayload();
 
         const now = Math.floor(Date.now() / 1000);
-        const accessTokenExpired = access_token.expires_on + 10 > now;
+
+        const accessTokenExpired = now > access_token.expires_on + 10;
 
         if (!accessTokenExpired) {
             return this.#config.userAuthorization;
         }
 
-        const refreshTokenExpired = refresh_token.expires_on + 10 > now;
+        const refreshTokenExpired = now > refresh_token.expires_on + 10;
 
         if (refreshTokenExpired) {
             throw new DigiMeSdkTypeError(errorMessages.accessAndRefreshTokenExpired);
