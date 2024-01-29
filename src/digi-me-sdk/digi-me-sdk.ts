@@ -27,6 +27,7 @@ import { errorMessages } from "../errors/messages";
 import { GetPortabilityReportParameters } from "./get-portability-report";
 import { z } from "zod";
 import { DEFAULT_BASE_URL, DEFAULT_ONBOARD_URL } from "../constants";
+import { DeleteUserParameters } from "./delete-user";
 
 // Transform and casting to have a more specific type for typechecking
 const UrlWithTrailingSlash = z
@@ -439,7 +440,33 @@ export class DigiMeSdkAuthorized {
 
     async getReauthorizeAccountUrl() {}
 
-    async deleteUser() {}
+    /**
+     * Attempts to delete the user that this instances UserAuthorization is bound to
+     */
+    async deleteUser(parameters: DeleteUserParameters = {}): Promise<void> {
+        const { signal } = parseWithSchema(parameters, DeleteUserParameters, "`deleteUser` parameters");
+        const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
+        const token = await signTokenPayload(
+            {
+                access_token: userAuthorization.asPayload().access_token.value,
+                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
+                    this.#config.digiMeSdkInstance.contractId
+                }`,
+                nonce: getRandomAlphaNumeric(32),
+                timestamp: Date.now(),
+            },
+            this.#config.digiMeSdkInstance.contractPrivateKey,
+        );
+
+        await fetchWrapper(new URL("user", this.#config.digiMeSdkInstance.baseUrl), {
+            method: "DELETE",
+            signal,
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+            },
+        });
+    }
 
     async getPortabilityReport(parameters: GetPortabilityReportParameters) {
         const { serviceType, format, from, to, signal } = parseWithSchema(parameters, GetPortabilityReportParameters);

@@ -8,6 +8,7 @@ import { handlers as discoveryServicesHandlers } from "../../mocks/api/discovery
 import { handlers as oauthAuthorizeHandlers } from "../../mocks/api/oauth/authorize/handlers";
 import { handlers as oauthTokenHandlers } from "../../mocks/api/oauth/token/handlers";
 import { handlers as permissionAccessSampleDataSetsHandlers } from "../../mocks/api/permission-access/sample/datasets/handlers";
+import { handlers as userHandlers } from "../../mocks/api/user/handlers";
 import { DigiMeSdk } from "./digi-me-sdk";
 import { UserAuthorization } from "../user-authorization";
 import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
@@ -616,6 +617,22 @@ describe("DigiMeSdkAuthorized", () => {
             test("Throws if", () => {});
             test("Throws if", () => {});
             test("Throws if", () => {});
+        });
+
+        describe(".deleteUser()", () => {
+            test("Works with no parameters", async () => {
+                mswServer.use(...userHandlers);
+
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+
+                const result = await authorizedSdk.deleteUser();
+
+                expect(result).toBe(undefined);
+            });
         });
     });
 });

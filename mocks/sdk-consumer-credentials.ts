@@ -4,6 +4,7 @@
 
 import { KeyObject } from "crypto";
 import { generateKeyPair } from "jose";
+import { mockApiInternals } from "./api-internals";
 
 export const keyAsPkcs1PemString = (key: unknown): string => {
     if (!(key instanceof KeyObject)) {
@@ -24,4 +25,5 @@ export const mockSdkConsumerCredentials = {
     applicationId: "mock-application-id",
     ...sdkConsumerKeyPair,
     privateKeyPkcs1PemString: keyAsPkcs1PemString(sdkConsumerKeyPair.privateKey),
+    userAuthorizationJwt: await mockApiInternals.generateUserAuthorizationJwt(),
 } as const;

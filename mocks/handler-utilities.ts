@@ -20,6 +20,19 @@ export const assertAcceptsJson = (request: Request): void => {
 };
 
 /**
+ * Mimics the way Digi.me API handles the request with an invalid octet-stream Accept header
+ * TODO: Confirm
+ */
+export const assertAcceptsOctetStream = (request: Request): void => {
+    const accept = request.headers.get("Accept");
+
+    if (accept !== "application/octet-stream") {
+        const error = { code: "ValidationErrors", message: "Parameter validation errors" };
+        throw HttpResponse.json(formatBodyError(error), { status: 406, headers: formatHeadersError(error) });
+    }
+};
+
+/**
  * Mimics the way Digi.me API handles the request with an invalid JSON Content-Type header
  */
 export const assertContentTypeJson = (request: Request): void => {
