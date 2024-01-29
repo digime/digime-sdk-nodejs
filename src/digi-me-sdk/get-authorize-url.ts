@@ -4,6 +4,7 @@
 
 import { z } from "zod";
 import type { Session } from "../types/session";
+import { UserAuthorization } from "../user-authorization";
 
 /**
  * CAScope - timeRanges
@@ -103,8 +104,8 @@ export const GetAuthorizeUrlParameters = z.object(
             })
             .optional(),
 
-        /** TokenPair you may already have for this user */
-        // tokenPair: TokenPayload.optional(),
+        /** Associate this onboard to an existing user with an UserAuthorization you have */
+        userAuthorization: z.instanceof(UserAuthorization).optional(),
 
         /**
          * Only show services of specific sourceType

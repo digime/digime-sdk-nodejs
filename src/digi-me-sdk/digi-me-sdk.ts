@@ -181,6 +181,7 @@ export class DigiMeSdk {
             sourceType,
             preferredLocale,
             includeSampleDataOnlySources,
+            userAuthorization,
             signal,
         } = parseWithSchema(parameters, GetAuthorizeUrlParameters, "`getAuthorizeUrl` parameters");
 
@@ -198,10 +199,9 @@ export class DigiMeSdk {
             timestamp: Date.now(),
         };
 
-        // TODO: Reimplement this?
-        // if (this.#oauthToken) {
-        //     tokenPayload.access_token = (await DigiMeSdk.getOauthTokenPayload(this.#oauthToken)).access_token.value;
-        // }
+        if (userAuthorization) {
+            tokenPayload.access_token = userAuthorization.asPayload().access_token.value;
+        }
 
         const token = await signTokenPayload(tokenPayload, this.contractPrivateKey);
 
