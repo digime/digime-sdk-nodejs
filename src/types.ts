@@ -8,6 +8,10 @@
 
 export { DeleteUserOptions, DeleteUserResponse } from "./delete-user";
 export { DeleteAccountOptions, DeleteAccountResponse } from "./delete-account";
+export {
+    GetRevokeAccountPermissionUrlOptions,
+    GetRevokeAccountPermissionUrlResponse,
+} from "./get-revoke-account-permission-url";
 export { ExchangeCodeForTokenOptions } from "./exchange-code-for-token";
 export { GetAuthorizeUrlResponse, GetAuthorizeUrlOptions } from "./get-authorize-url";
 export { GetAvailableServicesResponse, DiscoveryService } from "./get-available-services";

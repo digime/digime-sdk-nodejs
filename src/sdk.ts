@@ -9,6 +9,10 @@
 
 import { DeleteUserOptions, DeleteUserResponse } from "./delete-user";
 import { DeleteAccountOptions, DeleteAccountResponse } from "./delete-account";
+import {
+    GetRevokeAccountPermissionUrlOptions,
+    GetRevokeAccountPermissionUrlResponse,
+} from "./get-revoke-account-permission-url";
 import { ExchangeCodeForTokenOptions } from "./exchange-code-for-token";
 import { GetAuthorizeUrlResponse, GetAuthorizeUrlOptions } from "./get-authorize-url";
 import { GetAvailableServicesOptions, GetAvailableServicesResponse } from "./get-available-services";
@@ -116,6 +120,15 @@ export interface DigimeSDK {
      * @category Delete
      */
     deleteAccount: (props: DeleteAccountOptions) => Promise<DeleteAccountResponse>;
+
+    /**
+     * Revoke account permission
+     *
+     * @category Authorization
+     */
+    getRevokeAccountPermissionUrl: (
+        props: GetRevokeAccountPermissionUrlOptions
+    ) => Promise<GetRevokeAccountPermissionUrlResponse>;
 
     /**
      * Get a list of possible services a user can onboard to their digi.me
