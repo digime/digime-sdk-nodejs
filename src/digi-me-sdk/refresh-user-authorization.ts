@@ -11,9 +11,6 @@ import { UserAuthorization } from "../user-authorization";
 export const RefreshUserAuthorizationParameters = z.object({
     /** authorizationCode received by the callback you provided to `getAuthorizeUrl` */
     userAuthorization: z.instanceof(UserAuthorization),
-
-    /** AbortSignal to abort this operation */
-    signal: z.instanceof(AbortSignal).optional(),
 });
 
 export type RefreshUserAuthorizationParameters = z.infer<typeof RefreshUserAuthorizationParameters>;

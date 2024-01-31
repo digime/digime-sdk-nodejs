@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { describe, test, expect } from "vitest";
+import { describe, test, expect, vi } from "vitest";
 import { mswServer } from "../../mocks/server";
 import { handlers as discoveryServicesHandlers } from "../../mocks/api/discovery/services/handlers";
 import { handlers as oauthAuthorizeHandlers } from "../../mocks/api/oauth/authorize/handlers";
@@ -10,7 +10,7 @@ import { handlers as oauthTokenHandlers } from "../../mocks/api/oauth/token/hand
 import { handlers as permissionAccessSampleDataSetsHandlers } from "../../mocks/api/permission-access/sample/datasets/handlers";
 import { handlers as userHandlers } from "../../mocks/api/user/handlers";
 import { handlers as exportHandlers } from "../../mocks/api/export/handlers";
-import { DigiMeSdk } from "./digi-me-sdk";
+import { DigiMeSdk, DigiMeSdkAuthorized } from "./digi-me-sdk";
 import { UserAuthorization } from "../user-authorization";
 import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 import { mockSdkConsumerCredentials } from "../../mocks/sdk-consumer-credentials";
@@ -447,29 +447,6 @@ describe("DigiMeSDK", () => {
                 expect(result).not.toBe(userAuthorization);
             });
 
-            test("Throws if abort signal is triggered", async () => {
-                mswServer.use(...oauthTokenHandlers);
-
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const signal = AbortSignal.abort();
-                const userAuthorization = UserAuthorization.fromPayload({
-                    access_token: {
-                        value: "test-access-token",
-                        expires_on: 1,
-                    },
-                    refresh_token: {
-                        value: "test-refresh-token",
-                        expires_on: 2,
-                    },
-                    sub: "test-sub",
-                });
-
-                const promise = sdk.refreshUserAuthorization({ userAuthorization, signal });
-
-                await expect(promise).rejects.toBeInstanceOf(Error);
-                await expect(promise).rejects.toHaveProperty("name", "AbortError");
-            });
-
             test("Throws if provided no arguments", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
@@ -515,15 +492,12 @@ describe("DigiMeSDK", () => {
                 const promise = sdk.refreshUserAuthorization({
                     // @ts-expect-error Providing wrong type on purpose
                     userAuthorization: 1,
-                    // @ts-expect-error Providing wrong type on purpose
-                    signal: "",
                 });
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`refreshUserAuthorization\` parameters (2 issues):
-                   • "userAuthorization": Input not instance of UserAuthorization
-                   • "signal": Input not instance of AbortSignal]
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`refreshUserAuthorization\` parameters (1 issue):
+                   • "userAuthorization": Input not instance of UserAuthorization]
                 `);
             });
         });
@@ -616,7 +590,118 @@ describe("DigiMeSDK", () => {
 
 describe("DigiMeSdkAuthorized", () => {
     describe("Instanced", () => {
-        describe.todo("Constructor", () => {});
+        describe("Constructor", () => {
+            test("Works with minimum parameters", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+
+                const authorizedSdk = new DigiMeSdkAuthorized({
+                    digiMeSdkInstance: sdk,
+                    userAuthorization: userAuthorization,
+                });
+
+                expect(authorizedSdk).toBeInstanceOf(DigiMeSdkAuthorized);
+            });
+
+            test("Throws if provided no arguments", () => {
+                expect(
+                    // @ts-expect-error Providing wrong type on purpose
+                    () => new DigiMeSdkAuthorized(),
+                ).toThrowErrorMatchingInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for DigiMeSdkAuthorized constructor parameter "config" (1 issue):
+                   • DigiMeSdkAuthorized config is required]
+                `);
+            });
+
+            test("Throws if `config` argument is not an object", () => {
+                expect(
+                    // @ts-expect-error Providing wrong type on purpose
+                    () => new DigiMeSdkAuthorized(""),
+                ).toThrowErrorMatchingInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for DigiMeSdkAuthorized constructor parameter "config" (1 issue):
+                   • DigiMeSdkAuthorized config must be an object]
+                `);
+            });
+
+            test("Throws if `config` argument is an empty object", () => {
+                expect(
+                    // @ts-expect-error Providing wrong type on purpose
+                    () => new DigiMeSdkAuthorized({}),
+                ).toThrowErrorMatchingInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for DigiMeSdkAuthorized constructor parameter "config" (2 issues):
+                   • "digiMeSdkInstance": Input not instance of DigiMeSdk
+                   • "userAuthorization": Input not instance of UserAuthorization]
+                `);
+            });
+
+            test("Throws if `config` argument is an object with incorrect shape", () => {
+                expect(
+                    () =>
+                        new DigiMeSdkAuthorized({
+                            // @ts-expect-error Providing wrong type on purpose
+                            digiMeSdkInstance: 1,
+                            // @ts-expect-error Providing wrong type on purpose
+                            userAuthorization: [],
+                            // @ts-expect-error Providing wrong type on purpose
+                            onUserAuthorizationUpdated: {},
+                        }),
+                ).toThrowErrorMatchingInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for DigiMeSdkAuthorized constructor parameter "config" (3 issues):
+                   • "digiMeSdkInstance": Input not instance of DigiMeSdk
+                   • "userAuthorization": Input not instance of UserAuthorization
+                   • "onUserAuthorizationUpdated": Expected function, received object]
+                `);
+            });
+        });
+
+        describe(".refreshUserAuthorization", () => {
+            test("Returns a new `UserAuthorization` instance", async () => {
+                mswServer.use(...oauthTokenHandlers);
+
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+
+                const authorizedSdk = new DigiMeSdkAuthorized({
+                    digiMeSdkInstance: sdk,
+                    userAuthorization: userAuthorization,
+                });
+
+                const returnedUserAuthorization = await authorizedSdk.refreshUserAuthorization();
+
+                expect.assertions(2);
+                expect(returnedUserAuthorization).toBeInstanceOf(UserAuthorization);
+                expect(returnedUserAuthorization).not.toBe(userAuthorization);
+            });
+
+            test("Triggers `onUserAuthorizationUpdated` handler correctly", async () => {
+                mswServer.use(...oauthTokenHandlers);
+
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const updateHandler = vi.fn();
+
+                const authorizedSdk = new DigiMeSdkAuthorized({
+                    digiMeSdkInstance: sdk,
+                    userAuthorization: userAuthorization,
+                    onUserAuthorizationUpdated: updateHandler,
+                });
+
+                const returnedUserAuthorization = await authorizedSdk.refreshUserAuthorization();
+
+                expect.assertions(5);
+                expect(returnedUserAuthorization).toBeInstanceOf(UserAuthorization);
+                expect(returnedUserAuthorization).not.toBe(userAuthorization);
+                expect(updateHandler).toHaveBeenCalledOnce();
+                expect(updateHandler.mock.lastCall[0].oldUserAuthorization).toBe(userAuthorization);
+                expect(updateHandler.mock.lastCall[0].newUserAuthorization).toBe(returnedUserAuthorization);
+            });
+        });
 
         describe(".getPortabilityReport()", () => {
             test('Returns a string when `as` is "string"', async () => {

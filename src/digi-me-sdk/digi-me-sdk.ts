@@ -295,7 +295,7 @@ export class DigiMeSdk {
      * Attempt to refresh any instance of a UserAuthorization and recieve a new one in return
      */
     async refreshUserAuthorization(parameters: RefreshUserAuthorizationParameters): Promise<UserAuthorization> {
-        const { userAuthorization, signal } = parseWithSchema(
+        const { userAuthorization } = parseWithSchema(
             parameters,
             RefreshUserAuthorizationParameters,
             "`refreshUserAuthorization` parameters",
@@ -313,7 +313,6 @@ export class DigiMeSdk {
         );
 
         const response = await fetchWrapper(new URL("oauth/token", this.baseUrl), {
-            signal,
             method: "POST",
             headers: {
                 Authorization: `Bearer ${signedToken}`,
@@ -370,10 +369,17 @@ export const DigiMeSdkAuthorizedConfig = z.object(
         /**
          * Callback that will provide new UserAuthorization if the ones provided are automatically updated by
          * the SDK.
-         *
-         * TODO: Correct function types
          */
-        onUserAuthorizationUpdated: z.function().optional(),
+        onUserAuthorizationUpdated: z
+            .function()
+            .args(
+                z.object({
+                    oldUserAuthorization: z.instanceof(UserAuthorization),
+                    newUserAuthorization: z.instanceof(UserAuthorization),
+                }),
+            )
+            .returns(z.void())
+            .optional(),
     },
     {
         required_error: "DigiMeSdkAuthorized config is required",
