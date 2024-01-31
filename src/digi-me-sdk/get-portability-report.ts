@@ -5,9 +5,23 @@
 import { z } from "zod";
 
 /**
- * `<instance>.getPortabilityReport()` input parameters
+ * `<instance>.getPortabilityReport()` as argument
  */
-export const GetPortabilityReportParameters = z.object({
+export const GetPortabilityReportAs = z.union(
+    [z.literal("string"), z.literal("ReadableStream"), z.literal("NodeReadable")],
+    {
+        errorMap: () => ({
+            message: 'Must be one of: "string", "ReadableStream",  "NodeReadable"',
+        }),
+    },
+);
+
+export type GetPortabilityReportAs = z.infer<typeof GetPortabilityReportAs>;
+
+/**
+ * `<instance>.getPortabilityReport()` options argument
+ */
+export const GetPortabilityReportOptions = z.object({
     /**
      * Desired file format of the portability report. Currently only `xml` is supported.
      */
@@ -35,4 +49,4 @@ export const GetPortabilityReportParameters = z.object({
     signal: z.instanceof(AbortSignal).optional(),
 });
 
-export type GetPortabilityReportParameters = z.infer<typeof GetPortabilityReportParameters>;
+export type GetPortabilityReportOptions = z.infer<typeof GetPortabilityReportOptions>;

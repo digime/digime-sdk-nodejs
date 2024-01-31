@@ -24,12 +24,14 @@ import { TrustedJwks } from "../trusted-jwks";
 import { UserAuthorization } from "../user-authorization";
 import { DigiMeSdkTypeError } from "../errors/errors";
 import { errorMessages } from "../errors/messages";
-import { GetPortabilityReportParameters } from "./get-portability-report";
+import { GetPortabilityReportAs, GetPortabilityReportOptions } from "./get-portability-report";
 import { z } from "zod";
 import { DEFAULT_BASE_URL, DEFAULT_ONBOARD_URL } from "../constants";
 import { ReadAccountsParameters } from "./read-accounts";
 import { DeleteUserParameters } from "./delete-user";
 import { ReadFileListParameters } from "./read-file-list";
+import type { Readable } from "node:stream";
+import { webReadableStreamToNodeReadable } from "../node-streams";
 
 // Transform and casting to have a more specific type for typechecking
 const UrlWithTrailingSlash = z
@@ -502,11 +504,21 @@ export class DigiMeSdkAuthorized {
     /**
      * Retrieve the portability report
      */
-    async getPortabilityReport(parameters: GetPortabilityReportParameters): Promise<string> {
+    async getPortabilityReport(as: "string", options: GetPortabilityReportOptions): Promise<string>;
+    async getPortabilityReport(
+        as: "ReadableStream",
+        options: GetPortabilityReportOptions,
+    ): Promise<NonNullable<Response["body"]>>;
+    async getPortabilityReport(as: "NodeReadable", options: GetPortabilityReportOptions): Promise<Readable>;
+    async getPortabilityReport(
+        as: GetPortabilityReportAs,
+        options: GetPortabilityReportOptions,
+    ): Promise<string | Readable | NonNullable<Response["body"]>> {
+        as = parseWithSchema(as, GetPortabilityReportAs, "`getPortabilityReport` `as` argument");
         const { serviceType, format, from, to, signal } = parseWithSchema(
-            parameters,
-            GetPortabilityReportParameters,
-            "`getPortabilityReport` parameters",
+            options,
+            GetPortabilityReportOptions,
+            "`getPortabilityReport` `options` argument",
         );
 
         const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
@@ -535,8 +547,20 @@ export class DigiMeSdkAuthorized {
             },
         });
 
-        // TODO: Provide optional stream return type?
-        return await response.text();
+        if (as === "string") {
+            return await response.text();
+        }
+
+        // NOTE: Maybe return an empty readable if this turns out to be problematic
+        if (!response.body) {
+            throw new DigiMeSdkTypeError("Response contains no body");
+        }
+
+        if (as === "NodeReadable") {
+            return webReadableStreamToNodeReadable(response.body);
+        }
+
+        return response.body;
     }
 
     async pushData() {}

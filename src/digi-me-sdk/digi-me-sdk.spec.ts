@@ -15,6 +15,9 @@ import { UserAuthorization } from "../user-authorization";
 import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 import { mockSdkConsumerCredentials } from "../../mocks/sdk-consumer-credentials";
 import { randomInt } from "node:crypto";
+import { Readable } from "node:stream";
+import { fromMockApiBase } from "../../mocks/utilities";
+import { HttpResponse, http } from "msw";
 
 export const mockSdkOptions = {
     applicationId: mockSdkConsumerCredentials.applicationId,
@@ -616,7 +619,7 @@ describe("DigiMeSdkAuthorized", () => {
         describe.todo("Constructor", () => {});
 
         describe(".getPortabilityReport()", () => {
-            test("Works with minimal parameters", async () => {
+            test('Returns a string when `as` is "string"', async () => {
                 mswServer.use(...exportHandlers);
 
                 const userAuthorization = await UserAuthorization.fromJwt(
@@ -625,12 +628,188 @@ describe("DigiMeSdkAuthorized", () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
                 const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
 
-                const result = await authorizedSdk.getPortabilityReport({
+                const result = await authorizedSdk.getPortabilityReport("string", {
                     serviceType: "medmij",
                     format: "xml",
                 });
 
                 expect(result).toEqual(expect.any(String));
+            });
+
+            test('Returns a `ReadableStream` when `as` is "ReadableStream"', async () => {
+                mswServer.use(...exportHandlers);
+
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+
+                const result = await authorizedSdk.getPortabilityReport("ReadableStream", {
+                    serviceType: "medmij",
+                    format: "xml",
+                });
+
+                expect(result).toEqual(expect.any(ReadableStream));
+            });
+
+            test('Returns a Node.js `Readable` when `as` is "NodeReadable"', async () => {
+                mswServer.use(...exportHandlers);
+
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+
+                const result = await authorizedSdk.getPortabilityReport("NodeReadable", {
+                    serviceType: "medmij",
+                    format: "xml",
+                });
+
+                expect(result).toEqual(expect.any(Readable));
+            });
+
+            test("Throws if abort signal is triggered", async () => {
+                mswServer.use(...exportHandlers);
+
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+                const signal = AbortSignal.abort();
+
+                const promise = authorizedSdk.getPortabilityReport("string", {
+                    serviceType: "medmij",
+                    format: "xml",
+                    signal,
+                });
+
+                await expect(promise).rejects.toBeInstanceOf(Error);
+                await expect(promise).rejects.toHaveProperty("name", "AbortError");
+            });
+
+            test("Throws if provided no arguments", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+
+                // @ts-expect-error Providing wrong type on purpose
+                const promise = authorizedSdk.getPortabilityReport();
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getPortabilityReport\` \`as\` argument (1 issue):
+                   • Must be one of: "string", "ReadableStream",  "NodeReadable"]
+                `);
+            });
+
+            test("Throws if `as` argument is invalid", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+
+                // @ts-expect-error Providing wrong type on purpose
+                const promise = authorizedSdk.getPortabilityReport(0, {
+                    serviceType: "medmij",
+                    format: "xml",
+                });
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getPortabilityReport\` \`as\` argument (1 issue):
+                   • Must be one of: "string", "ReadableStream",  "NodeReadable"]
+                `);
+            });
+
+            test("Throws if `options` argument is not an object", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+
+                // @ts-expect-error Providing wrong type on purpose
+                const promise = authorizedSdk.getPortabilityReport("string", []);
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getPortabilityReport\` \`options\` argument (1 issue):
+                   • Expected object, received array]
+                `);
+            });
+
+            test("Throws if `options` argument is an empty object", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+
+                // @ts-expect-error Providing wrong type on purpose
+                const promise = authorizedSdk.getPortabilityReport("string", {});
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getPortabilityReport\` \`options\` argument (2 issues):
+                   • "format": Invalid literal value, expected "xml"
+                   • "serviceType": Invalid literal value, expected "medmij"]
+                `);
+            });
+
+            test("Throws if `options` argument is an object with incorrect shape", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+
+                // @ts-expect-error Providing wrong type on purpose
+                const promise = authorizedSdk.getPortabilityReport("string", {
+                    format: 1,
+                    serviceType: [],
+                    from: "1",
+                    to: null,
+                    signal: "",
+                });
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getPortabilityReport\` \`options\` argument (5 issues):
+                   • "format": Invalid literal value, expected "xml"
+                   • "serviceType": Invalid literal value, expected "medmij"
+                   • "from": Expected number, received string
+                   • "to": Expected number, received null
+                   • "signal": Input not instance of AbortSignal]
+                `);
+            });
+
+            test("Throws if the API does not return a body", async () => {
+                mswServer.use(
+                    http.get(fromMockApiBase("export/:serviceType/report"), async () => {
+                        return new HttpResponse(undefined, { status: 204 });
+                    }),
+                );
+
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+
+                const promise = authorizedSdk.getPortabilityReport("ReadableStream", {
+                    serviceType: "medmij",
+                    format: "xml",
+                });
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`[DigiMeSdkTypeError: Response contains no body]`);
             });
         });
 
@@ -647,6 +826,61 @@ describe("DigiMeSdkAuthorized", () => {
                 const result = await authorizedSdk.deleteUser();
 
                 expect(result).toBe(undefined);
+            });
+
+            test("Throws if abort signal is triggered", async () => {
+                mswServer.use(...userHandlers);
+
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+                const signal = AbortSignal.abort();
+
+                const promise = authorizedSdk.deleteUser({
+                    signal,
+                });
+
+                await expect(promise).rejects.toBeInstanceOf(Error);
+                await expect(promise).rejects.toHaveProperty("name", "AbortError");
+            });
+
+            test("Throws if `parameters` argument is not an object", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+
+                // @ts-expect-error Providing wrong type on purpose
+                const promise = authorizedSdk.deleteUser([]);
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`deleteUser\` parameters (1 issue):
+                   • Expected object, received array]
+                `);
+            });
+
+            test("Throws if `parameters` argument is an object with incorrect shape", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+
+                const promise = authorizedSdk.deleteUser({
+                    // @ts-expect-error Providing wrong type on purpose
+                    signal: "",
+                });
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`deleteUser\` parameters (1 issue):
+                   • "signal": Input not instance of AbortSignal]
+                `);
             });
         });
     });
