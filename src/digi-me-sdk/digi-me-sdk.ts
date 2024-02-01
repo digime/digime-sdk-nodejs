@@ -28,6 +28,7 @@ import { z } from "zod";
 import { DEFAULT_BASE_URL, DEFAULT_ONBOARD_URL } from "../constants";
 import { Accounts, ReadAccountsParameters } from "./read-accounts";
 import { DeleteUserParameters } from "./delete-user";
+import { FileList } from "./read-file-list";
 import { ReadFileListParameters } from "./read-file-list";
 import type { Readable } from "node:stream";
 import { webReadableStreamToNodeReadable } from "../node-streams";
@@ -565,7 +566,7 @@ export class DigiMeSdkAuthorized {
 
     async readFile() {}
 
-    async readFileList(parameters: ReadFileListParameters) {
+    async readFileList(parameters: ReadFileListParameters): Promise<FileList> {
         const { sessionKey, signal } = parseWithSchema(parameters, ReadFileListParameters, "`readFileList` parameters");
 
         const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
@@ -587,11 +588,11 @@ export class DigiMeSdkAuthorized {
                 signal,
                 headers: {
                     Authorization: `Bearer ${token}`,
-                    // Accept: "application/json",
+                    Accept: "application/json",
                 },
             },
         );
 
-        return response;
+        return parseWithSchema(await response.json(), FileList);
     }
 }
