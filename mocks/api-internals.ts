@@ -33,12 +33,12 @@ export const buildMockApiInternals = async (baseUrl?: string) => {
             access_token: {
                 value: `mock-access-token-${uuid}`,
                 // Random access token expires in a day
-                expires_on: Date.now() * 1000 + DAY_IN_SECONDS,
+                expires_on: Math.round(Date.now() / 1000 + DAY_IN_SECONDS),
             },
             refresh_token: {
                 value: `mock-refresh-token-${uuid}`,
                 // Random refresh token expires in a week
-                expires_on: Date.now() * 1000 + DAY_IN_SECONDS * 7,
+                expires_on: Math.round(Date.now() / 1000 + DAY_IN_SECONDS * 7),
             },
             identifier: {
                 id: `mock-identifier-id-${uuid}`,

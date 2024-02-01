@@ -19,10 +19,9 @@ import { getVerifiedTokenPayload } from "../get-verified-token-payload";
 import { GetAvailableServicesParameters } from "./get-available-services";
 import { GetSampleDataSetsForSourceParameters, SampleDataSets } from "./get-sample-data-sets-for-source";
 import { ExchangeCodeForUserAuthorizationParameters } from "./exchange-code-for-user-authorization";
-import { RefreshUserAuthorizationParameters } from "./refresh-user-authorization";
 import { TrustedJwks } from "../trusted-jwks";
 import { UserAuthorization } from "../user-authorization";
-import { DigiMeSdkTypeError } from "../errors/errors";
+import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 import { errorMessages } from "../errors/messages";
 import { GetPortabilityReportAs, GetPortabilityReportOptions } from "./get-portability-report";
 import { z } from "zod";
@@ -294,12 +293,16 @@ export class DigiMeSdk {
     /**
      * Attempt to refresh any instance of a UserAuthorization and recieve a new one in return
      */
-    async refreshUserAuthorization(parameters: RefreshUserAuthorizationParameters): Promise<UserAuthorization> {
-        const { userAuthorization } = parseWithSchema(
-            parameters,
-            RefreshUserAuthorizationParameters,
-            "`refreshUserAuthorization` parameters",
+    async refreshUserAuthorization(userAuthorization: UserAuthorization): Promise<UserAuthorization> {
+        userAuthorization = parseWithSchema(
+            userAuthorization,
+            z.instanceof(UserAuthorization),
+            "`userAuthorization` argument",
         );
+
+        if (!userAuthorization.isRefreshable()) {
+            throw new DigiMeSdkError(errorMessages.accessAndRefreshTokenExpired);
+        }
 
         const signedToken = await signTokenPayload(
             {
@@ -406,9 +409,9 @@ export class DigiMeSdkAuthorized {
      * **NOTE**: This will also trigger this instances `onUserAuthorizationUpdated` callback, if one was provided!
      */
     async refreshUserAuthorization(): Promise<UserAuthorization> {
-        const newUserAuthorization = await this.#config.digiMeSdkInstance.refreshUserAuthorization({
-            userAuthorization: this.#config.userAuthorization,
-        });
+        const newUserAuthorization = await this.#config.digiMeSdkInstance.refreshUserAuthorization(
+            this.#config.userAuthorization,
+        );
 
         // Call the update hook
         if (this.#config.onUserAuthorizationUpdated) {
@@ -424,20 +427,8 @@ export class DigiMeSdkAuthorized {
     }
 
     async #getCurrentUserAuthorizationOrThrow() {
-        const { access_token, refresh_token } = this.#config.userAuthorization.asPayload();
-
-        const now = Math.floor(Date.now() / 1000);
-
-        const accessTokenExpired = now > access_token.expires_on + 10;
-
-        if (!accessTokenExpired) {
+        if (this.#config.userAuthorization.isUsable()) {
             return this.#config.userAuthorization;
-        }
-
-        const refreshTokenExpired = now > refresh_token.expires_on + 10;
-
-        if (refreshTokenExpired) {
-            throw new DigiMeSdkTypeError(errorMessages.accessAndRefreshTokenExpired);
         }
 
         return await this.refreshUserAuthorization();

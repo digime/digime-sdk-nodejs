@@ -24,7 +24,7 @@ export const errorMessages = {
     /** Both access token and refresh token have expired */
     // TODO: Describe what to do in this situation. What to do is TBD.
     accessAndRefreshTokenExpired:
-        "SDK tried to refresh the TokenPair's access token that has expired, but the provided refresh token has also expired",
+        "SDK tried to refresh the UserAuthorization that has expired, but the provided UserAuthorization's refresh token has also expired",
 
     gettingUntrustedJwksKeyResolver: [
         "Attempted to get a JWKS key resolver for an URL that has not yet been added as a trusted JWKS URL.",

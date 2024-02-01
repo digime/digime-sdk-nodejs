@@ -427,20 +427,12 @@ describe("DigiMeSDK", () => {
             test("Returns a new UserAuthorization instance", async () => {
                 mswServer.use(...oauthTokenHandlers);
 
-                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
 
-                const userAuthorization = UserAuthorization.fromPayload({
-                    access_token: {
-                        value: "test-access-token",
-                        expires_on: 1,
-                    },
-                    refresh_token: {
-                        value: "test-refresh-token",
-                        expires_on: 2,
-                    },
-                    sub: "test-sub",
-                });
-                const result = await sdk.refreshUserAuthorization({ userAuthorization });
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const result = await sdk.refreshUserAuthorization(userAuthorization);
 
                 expect(result).toBeInstanceOf(UserAuthorization);
                 expect(result.asJwt()).toEqual(expect.any(String));
@@ -455,12 +447,12 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`refreshUserAuthorization\` parameters (1 issue):
-                   • Required]
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`userAuthorization\` argument (1 issue):
+                   • Input not instance of UserAuthorization]
                 `);
             });
 
-            test("Throws if `parameters` argument is not an object", async () => {
+            test("Throws if `userAuthorization` argument is not an instance of `UserAuthorization`", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 // @ts-expect-error Providing wrong type on purpose
@@ -468,37 +460,32 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`refreshUserAuthorization\` parameters (1 issue):
-                   • Expected object, received array]
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`userAuthorization\` argument (1 issue):
+                   • Input not instance of UserAuthorization]
                 `);
             });
 
-            test("Throws if `parameters` argument is an empty object", async () => {
+            test("Throws if the UserAuthorization can't be refreshed", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
-                // @ts-expect-error Providing wrong type on purpose
-                const promise = sdk.refreshUserAuthorization({});
+                const promise = sdk.refreshUserAuthorization(
+                    UserAuthorization.fromPayload({
+                        access_token: {
+                            value: "test-access-token",
+                            expires_on: 1,
+                        },
+                        refresh_token: {
+                            value: "test-refresh-token",
+                            expires_on: 2,
+                        },
+                        sub: "test-sub",
+                    }),
+                );
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`refreshUserAuthorization\` parameters (1 issue):
-                   • "userAuthorization": Input not instance of UserAuthorization]
-                `);
-            });
-
-            test("Throws if `parameters` argument is an object with incorrect shape", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
-
-                const promise = sdk.refreshUserAuthorization({
-                    // @ts-expect-error Providing wrong type on purpose
-                    userAuthorization: 1,
-                });
-
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`refreshUserAuthorization\` parameters (1 issue):
-                   • "userAuthorization": Input not instance of UserAuthorization]
-                `);
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkError);
+                await expect(promise).rejects.toMatchInlineSnapshot(
+                    `[DigiMeSdkError: SDK tried to refresh the UserAuthorization that has expired, but the provided UserAuthorization's refresh token has also expired]`,
+                );
             });
         });
 
@@ -656,7 +643,7 @@ describe("DigiMeSdkAuthorized", () => {
             });
         });
 
-        describe(".refreshUserAuthorization", () => {
+        describe(".refreshUserAuthorization()", () => {
             test("Returns a new `UserAuthorization` instance", async () => {
                 mswServer.use(...oauthTokenHandlers);
 
@@ -700,6 +687,32 @@ describe("DigiMeSdkAuthorized", () => {
                 expect(updateHandler).toHaveBeenCalledOnce();
                 expect(updateHandler.mock.lastCall[0].oldUserAuthorization).toBe(userAuthorization);
                 expect(updateHandler.mock.lastCall[0].newUserAuthorization).toBe(returnedUserAuthorization);
+            });
+
+            test("Throws if the UserAuthorization can't be refreshed", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = UserAuthorization.fromPayload({
+                    access_token: {
+                        value: "test-access-token",
+                        expires_on: 1,
+                    },
+                    refresh_token: {
+                        value: "test-refresh-token",
+                        expires_on: 2,
+                    },
+                    sub: "test-sub",
+                });
+                const authorizedSdk = new DigiMeSdkAuthorized({
+                    digiMeSdkInstance: sdk,
+                    userAuthorization: userAuthorization,
+                });
+
+                const promise = authorizedSdk.refreshUserAuthorization();
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkError);
+                await expect(promise).rejects.toMatchInlineSnapshot(
+                    `[DigiMeSdkError: SDK tried to refresh the UserAuthorization that has expired, but the provided UserAuthorization's refresh token has also expired]`,
+                );
             });
         });
 

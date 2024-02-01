@@ -2,6 +2,7 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
+import { z } from "zod";
 import { DigiMeSdkError } from "./errors/errors";
 import { getVerifiedTokenPayload } from "./get-verified-token-payload";
 import {
@@ -86,5 +87,49 @@ export class UserAuthorization {
 
     asLegacyJsonPayload(): string {
         return JSON.stringify(toLegacyUserAuthorizationPayload(this.#payload));
+    }
+
+    /**
+     * Checks if the UserAuthorization can be used.
+     * Based on a timestamp and tolerance
+     */
+    isUsable(
+        /**
+         * Tolerance for usage expiry in miliseconds. Token needs to expire in less than tolerance from now to be valid.
+         * @defaultValue `10000`
+         */
+        tolerance: number = 10000,
+
+        /**
+         * Timestamp in milliseconds, which determines what is considered "now", from which to calculate usability.
+         * @defaultValue `Date.now()`
+         */
+        now: number = Date.now(),
+    ): boolean {
+        tolerance = parseWithSchema(tolerance, z.number().nonnegative(), "`tolerance` argument");
+        now = parseWithSchema(now, z.number().nonnegative(), "`now` argument");
+        return this.#payload.access_token.expires_on * 1000 - tolerance > now;
+    }
+
+    /**
+     * Checks if the UserAuthorization can be refreshed.
+     * Based on a timestamp and tolerance
+     */
+    isRefreshable(
+        /**
+         * Tolerance for refresh expiry in seconds. Token needs to expire in less than tolerance from now to be valid.
+         * @defaultValue `10000`
+         */
+        tolerance: number = 10000,
+
+        /**
+         * Timestamp in milliseconds, which determines what is considered "now", from which to calculate usability.
+         * @defaultValue `Date.now()`
+         */
+        now: number = Date.now(),
+    ): boolean {
+        tolerance = parseWithSchema(tolerance, z.number().nonnegative(), "`tolerance` argument");
+        now = parseWithSchema(now, z.number().nonnegative(), "`now` argument");
+        return this.#payload.refresh_token.expires_on * 1000 - tolerance > now;
     }
 }
