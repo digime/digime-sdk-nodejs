@@ -8,6 +8,7 @@ import { handlers as discoveryServicesHandlers } from "../../mocks/api/discovery
 import { handlers as oauthAuthorizeHandlers } from "../../mocks/api/oauth/authorize/handlers";
 import { handlers as oauthTokenHandlers } from "../../mocks/api/oauth/token/handlers";
 import { handlers as permissionAccessSampleDataSetsHandlers } from "../../mocks/api/permission-access/sample/datasets/handlers";
+import { handlers as permissionAccessAccountsHandlers } from "../../mocks/api/permission-access/accounts/handlers";
 import { handlers as userHandlers } from "../../mocks/api/user/handlers";
 import { handlers as exportHandlers } from "../../mocks/api/export/handlers";
 import { DigiMeSdk, DigiMeSdkAuthorized } from "./digi-me-sdk";
@@ -977,6 +978,90 @@ describe("DigiMeSdkAuthorized", () => {
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for \`deleteUser\` parameters (1 issue):
+                   • "signal": Input not instance of AbortSignal]
+                `);
+            });
+        });
+
+        describe(".readAccounts()", () => {
+            test("Returns an array of accounts", async () => {
+                mswServer.use(...permissionAccessAccountsHandlers);
+
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+
+                const promise = authorizedSdk.readAccounts();
+
+                await expect(promise).resolves.toBeInstanceOf(Array);
+                await expect(promise).resolves.toEqual(
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            id: expect.any(String),
+                            type: expect.any(String),
+                            sourceId: expect.any(Number),
+                            createdDate: expect.any(Number),
+                            updatedDate: expect.any(Number),
+                        }),
+                    ]),
+                );
+            });
+
+            test("Throws if abort signal is triggered", async () => {
+                mswServer.use(...permissionAccessAccountsHandlers);
+
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+                const signal = AbortSignal.abort();
+
+                const promise = authorizedSdk.readAccounts({
+                    signal,
+                });
+
+                await expect(promise).rejects.toBeInstanceOf(Error);
+                await expect(promise).rejects.toHaveProperty("name", "AbortError");
+            });
+
+            test("Throws if `parameters` argument is not an object", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+
+                const promise = authorizedSdk.readAccounts(
+                    // @ts-expect-error Providing wrong type on purpose
+                    [],
+                );
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readAcccounts\` parameters (1 issue):
+                   • Expected object, received array]
+                `);
+            });
+
+            test("Throws if `parameters` argument is an object with incorrect shape", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization);
+
+                const promise = authorizedSdk.readAccounts({
+                    // @ts-expect-error Providing wrong type on purpose
+                    signal: "",
+                });
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readAcccounts\` parameters (1 issue):
                    • "signal": Input not instance of AbortSignal]
                 `);
             });

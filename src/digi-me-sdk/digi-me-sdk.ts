@@ -26,7 +26,7 @@ import { errorMessages } from "../errors/messages";
 import { GetPortabilityReportAs, GetPortabilityReportOptions } from "./get-portability-report";
 import { z } from "zod";
 import { DEFAULT_BASE_URL, DEFAULT_ONBOARD_URL } from "../constants";
-import { ReadAccountsParameters } from "./read-accounts";
+import { Accounts, ReadAccountsParameters } from "./read-accounts";
 import { DeleteUserParameters } from "./delete-user";
 import { ReadFileListParameters } from "./read-file-list";
 import type { Readable } from "node:stream";
@@ -434,7 +434,7 @@ export class DigiMeSdkAuthorized {
         return await this.refreshUserAuthorization();
     }
 
-    async readAccounts(parameters: ReadAccountsParameters = {}) {
+    async readAccounts(parameters: ReadAccountsParameters = {}): Promise<Accounts> {
         const { signal } = parseWithSchema(parameters, ReadAccountsParameters, "`readAcccounts` parameters");
         const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
         const token = await signTokenPayload(
@@ -455,13 +455,12 @@ export class DigiMeSdkAuthorized {
                 signal,
                 headers: {
                     Authorization: `Bearer ${token}`,
-                    // Accept: "application/json",
+                    Accept: "application/json",
                 },
             },
         );
 
-        // TODO: Validate and return correctly
-        return response;
+        return parseWithSchema(await response.json(), Accounts);
     }
 
     async readSession() {}
