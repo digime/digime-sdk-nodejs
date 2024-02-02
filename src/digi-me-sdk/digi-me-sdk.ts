@@ -131,10 +131,14 @@ export class DigiMeSdk {
     /**
      * Get an instance of the `DigiMeSdkAuthorized` that can call methods that require `UserAuthorization`
      */
-    withUserAuthorization(userAuthorization: UserAuthorization): DigiMeSdkAuthorized {
+    withUserAuthorization(
+        userAuthorization: ConstructorParameters<typeof DigiMeSdkAuthorized>[0]["userAuthorization"],
+        onUserAuthorizationUpdated: ConstructorParameters<typeof DigiMeSdkAuthorized>[0]["onUserAuthorizationUpdated"],
+    ): DigiMeSdkAuthorized {
         return new DigiMeSdkAuthorized({
             digiMeSdkInstance: this,
-            userAuthorization: userAuthorization,
+            userAuthorization,
+            onUserAuthorizationUpdated,
         });
     }
 
@@ -382,8 +386,7 @@ export const DigiMeSdkAuthorizedConfig = z.object(
                     newUserAuthorization: z.instanceof(UserAuthorization),
                 }),
             )
-            .returns(z.void())
-            .optional(),
+            .returns(z.void()),
     },
     {
         required_error: "DigiMeSdkAuthorized config is required",
