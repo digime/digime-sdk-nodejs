@@ -2,23 +2,10 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { KeyObject } from "crypto";
-import { generateKeyPair } from "jose";
 import { mockApiInternals } from "./api-internals";
+import { generateKeyPair, keyAsPkcs1PemString } from "./utilities";
 
-export const keyAsPkcs1PemString = (key: unknown): string => {
-    if (!(key instanceof KeyObject)) {
-        throw new TypeError("Provided key is not a KeyObject");
-    }
-
-    const exportedKey = key.export({ type: "pkcs1", format: "pem" });
-
-    if (typeof exportedKey === "string") return exportedKey;
-
-    return exportedKey.toString("utf-8");
-};
-
-const sdkConsumerKeyPair = await generateKeyPair("PS512");
+const sdkConsumerKeyPair = await generateKeyPair();
 
 export const mockSdkConsumerCredentials = {
     contractId: "mock-contract-id",

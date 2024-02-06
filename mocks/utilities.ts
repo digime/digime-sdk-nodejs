@@ -2,9 +2,10 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { randomUUID } from "node:crypto";
+import nodeCrypto from "node:crypto";
 import fs from "node:fs";
-import { Readable } from "node:stream";
+import { promisify } from "node:util";
+import { nodeDuplexToWeb, nodeReadableToWeb } from "../src/node-streams";
 
 const DEFAULT_MOCK_API_BASE_URL = "https://api.digi.me/v1.7/";
 
@@ -41,8 +42,32 @@ export const formatHeadersError = ({
     "X-Error-Reference": reference,
 });
 
-export const getTestUrl = (...parts: string[]): string => `https://${[...parts, randomUUID()].join(".")}.test/`;
+export const getTestUrl = (...parts: string[]): string =>
+    `https://${[...parts, nodeCrypto.randomUUID()].join(".")}.test/`;
 
-export const createReadableStream = (...args: Parameters<typeof fs.createReadStream>): ReadableStream => {
-    return Readable.toWeb(fs.createReadStream(...args)) as ReadableStream;
+export const createReadableStream = (...args: Parameters<typeof fs.createReadStream>) => {
+    return nodeReadableToWeb(fs.createReadStream(...args));
+};
+
+export const generateKeyPair = async () => await promisify(nodeCrypto.generateKeyPair)("rsa", { modulusLength: 2048 });
+
+export const keyAsPkcs1PemString = (key: nodeCrypto.KeyObject): string => {
+    const exportedKey = key.export({ type: "pkcs1", format: "pem" });
+
+    if (typeof exportedKey === "string") return exportedKey;
+
+    return exportedKey.toString("utf-8");
+};
+
+export const createFileEncryptTransformStream = (publicKey: nodeCrypto.KeyObject) => {
+    const key = nodeCrypto.randomBytes(32);
+    const encryptedKey = nodeCrypto.publicEncrypt(publicKey, key);
+    const iv = nodeCrypto.randomBytes(16);
+    const cipherivTransform = nodeDuplexToWeb(nodeCrypto.createCipheriv("aes-256-cbc", key, iv));
+
+    return {
+        cipherivTransform,
+        encryptedKey,
+        iv,
+    };
 };

@@ -211,10 +211,28 @@ export const fetchMachine = createMachine(
                 const response = await globalThis.fetch(context.request.clone());
 
                 if (logFetchWrapper.enabled) {
+                    const headers = JSON.stringify(Object.fromEntries(response.headers.entries()), undefined, 2);
+
+                    // Body reading
                     const clonedResponse = response.clone();
-                    const responseBody = await clonedResponse.text();
+                    let responseBody = await clonedResponse.text();
+                    try {
+                        responseBody = JSON.stringify(JSON.parse(responseBody), undefined, 2);
+                    } catch {
+                        // Nothing to do here, body isn't JSON
+                    }
+                    // End body reading
+
                     logFetchWrapper(
-                        `[${context.request?.url}] Received response:\n====\n${clonedResponse.status} ${clonedResponse.statusText}\n----\n${responseBody}\n====`,
+                        `[${context.request?.url}] Received response:\n${[
+                            "==== STATUS =====",
+                            `${response.status} ${response.statusText}`,
+                            "==== HEADERS ====",
+                            `${headers}`,
+                            "==== BODY =======",
+                            `${responseBody}`,
+                            "=================",
+                        ].join("\n")}`,
                     );
                 }
 

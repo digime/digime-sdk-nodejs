@@ -3,6 +3,8 @@
  */
 
 import nodeCrypto from "node:crypto";
+import { DigiMeSdkError } from "./errors/errors";
+import { nodeDuplexToWeb } from "./node-streams";
 
 const ALPHA_LOWER = "abcdefghijklmnopqrstuvwxyz";
 const ALPHA_UPPER = ALPHA_LOWER.toUpperCase();
@@ -52,4 +54,65 @@ export const fromBase64Url = (data: string | Buffer): string => {
     }
 
     return Buffer.from(data, "base64url").toString("utf-8");
+};
+
+/**
+ * Utility for concating a Unit8Array
+ */
+const concatUint8Array = (array1: Uint8Array, array2: Uint8Array): Uint8Array => {
+    const newArray = new Uint8Array(array1.length + array2.length);
+    newArray.set(array1, 0);
+    newArray.set(array2, array1.length);
+    return newArray;
+};
+
+/**
+ * Byte grouping of the API file response
+ */
+const BYTES = {
+    key: { from: 0, to: 256 },
+    iv: { from: 256, to: 272 },
+    data: { from: 272 },
+} as const;
+
+/**
+ * Creates a API file response decrypt stream
+ */
+export const getDecryptReadableStream = async (
+    key: string,
+    inputStream: ReadableStream<Uint8Array>,
+): Promise<ReadableStream<Uint8Array>> => {
+    let preDataBuffer = new Uint8Array();
+    let firstDataChunk = new Uint8Array();
+
+    const reader = inputStream.getReader();
+
+    // Read the non-data bytes until we have key and IV bytes
+    while (preDataBuffer.length < BYTES.data.from) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+            throw new DigiMeSdkError("Stream did not contain enough data");
+        }
+
+        const neededBytes = BYTES.data.from - preDataBuffer.length;
+        const preDataChunk = value.subarray(0, neededBytes);
+        firstDataChunk = value.subarray(neededBytes);
+        preDataBuffer = concatUint8Array(preDataBuffer, preDataChunk);
+    }
+    reader.releaseLock();
+
+    // Create decipheriv transform stream
+    const dsk = nodeCrypto.privateDecrypt(
+        nodeCrypto.createPrivateKey(key),
+        preDataBuffer.subarray(BYTES.key.from, BYTES.key.to),
+    );
+    const div = preDataBuffer.subarray(BYTES.iv.from, BYTES.iv.to);
+    const decipherTransform = nodeCrypto.createDecipheriv("aes-256-cbc", dsk, div);
+
+    // Write the first chunk of data we got
+    decipherTransform.write(firstDataChunk);
+
+    // Pipe the rest of the input stream through the deciper transform
+    return inputStream.pipeThrough(nodeDuplexToWeb(decipherTransform));
 };

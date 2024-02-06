@@ -6,7 +6,7 @@ import type { DiscoveryAPIServicesData } from "../types/external/discovery-api-s
 import { DiscoveryAPIServicesResponse } from "../types/external/discovery-api-services";
 import type { GetAuthorizeUrlParametersInput } from "./get-authorize-url";
 import { GetAuthorizeUrlParameters } from "./get-authorize-url";
-import { getRandomAlphaNumeric, getSha256Hash, toBase64Url } from "../crypto";
+import { getDecryptReadableStream, getRandomAlphaNumeric, getSha256Hash, toBase64Url } from "../crypto";
 import SDK_VERSION from "../sdk-version";
 import { OauthAuthorizeResponse } from "../types/external/oauth-authorize";
 import { PayloadPreauthorizationCode } from "../types/external/jwt-payloads";
@@ -31,7 +31,9 @@ import { DeleteUserParameters } from "./delete-user";
 import { FileList } from "./read-file-list";
 import { ReadFileListParameters } from "./read-file-list";
 import type { Readable } from "node:stream";
-import { webReadableStreamToNodeReadable } from "../node-streams";
+import { nodeReadableFromWeb } from "../node-streams";
+import type { ReadSessionOptionsInput } from "./read-session";
+import { ReadSessionOptions } from "./read-session";
 
 // Transform and casting to have a more specific type for typechecking
 const UrlWithTrailingSlash = z
@@ -467,7 +469,49 @@ export class DigiMeSdkAuthorized {
         return parseWithSchema(await response.json(), Accounts);
     }
 
-    async readSession() {}
+    async readSession(options: ReadSessionOptionsInput = {}) {
+        const { signal, ...sessionOptions } = parseWithSchema(options, ReadSessionOptions, "`readSession` options");
+        const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
+        const token = await signTokenPayload(
+            {
+                access_token: userAuthorization.asPayload().access_token.value,
+                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
+                    this.#config.digiMeSdkInstance.contractId
+                }`,
+                nonce: getRandomAlphaNumeric(32),
+                timestamp: Date.now(),
+            },
+            this.#config.digiMeSdkInstance.contractPrivateKey,
+        );
+
+        const response = await fetchWrapper(
+            new URL("permission-access/trigger", this.#config.digiMeSdkInstance.baseUrl),
+            {
+                method: "POST",
+                signal,
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    ...sessionOptions,
+                    agent: {
+                        sdk: {
+                            name: "nodejs",
+                            version: SDK_VERSION,
+                            meta: {
+                                node: process.version,
+                            },
+                        },
+                    },
+                }),
+            },
+        );
+
+        // TODO: Assert and return session
+        return await response.text();
+    }
 
     async getOnboardServiceUrl() {}
 
@@ -557,7 +601,7 @@ export class DigiMeSdkAuthorized {
         }
 
         if (as === "NodeReadable") {
-            return webReadableStreamToNodeReadable(response.body);
+            return nodeReadableFromWeb(response.body);
         }
 
         return response.body;
@@ -568,6 +612,59 @@ export class DigiMeSdkAuthorized {
     async readAllFiles() {}
 
     async readFile() {}
+
+    // NOTE: Temp
+    async fetchFile(sessionKey: string, fileName: string) {
+        const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
+        const token = await signTokenPayload(
+            {
+                access_token: userAuthorization.asPayload().access_token.value,
+                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
+                    this.#config.digiMeSdkInstance.contractId
+                }`,
+                nonce: getRandomAlphaNumeric(32),
+                timestamp: Date.now(),
+            },
+            this.#config.digiMeSdkInstance.contractPrivateKey,
+        );
+
+        const response = await fetchWrapper(
+            new URL(`permission-access/query/${sessionKey}/${fileName}`, this.#config.digiMeSdkInstance.baseUrl),
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/octet-stream",
+                },
+            },
+        );
+
+        // let metadata = response.headers.get("x-metadata");
+
+        // if (!metadata) {
+        //     throw new DigiMeSdkTypeError("TODO: Explain");
+        // }
+
+        // metadata = JSON.parse(Buffer.from(metadata, "base64url").toString("utf-8"));
+
+        // console.log("metadata", metadata);
+
+        if (!response.body) {
+            throw new Error("TODO: What what");
+        }
+
+        const pipeline = await getDecryptReadableStream(
+            this.#config.digiMeSdkInstance.contractPrivateKey,
+            response.body,
+        );
+
+        // if (compression === "brotli") {
+        //     pipeline = pipeline.pipeThrough(createBrotliDecompress());
+        // } else if (compression === "gzip") {
+        //     pipeline = pipeline.pipeThrough(new DecompressionStream("gzip"));
+        // }
+
+        return pipeline.pipeThrough(new TextDecoderStream());
+    }
 
     async readFileList(parameters: ReadFileListParameters): Promise<FileList> {
         const { sessionKey, signal } = parseWithSchema(parameters, ReadFileListParameters, "`readFileList` parameters");

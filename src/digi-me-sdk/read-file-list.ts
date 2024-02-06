@@ -3,6 +3,7 @@
  */
 
 import { z } from "zod";
+import { FileDataSchema } from "./read-file";
 
 const UserSyncStates = z.union([
     z.literal("running"),
@@ -42,16 +43,6 @@ const AccountSyncStatePartial = z.object({ state: z.literal("partial"), error: P
 const AccountSyncStateCompleted = z.object({ state: z.literal("completed") }).passthrough();
 
 const AccountSyncStates = z.union([AccountSyncStateRunning, AccountSyncStatePartial, AccountSyncStateCompleted]);
-
-const DataStandard = z.union([z.literal("digime"), z.literal("fhir")]);
-
-const FileDataSchema = z
-    .object({
-        version: z.string(),
-        id: z.string().optional(),
-        standard: DataStandard,
-    })
-    .passthrough();
 
 const FileListFile = z
     .object({

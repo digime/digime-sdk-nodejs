@@ -2,14 +2,14 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { SignJWT, exportJWK, generateKeyPair } from "jose";
+import { SignJWT, exportJWK } from "jose";
 import { randomUUID } from "node:crypto";
-import { fromMockApiBase } from "./utilities";
+import { fromMockApiBase, generateKeyPair } from "./utilities";
 
 const DAY_IN_SECONDS = 86400;
 
 export const buildMockApiInternals = async (baseUrl?: string) => {
-    const apiKeyPair = await generateKeyPair("PS512");
+    const apiKeyPair = await generateKeyPair();
     const apiPublicKeyJwk = await exportJWK(apiKeyPair.publicKey);
     apiPublicKeyJwk.kid = randomUUID();
 
