@@ -607,7 +607,7 @@ describe("DigiMeSdkAuthorized", () => {
         });
 
         describe(".readFile()", () => {
-            test.only("Reads files correctly", async () => {
+            test("Reads files correctly", async () => {
                 expect.assertions(1);
                 mswServer.use(...permissionAccessQueryHandlers);
 
