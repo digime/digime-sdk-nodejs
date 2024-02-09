@@ -61,7 +61,7 @@ const ObjectTypeErrorCodec: t.Type<ObjectTypeError> = t.type({
 interface PartialError {
     code: string;
     statusCode: number;
-    message: string;
+    message?: string;
     reauth?: boolean;
     retryAfter?: number;
     objectTypeErrors?: ObjectTypeError[];
@@ -71,12 +71,12 @@ const PartialErrorCodec: t.Type<PartialError> = t.intersection([
     t.type({
         code: t.string,
         statusCode: t.number,
-        message: t.string,
     }),
     t.partial({
         reauth: t.boolean,
         retryAfter: t.number,
         objectTypeErrors: t.array(ObjectTypeErrorCodec),
+        message: t.string,
     }),
 ]);
 
