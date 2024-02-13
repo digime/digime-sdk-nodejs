@@ -40,7 +40,9 @@ export const makeHandlers = (baseUrl?: string) => [
         writer.write(iv);
         writer.releaseLock();
 
-        const fileReadable = createReadableStream(new URL("./test-mapped-file.json", import.meta.url));
+        const fileReadable = createReadableStream(new URL("./test-mapped-file.json", import.meta.url), {
+            highWaterMark: 1,
+        });
 
         fileReadable.pipeThrough(cipherivTransform).pipeTo(transformStream.writable);
 

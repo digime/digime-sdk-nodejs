@@ -35,3 +35,27 @@ export const streamToText = async (stream: ReadableStream): Promise<string> => {
     }
     return text;
 };
+
+/**
+ * Gets an async iterator of the stream
+ */
+export async function* streamAsyncIterator<
+    TStream extends ReadableStream,
+    TReturn = TStream extends ReadableStream<infer TType> ? TType : never,
+>(stream: TStream): AsyncGenerator<TReturn, void> {
+    const reader = stream.getReader();
+
+    try {
+        while (true) {
+            const { done, value } = await reader.read();
+
+            if (done) {
+                return;
+            }
+
+            yield value;
+        }
+    } finally {
+        reader.releaseLock();
+    }
+}

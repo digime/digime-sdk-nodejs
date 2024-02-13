@@ -6,7 +6,7 @@ import type { DiscoveryAPIServicesData } from "../types/external/discovery-api-s
 import { DiscoveryAPIServicesResponse } from "../types/external/discovery-api-services";
 import type { GetAuthorizeUrlParametersInput } from "./get-authorize-url";
 import { GetAuthorizeUrlParameters } from "./get-authorize-url";
-import { getDecryptReadableStream, getRandomAlphaNumeric, getSha256Hash, toBase64Url } from "../crypto";
+import { fromBase64Url, getRandomAlphaNumeric, getSha256Hash, toBase64Url } from "../crypto";
 import SDK_VERSION from "../sdk-version";
 import { OauthAuthorizeResponse } from "../types/external/oauth-authorize";
 import { PayloadPreauthorizationCode } from "../types/external/jwt-payloads";
@@ -34,6 +34,10 @@ import type { Readable } from "node:stream";
 import { nodeReadableFromWeb } from "../node-streams";
 import type { ReadSessionOptionsInput } from "./read-session";
 import { ReadSessionOptions } from "./read-session";
+import { PushDataOptions } from "./push-data";
+import { ReadFileOptions } from "./read-file";
+import { DigiMeSessionFile } from "./digi-me-session-file";
+import { FileHeaderMetadata } from "../schemas/api/permission-access/query/session-key/file/schemas";
 
 // Transform and casting to have a more specific type for typechecking
 const UrlWithTrailingSlash = z
@@ -607,14 +611,64 @@ export class DigiMeSdkAuthorized {
         return response.body;
     }
 
-    async pushData() {}
+    async pushData(options: PushDataOptions): Promise<void> {
+        options = parseWithSchema(options, PushDataOptions, "`pushData` options");
+
+        // switch (options.type) {
+        //     case "library":
+        //         return;
+        //     case "provider":
+        //         return;
+        //     default:
+        //         return assertUnreachableCase(options);
+        // }
+
+        if (options.type === "library") {
+            // LIBRARY PUSH
+            const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
+
+            const token = await signTokenPayload(
+                {
+                    access_token: userAuthorization.asPayload().access_token.value,
+                    client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
+                        this.#config.digiMeSdkInstance.contractId
+                    }`,
+                    nonce: getRandomAlphaNumeric(32),
+                    timestamp: Date.now(),
+                },
+                this.#config.digiMeSdkInstance.contractPrivateKey,
+            );
+
+            const fileDescriptor = await signTokenPayload(
+                // TODO: Move this around?
+                { metadata: options.fileDescriptor },
+                this.#config.digiMeSdkInstance.contractPrivateKey,
+            );
+
+            await fetchWrapper(new URL("permission-access/import", this.#config.digiMeSdkInstance.baseUrl), {
+                method: "POST",
+                // @ts-expect-error Undici requires duplex option
+                duplex: "half",
+                signal: options.signal,
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/octet-stream",
+                    FileDescriptor: fileDescriptor,
+                },
+                body: options.data,
+            });
+
+            return;
+        }
+
+        throw new Error("TODO: Provider NYI");
+    }
 
     async readAllFiles() {}
 
-    async readFile() {}
+    async readFile(options: ReadFileOptions): Promise<DigiMeSessionFile> {
+        const { sessionKey, fileName } = parseWithSchema(options, ReadFileOptions, "`readFile` options");
 
-    // NOTE: Temp
-    async fetchFile(sessionKey: string, fileName: string) {
         const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
         const token = await signTokenPayload(
             {
@@ -638,33 +692,95 @@ export class DigiMeSdkAuthorized {
             },
         );
 
-        // let metadata = response.headers.get("x-metadata");
+        let metadataHeader = response.headers.get("x-metadata");
 
-        // if (!metadata) {
-        //     throw new DigiMeSdkTypeError("TODO: Explain");
-        // }
-
-        // metadata = JSON.parse(Buffer.from(metadata, "base64url").toString("utf-8"));
-
-        // console.log("metadata", metadata);
-
-        if (!response.body) {
-            throw new Error("TODO: What what");
+        if (!metadataHeader) {
+            throw new DigiMeSdkTypeError("TODO: Explain");
         }
 
-        const pipeline = await getDecryptReadableStream(
-            this.#config.digiMeSdkInstance.contractPrivateKey,
-            response.body,
+        try {
+            metadataHeader = JSON.parse(fromBase64Url(metadataHeader));
+            console.log("metadata", metadataHeader);
+        } catch (e) {
+            // TODO: Throw metadata not JSON
+            throw new Error("TODO: Failed parsing metadata json");
+        }
+
+        const { metadata, compression } = parseWithSchema(
+            metadataHeader,
+            FileHeaderMetadata,
+            "`readFile` x-metadata header",
         );
 
-        // if (compression === "brotli") {
-        //     pipeline = pipeline.pipeThrough(createBrotliDecompress());
-        // } else if (compression === "gzip") {
-        //     pipeline = pipeline.pipeThrough(new DecompressionStream("gzip"));
-        // }
+        if (!response.body) {
+            throw new Error("TODO: API sent no content");
+        }
 
-        return pipeline.pipeThrough(new TextDecoderStream());
+        return new DigiMeSessionFile({
+            input: response.body,
+            privateKey: this.#config.digiMeSdkInstance.contractPrivateKey,
+            fileName,
+            metadata: metadata,
+            compression: compression,
+        });
     }
+
+    // NOTE: Temp
+    // async fetchFile(sessionKey: string, fileName: string) {
+    //     const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
+    //     const token = await signTokenPayload(
+    //         {
+    //             access_token: userAuthorization.asPayload().access_token.value,
+    //             client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
+    //                 this.#config.digiMeSdkInstance.contractId
+    //             }`,
+    //             nonce: getRandomAlphaNumeric(32),
+    //             timestamp: Date.now(),
+    //         },
+    //         this.#config.digiMeSdkInstance.contractPrivateKey,
+    //     );
+
+    //     const response = await fetchWrapper(
+    //         new URL(`permission-access/query/${sessionKey}/${fileName}`, this.#config.digiMeSdkInstance.baseUrl),
+    //         {
+    //             headers: {
+    //                 Authorization: `Bearer ${token}`,
+    //                 Accept: "application/octet-stream",
+    //             },
+    //         },
+    //     );
+
+    //     let metadata = response.headers.get("x-metadata");
+
+    //     if (!metadata) {
+    //         throw new DigiMeSdkTypeError("TODO: Explain");
+    //     }
+
+    //     metadata = JSON.parse(Buffer.from(metadata, "base64url").toString("utf-8"));
+
+    //     console.log("metadata", metadata);
+
+    //     if (!response.body) {
+    //         throw new Error("TODO: What what");
+    //     }
+
+    //     // return response.body;
+
+    //     const pipeline = await getDecryptReadableStream(
+    //         this.#config.digiMeSdkInstance.contractPrivateKey,
+    //         response.body,
+    //     );
+
+    //     // if (compression === "brotli") {
+    //     //     pipeline = pipeline.pipeThrough(createBrotliDecompress());
+    //     // } else if (compression === "gzip") {
+    //     //     pipeline = pipeline.pipeThrough(new DecompressionStream("gzip"));
+    //     // }
+
+    //     // return pipeline.pipeThrough(new TextDecoderStream());
+
+    //     return pipeline;
+    // }
 
     async readFileList(parameters: ReadFileListParameters): Promise<FileList> {
         const { sessionKey, signal } = parseWithSchema(parameters, ReadFileListParameters, "`readFileList` parameters");

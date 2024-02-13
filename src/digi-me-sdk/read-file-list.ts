@@ -3,7 +3,7 @@
  */
 
 import { z } from "zod";
-import { FileDataSchema } from "./read-file";
+import { FileDataSchema } from "../schemas/api/permission-access/query/session-key/file/schemas";
 
 const UserSyncStates = z.union([
     z.literal("running"),
