@@ -450,9 +450,7 @@ export class DigiMeSdkAuthorized {
         const token = await signTokenPayload(
             {
                 access_token: userAuthorization.asPayload().access_token.value,
-                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
-                    this.#config.digiMeSdkInstance.contractId
-                }`,
+                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
                 nonce: getRandomAlphaNumeric(32),
                 timestamp: Date.now(),
             },
@@ -479,9 +477,7 @@ export class DigiMeSdkAuthorized {
         const token = await signTokenPayload(
             {
                 access_token: userAuthorization.asPayload().access_token.value,
-                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
-                    this.#config.digiMeSdkInstance.contractId
-                }`,
+                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
                 nonce: getRandomAlphaNumeric(32),
                 timestamp: Date.now(),
             },
@@ -530,9 +526,7 @@ export class DigiMeSdkAuthorized {
         const token = await signTokenPayload(
             {
                 access_token: userAuthorization.asPayload().access_token.value,
-                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
-                    this.#config.digiMeSdkInstance.contractId
-                }`,
+                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
                 nonce: getRandomAlphaNumeric(32),
                 timestamp: Date.now(),
             },
@@ -573,9 +567,7 @@ export class DigiMeSdkAuthorized {
         const token = await signTokenPayload(
             {
                 access_token: userAuthorization.asPayload().access_token.value,
-                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
-                    this.#config.digiMeSdkInstance.contractId
-                }`,
+                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
                 nonce: getRandomAlphaNumeric(32),
                 timestamp: Date.now(),
             },
@@ -630,9 +622,7 @@ export class DigiMeSdkAuthorized {
             const token = await signTokenPayload(
                 {
                     access_token: userAuthorization.asPayload().access_token.value,
-                    client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
-                        this.#config.digiMeSdkInstance.contractId
-                    }`,
+                    client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
                     nonce: getRandomAlphaNumeric(32),
                     timestamp: Date.now(),
                 },
@@ -673,9 +663,7 @@ export class DigiMeSdkAuthorized {
         const token = await signTokenPayload(
             {
                 access_token: userAuthorization.asPayload().access_token.value,
-                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
-                    this.#config.digiMeSdkInstance.contractId
-                }`,
+                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
                 nonce: getRandomAlphaNumeric(32),
                 timestamp: Date.now(),
             },
@@ -732,9 +720,7 @@ export class DigiMeSdkAuthorized {
         const token = await signTokenPayload(
             {
                 access_token: userAuthorization.asPayload().access_token.value,
-                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
-                    this.#config.digiMeSdkInstance.contractId
-                }`,
+                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
                 nonce: getRandomAlphaNumeric(32),
                 timestamp: Date.now(),
             },
