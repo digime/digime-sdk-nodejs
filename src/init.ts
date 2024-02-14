@@ -25,6 +25,7 @@ import { DigimeSDK } from "./sdk";
 import { getReauthorizeAccountUrl, GetReauthorizeAccountUrlOptions } from "./get-reauthorize-account-url";
 import { getPortabilityReport, GetPortabilityReportOptions } from "./get-portability-report";
 import { getServiceSampleDataSets, GetServiceSampleDataSetsOptions } from "./get-service-sample-datasets";
+import { refreshToken, RefreshTokenOptions } from "./refresh-token";
 
 const DEFAULT_BASE_URL = "https://api.digi.me/v1.7/";
 const DEFAULT_ONBOARD_URL = "https://api.digi.me/apps/saas/";
@@ -70,6 +71,7 @@ const init = (config: SDKConfiguration): DigimeSDK => {
         getPortabilityReport: (props: GetPortabilityReportOptions) => getPortabilityReport(props, sdkConfig),
         getServiceSampleDataSets: (props: GetServiceSampleDataSetsOptions) =>
             getServiceSampleDataSets(props, sdkConfig),
+        refreshToken: (props: RefreshTokenOptions) => refreshToken(props, sdkConfig),
     };
 };
 

@@ -27,6 +27,7 @@ import { UserAccessToken } from "./types/user-access-token";
 import { PushDataOptions } from "./push";
 import { GetPortabilityReportOptions, GetPortabilityReportResponse } from "./get-portability-report";
 import { GetServiceSampleDataSetsOptions, GetServiceSampleDataSetsResponse } from "./get-service-sample-datasets";
+import { RefreshTokenOptions } from "./refresh-token";
 
 export interface DigimeSDK {
     /**
@@ -64,6 +65,13 @@ export interface DigimeSDK {
      * @category Authorization
      */
     exchangeCodeForToken: (props: ExchangeCodeForTokenOptions) => Promise<UserAccessToken>;
+
+    /**
+     * This is called if you want to issue new token
+     *
+     * @category Authorization
+     */
+    refreshToken: (props: RefreshTokenOptions) => Promise<UserAccessToken>;
 
     /**
      * Push something to the user's digi.me library or to provider

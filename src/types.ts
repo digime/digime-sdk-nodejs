@@ -25,6 +25,7 @@ export { ReadSessionOptions, ReadSessionResponse } from "./read-session";
 export { GetPortabilityReportOptions, GetPortabilityReportResponse } from "./get-portability-report";
 export { GetServiceSampleDataSetsOptions, GetServiceSampleDataSetsResponse } from "./get-service-sample-datasets";
 export { PushDataOptions } from "./push";
+export { RefreshTokenOptions } from "./refresh-token";
 export { SDKConfiguration } from "./types/sdk-configuration";
 export { Session } from "./types/api/session";
 export { MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
