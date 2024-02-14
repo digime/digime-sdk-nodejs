@@ -33,10 +33,10 @@ export const RawFileMetadata = z
         mimetype: z.string(),
         accounts: z.array(
             z.object({
-                accountId: z.string(),
+                accountid: z.string(),
             }),
         ),
-        appId: z.string().optional(),
+        appid: z.string().optional(),
         created: z.number().optional(),
         contractid: z.string().optional(),
         objecttypes: z

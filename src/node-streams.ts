@@ -4,6 +4,7 @@
 
 import { Duplex, Readable } from "node:stream";
 import type { ReadableStream as NodeReadableStream } from "node:stream/web";
+import { concatUint8Array } from "./concat-uint8array";
 
 // This exists solely because Node Web ReadableStream types do not match global DOM ReadableStream types
 export const nodeReadableFromWeb = (readableStream: ReadableStream): Readable =>
@@ -26,14 +27,25 @@ export const nodeDuplexToWeb = <TInput = Uint8Array, TOutput = Uint8Array>(
 };
 
 /**
- * Consume a stream and return a textual representation
+ * Consume a string stream and return a textual representation
  */
-export const streamToText = async (stream: ReadableStream): Promise<string> => {
+export const streamToText = async (stream: ReadableStream<string>): Promise<string> => {
     let text = "";
-    for await (const chunk of stream as NodeReadableStream) {
+    for await (const chunk of streamAsyncIterator(stream)) {
         text += chunk;
     }
     return text;
+};
+
+/**
+ * Consume an Uint8Array stream and return a Uint8Array
+ */
+export const streamToUint8Array = async (stream: ReadableStream<Uint8Array>): Promise<Uint8Array> => {
+    let buffer = new Uint8Array();
+    for await (const chunk of streamAsyncIterator(stream)) {
+        buffer = concatUint8Array(buffer, chunk);
+    }
+    return buffer;
 };
 
 /**

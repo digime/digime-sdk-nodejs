@@ -35,7 +35,6 @@
   "devDependencies": {
     "@types/debug": "~4.1.10",
     "@types/node": "~18.18.0",
-    "@types/stream-json": "~1.7.7",
     "@typescript-eslint/eslint-plugin": "~6.7.3",
     "@typescript-eslint/parser": "~6.7.3",
     "@vitest/coverage-v8": "~1.0.4",
@@ -48,7 +47,6 @@
     "msw": "~2.1.0",
     "prettier": "~3.0.3",
     "rimraf": "~5.0.5",
-    "stream-json": "~1.8.0",
     "tsup": "~7.2.0",
     "tsx": "~3.13.0",
     "typedoc": "~0.25.1",
@@ -56,11 +54,11 @@
     "vitest": "~1.0.4"
   },
   "dependencies": {
-    "@types/node-rsa": "~1.1.3",
+    "@types/stream-json": "~1.7.7",
     "debug": "~4.3.4",
     "jose": "~5.2.0",
     "lru-cache": "~10.1.0",
-    "node-rsa": "~1.1.1",
+    "stream-json": "~1.8.0",
     "xstate": "~4.38.2",
     "zod": "~3.22.4"
   },

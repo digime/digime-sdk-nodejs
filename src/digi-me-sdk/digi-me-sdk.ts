@@ -692,29 +692,29 @@ export class DigiMeSdkAuthorized {
             },
         );
 
+        if (!response.body) {
+            throw new DigiMeSdkTypeError("Response contains no body");
+        }
+
         let metadataHeader = response.headers.get("x-metadata");
 
         if (!metadataHeader) {
-            throw new DigiMeSdkTypeError("TODO: Explain");
+            await response.body.cancel();
+            throw new DigiMeSdkTypeError("Missing `x-metadata` header from Digi.me API response");
         }
 
         try {
             metadataHeader = JSON.parse(fromBase64Url(metadataHeader));
-            console.log("metadata", metadataHeader);
         } catch (e) {
-            // TODO: Throw metadata not JSON
-            throw new Error("TODO: Failed parsing metadata json");
+            await response.body.cancel();
+            throw new DigiMeSdkTypeError("Unable to convert `x-metadata` header to object", { cause: e });
         }
 
         const { metadata, compression } = parseWithSchema(
             metadataHeader,
             FileHeaderMetadata,
-            "`readFile` x-metadata header",
+            "`readFile` `x-metadata` header",
         );
-
-        if (!response.body) {
-            throw new Error("TODO: API sent no content");
-        }
 
         return new DigiMeSessionFile({
             input: response.body,
@@ -724,63 +724,6 @@ export class DigiMeSdkAuthorized {
             compression: compression,
         });
     }
-
-    // NOTE: Temp
-    // async fetchFile(sessionKey: string, fileName: string) {
-    //     const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
-    //     const token = await signTokenPayload(
-    //         {
-    //             access_token: userAuthorization.asPayload().access_token.value,
-    //             client_id: `${this.#config.digiMeSdkInstance.applicationId}_${
-    //                 this.#config.digiMeSdkInstance.contractId
-    //             }`,
-    //             nonce: getRandomAlphaNumeric(32),
-    //             timestamp: Date.now(),
-    //         },
-    //         this.#config.digiMeSdkInstance.contractPrivateKey,
-    //     );
-
-    //     const response = await fetchWrapper(
-    //         new URL(`permission-access/query/${sessionKey}/${fileName}`, this.#config.digiMeSdkInstance.baseUrl),
-    //         {
-    //             headers: {
-    //                 Authorization: `Bearer ${token}`,
-    //                 Accept: "application/octet-stream",
-    //             },
-    //         },
-    //     );
-
-    //     let metadata = response.headers.get("x-metadata");
-
-    //     if (!metadata) {
-    //         throw new DigiMeSdkTypeError("TODO: Explain");
-    //     }
-
-    //     metadata = JSON.parse(Buffer.from(metadata, "base64url").toString("utf-8"));
-
-    //     console.log("metadata", metadata);
-
-    //     if (!response.body) {
-    //         throw new Error("TODO: What what");
-    //     }
-
-    //     // return response.body;
-
-    //     const pipeline = await getDecryptReadableStream(
-    //         this.#config.digiMeSdkInstance.contractPrivateKey,
-    //         response.body,
-    //     );
-
-    //     // if (compression === "brotli") {
-    //     //     pipeline = pipeline.pipeThrough(createBrotliDecompress());
-    //     // } else if (compression === "gzip") {
-    //     //     pipeline = pipeline.pipeThrough(new DecompressionStream("gzip"));
-    //     // }
-
-    //     // return pipeline.pipeThrough(new TextDecoderStream());
-
-    //     return pipeline;
-    // }
 
     async readFileList(parameters: ReadFileListParameters): Promise<FileList> {
         const { sessionKey, signal } = parseWithSchema(parameters, ReadFileListParameters, "`readFileList` parameters");

@@ -5,6 +5,7 @@
 import nodeCrypto from "node:crypto";
 import { DigiMeSdkError } from "./errors/errors";
 import { nodeDuplexToWeb } from "./node-streams";
+import { concatUint8Array } from "./concat-uint8array";
 
 const ALPHA_LOWER = "abcdefghijklmnopqrstuvwxyz";
 const ALPHA_UPPER = ALPHA_LOWER.toUpperCase();
@@ -54,16 +55,6 @@ export const fromBase64Url = (data: string | Buffer): string => {
     }
 
     return Buffer.from(data, "base64url").toString("utf-8");
-};
-
-/**
- * Utility for concating a Unit8Array
- */
-const concatUint8Array = (array1: Uint8Array, array2: Uint8Array): Uint8Array => {
-    const newArray = new Uint8Array(array1.length + array2.length);
-    newArray.set(array1, 0);
-    newArray.set(array2, array1.length);
-    return newArray;
 };
 
 /**

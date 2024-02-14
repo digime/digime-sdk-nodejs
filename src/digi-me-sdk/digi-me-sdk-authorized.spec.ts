@@ -16,7 +16,7 @@ import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 import { Readable } from "node:stream";
 import { HttpResponse, http } from "msw";
 import { fromMockApiBase } from "../../mocks/utilities";
-import { readFile } from "node:fs/promises";
+import { DigiMeSessionFile } from "./digi-me-session-file";
 
 const mockSdkOptions = {
     applicationId: mockSdkConsumerCredentials.applicationId,
@@ -606,28 +606,7 @@ describe("DigiMeSdkAuthorized", () => {
         });
 
         describe(".readFile()", () => {
-            test("Reads files correctly", async () => {
-                expect.assertions(1);
-                mswServer.use(...permissionAccessQueryHandlers);
-
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
-                // TODO
-                const result = await authorizedSdk.readFile({ sessionKey: "test-session", fileName: "test-file.json" });
-
-                const resultText = await result.asText();
-                const originalText = await readFile(
-                    new URL("../../mocks/api/permission-access/query/test-mapped-file.json", import.meta.url),
-                    { encoding: "utf-8" },
-                );
-
-                expect(resultText).toBe(originalText);
-            });
-
-            test.only("Reads files correctly", async () => {
+            test("Returns a DigiMeSessionFile", async () => {
                 expect.assertions(1);
                 mswServer.use(...permissionAccessQueryHandlers);
 
@@ -637,37 +616,9 @@ describe("DigiMeSdkAuthorized", () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
                 const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const result = await authorizedSdk.readFile({ sessionKey: "test-session", fileName: "test-file.json" });
+                const file = await authorizedSdk.readFile({ sessionKey: "test-session", fileName: "test-file.json" });
 
-                const stream = await result.asJsonStream();
-
-                // console.log("text", stream);
-                const reader = stream.getReader();
-                let inProgress = true;
-
-                try {
-                    while (inProgress) {
-                        const { done, value } = await reader.read();
-
-                        if (done) {
-                            inProgress = false;
-                        } else {
-                            console.log("chunk", value);
-                        }
-                    }
-                } finally {
-                    reader.releaseLock();
-                }
-
-                // TODO
-
-                // const resultText = await streamToText(result);
-                // const originalText = await readFile(
-                //     new URL("../../mocks/api/permission-access/query/test-mapped-file.json", import.meta.url),
-                //     { encoding: "utf-8" },
-                // );
-
-                // expect(resultText).toBe(originalText);
+                expect(file).toBeInstanceOf(DigiMeSessionFile);
             });
         });
     });
