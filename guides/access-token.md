@@ -33,3 +33,31 @@ The access token will eventually expire. When you first created it, a timestamp 
 If the refresh is unsuccessful, you'll need to go through the authorization process again with the user.
 
 Note that methods for reading data will also try to do auto refresh, so please add logic for keep this latest tokek that is returned back from SDK.
+
+## Refresh Token
+
+SDK methods have option to do token auto refresh and will do that as explained in respective methods, but
+if token is close to expire there is an option to issue new token manually and be able to control that process internally.
+
+Access token can be issued manually by calling refreshToken method as explained below:
+
+```typescript
+// Initialize the SDK
+import { init } from "@digime/digime-sdk-nodejs";
+
+const sdk = init({ applicationId: <you-application-id> });
+
+const contractDetails = {
+    contractId: <your-contract-id>,
+    privateKey: <private-key-for-contract-id>,
+}
+
+// contractDetails - The same one used in getAuthorizeUrl().
+// userAccessToken - The user access token from the authorization step.
+
+const { newToken } = await sdk.refreshToken({
+    contractDetails,
+    userAccessToken,
+});
+
+```
