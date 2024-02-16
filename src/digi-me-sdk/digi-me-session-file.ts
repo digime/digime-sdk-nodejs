@@ -8,6 +8,7 @@ import { getDecryptReadableStream } from "../crypto";
 import { SessionFileHeaderMetadata } from "../schemas/api/session/session-file-header-metadata";
 import { createBrotliDecompress } from "node:zlib";
 import { nodeDuplexToWeb, streamToText } from "../node-streams";
+import { DigiMeSdkTypeError } from "../errors/errors";
 
 const DigiMeSessionFileHandlerOptions = z.object({
     input: z.instanceof(ReadableStream<Uint8Array>),
@@ -32,6 +33,10 @@ export class DigiMeSessionFile {
             DigiMeSessionFileHandlerOptions,
             "`DigiMeSessionFileHandler` constructor options",
         );
+
+        if (input.locked) {
+            throw new DigiMeSdkTypeError("Can't instantiate `DigiMeSessionFile` with a locked stream");
+        }
 
         this.#input = input;
         this.#privateKey = privateKey;
