@@ -3,6 +3,7 @@
  */
 
 import { z } from "zod";
+import { Session } from "./session";
 
 /** Raw data scoping criteria metadata account */
 const ScopeCriteriaMetadataAccount = z.object({
@@ -116,3 +117,10 @@ export const SessionTriggerConfiguration = z.object({
 
 export type SessionTriggerConfigurationInput = z.input<typeof SessionTriggerConfiguration>;
 export type SessionTriggerConfiguration = z.infer<typeof SessionTriggerConfiguration>;
+
+/** Session trigger response */
+export const SessionTriggerResponse = z.object({
+    session: Session,
+});
+
+export type SessionTriggerResponse = z.infer<typeof SessionTriggerResponse>;

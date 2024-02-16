@@ -47,6 +47,7 @@ import {
     PushDataOptions,
 } from "../schemas/digi-me-sdk-authorized";
 import type { Readable } from "node:stream";
+import { SessionTriggerResponse } from "../schemas/api/session/session-trigger";
 
 // Transform and casting to have a more specific type for typechecking
 const UrlWithTrailingSlash = z
@@ -486,8 +487,7 @@ export class DigiMeSdkAuthorized {
         return parseWithSchema(await response.json(), UserAccounts);
     }
 
-    // TODO: Return type
-    async readSession(options?: ReadSessionOptionsInput): Promise<unknown> {
+    async readSession(options?: ReadSessionOptionsInput): Promise<SessionTriggerResponse["session"]> {
         const { signal, ...sessionTriggerConfiguration } = parseWithSchema(
             options,
             ReadSessionOptions,
@@ -529,8 +529,7 @@ export class DigiMeSdkAuthorized {
             },
         );
 
-        // TODO: Assert and return session
-        return await response.text();
+        return parseWithSchema(await response.json(), SessionTriggerResponse).session;
     }
 
     async getOnboardServiceUrl() {}

@@ -3,7 +3,7 @@
  */
 
 import { z } from "zod";
-import { SessionTriggerConfiguration } from "./api/session/session-trigger-configuration";
+import { SessionTriggerConfiguration } from "./api/session/session-trigger";
 import { FileDescriptor } from "./api/import";
 
 /**
