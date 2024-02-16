@@ -5,6 +5,11 @@
 import { describe, test, expect } from "vitest";
 import { DigiMeSessionFile } from "./digi-me-session-file";
 import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
+import { createFileEncryptPipeline } from "../../mocks/utilities";
+import { randomInt } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import { mockSdkConsumerCredentials } from "../../mocks/sdk-consumer-credentials";
+import { streamToUint8Array } from "../node-streams";
 
 describe("DigiMeSessionFile", () => {
     describe("Constructor", () => {
@@ -70,6 +75,12 @@ describe("DigiMeSessionFile", () => {
                     input: 1,
                     // @ts-expect-error Intentionally wrong
                     privateKey: ["a", "b", "c"],
+                    // @ts-expect-error Intentionally wrong
+                    fileName: null,
+                    // @ts-expect-error Intentionally wrong
+                    compression: "uimplemented-compression",
+                    // @ts-expect-error Intentionally wrong
+                    metadata: "",
                 });
                 expect.unreachable();
             } catch (error) {
@@ -77,9 +88,12 @@ describe("DigiMeSessionFile", () => {
                 expect(error).toBeInstanceOf(DigiMeSdkError);
                 expect(error).toBeInstanceOf(DigiMeSdkTypeError);
                 expect(error).toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`DigiMeSessionFileHandler\` constructor options (2 issues):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`DigiMeSessionFileHandler\` constructor options (5 issues):
                    • "input": Input not instance of ReadableStream
-                   • "privateKey": Expected string, received array]
+                   • "privateKey": Expected string, received array
+                   • "fileName": Expected string, received null
+                   • "compression": Invalid input
+                   • "metadata": Invalid input]
                 `);
             }
         });
@@ -110,6 +124,45 @@ describe("DigiMeSessionFile", () => {
                 const result = sessionFile.asRawStream();
 
                 expect(result).toBe(input);
+            });
+        });
+
+        describe(".asRawStream", () => {
+            test("Returns the input stream", () => {
+                const input = new ReadableStream();
+                const privateKey = "test-key";
+                const sessionFile = new DigiMeSessionFile({ input, privateKey });
+
+                const result = sessionFile.asRawStream();
+
+                expect(result).toBe(input);
+            });
+        });
+
+        describe(".asProcessedStream", () => {
+            test("Processes the file in an expected manner", async () => {
+                expect.assertions(2);
+
+                const targetFile = new URL(
+                    "../../mocks/api/permission-access/query/test-mapped-file.json",
+                    import.meta.url,
+                );
+
+                const input = createFileEncryptPipeline(mockSdkConsumerCredentials.publicKey, targetFile, {
+                    highWaterMark: randomInt(1, 101),
+                });
+
+                const sessionFile = new DigiMeSessionFile({
+                    input,
+                    privateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
+                });
+
+                const resultStream = await sessionFile.asProcessedStream();
+                const resultBuffer = await streamToUint8Array(resultStream);
+                const expected = await readFile(targetFile);
+
+                expect(resultStream).instanceOf(ReadableStream);
+                expect(expected.compare(resultBuffer)).toBe(0);
             });
         });
     });

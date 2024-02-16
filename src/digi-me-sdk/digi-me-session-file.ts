@@ -8,7 +8,7 @@ import { getDecryptReadableStream } from "../crypto";
 import { SessionFileHeaderMetadata } from "../schemas/api/session/session-file-header-metadata";
 import { createBrotliDecompress } from "node:zlib";
 import { nodeDuplexToWeb, streamToText } from "../node-streams";
-import { DigiMeSdkTypeError } from "../errors/errors";
+import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 
 const DigiMeSessionFileHandlerOptions = z.object({
     input: z.instanceof(ReadableStream<Uint8Array>),
@@ -45,19 +45,19 @@ export class DigiMeSessionFile {
         this.#metadata = metadata;
     }
 
-    get fileName(): string | undefined {
+    get fileName(): DigiMeSessionFileHandlerOptions["fileName"] {
         return this.#fileName;
     }
 
-    get metadata() {
+    get metadata(): DigiMeSessionFileHandlerOptions["metadata"] {
         return this.#metadata;
     }
 
-    get compression() {
+    get compression(): DigiMeSessionFileHandlerOptions["compression"] {
         return this.#compression;
     }
 
-    get privateKey(): string {
+    get privateKey(): DigiMeSessionFileHandlerOptions["privateKey"] {
         return this.#privateKey;
     }
 
@@ -102,7 +102,11 @@ export class DigiMeSessionFile {
      * Returns JSON representation of the file
      */
     async asJson(): Promise<unknown> {
-        return JSON.parse(await this.asText());
+        try {
+            return JSON.parse(await this.asText());
+        } catch (error) {
+            throw new DigiMeSdkError("Failed parsing file contents as JSON", { cause: error });
+        }
     }
 
     async asJsonStream() {

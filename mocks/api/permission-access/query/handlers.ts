@@ -7,7 +7,7 @@
  */
 
 import { http, HttpResponse } from "msw";
-import { createFileEncryptTransformStream, createReadableStream, fromMockApiBase } from "../../../utilities";
+import { createFileEncryptPipeline, fromMockApiBase } from "../../../utilities";
 import { assertAcceptsJson, assertBearerToken, assertAcceptsOctetStream } from "../../../handler-utilities";
 import { randomInt, randomUUID } from "node:crypto";
 import { mockSdkConsumerCredentials } from "../../../sdk-consumer-credentials";
@@ -73,28 +73,19 @@ export const makeHandlers = (baseUrl?: string) => [
             ? availableFiles["test-image.png"]
             : availableFiles["test-mapped-file.json"];
 
-        // Get data encryption transformer
-        const { encryptedKey, iv, cipherivTransform } = createFileEncryptTransformStream(
-            mockSdkConsumerCredentials.publicKey,
-        );
-
-        // Write pre-data contents
-        const transformStream = new TransformStream();
-        const writer = transformStream.writable.getWriter();
-        writer.write(encryptedKey);
-        writer.write(iv);
-        writer.releaseLock();
-
         // Create metadata
         const metadata = JSON.stringify(targetFile.headerMetadata);
 
-        const fileReadable = createReadableStream(new URL(targetFile.name, import.meta.url), {
-            highWaterMark: randomInt(1, 101),
-        });
+        // Get data encryption pipeline
+        const fileReadableStream = createFileEncryptPipeline(
+            mockSdkConsumerCredentials.publicKey,
+            new URL(targetFile.name, import.meta.url),
+            {
+                highWaterMark: randomInt(1, 101),
+            },
+        );
 
-        fileReadable.pipeThrough(cipherivTransform).pipeTo(transformStream.writable);
-
-        return new HttpResponse(transformStream.readable, {
+        return new HttpResponse(fileReadableStream, {
             headers: { "x-metadata": Buffer.from(metadata).toString("base64url") },
         });
     }),

@@ -11,7 +11,7 @@ export const nodeReadableFromWeb = (readableStream: ReadableStream): Readable =>
     Readable.fromWeb(readableStream as NodeReadableStream);
 
 // This exists solely because Node Web ReadableStream types do not match global DOM ReadableStream types
-export const nodeReadableToWeb = (nodeReadable: Readable): ReadableStream =>
+export const nodeReadableToWeb = <T = Uint8Array>(nodeReadable: Readable): ReadableStream<T> =>
     Readable.toWeb(nodeReadable) as ReadableStream;
 
 /**

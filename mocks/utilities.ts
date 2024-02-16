@@ -71,3 +71,19 @@ export const createFileEncryptTransformStream = (publicKey: nodeCrypto.KeyObject
         iv,
     };
 };
+
+export const createFileEncryptPipeline = (
+    publicKey: nodeCrypto.KeyObject,
+    ...createReadableStreamArgs: Parameters<typeof createReadableStream>
+) => {
+    const fileReadable = createReadableStream(...createReadableStreamArgs);
+    const { encryptedKey, iv, cipherivTransform } = createFileEncryptTransformStream(publicKey);
+
+    const transformStream = new TransformStream<Uint8Array, Uint8Array>();
+    const writer = transformStream.writable.getWriter();
+    writer.write(encryptedKey);
+    writer.write(iv);
+    writer.releaseLock();
+
+    return fileReadable.pipeThrough(cipherivTransform).pipeThrough(transformStream);
+};
