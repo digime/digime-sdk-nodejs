@@ -3,7 +3,7 @@
  */
 
 import { z } from "zod";
-import { FileDataSchema } from "../schemas/api/permission-access/query/session-key/file/schemas";
+import { SessionFileDataSchema } from "./session-file-data-schema";
 
 const UserSyncStates = z.union([
     z.literal("running"),
@@ -48,11 +48,11 @@ const FileListFile = z
     .object({
         name: z.string(),
         updatedDate: z.number(),
-        schema: FileDataSchema.optional(),
+        schema: SessionFileDataSchema.optional(),
     })
     .passthrough();
 
-export const FileList = z.object({
+export const SessionFileList = z.object({
     status: z
         .object({
             state: UserSyncStates,
@@ -62,17 +62,4 @@ export const FileList = z.object({
     fileList: z.array(FileListFile).optional(),
 });
 
-export type FileList = z.infer<typeof FileList>;
-
-/**
- * `<instance>.readFileList()` input parameters
- */
-export const ReadFileListParameters = z.object({
-    /** SessionKey of the session you wish to read the file list for */
-    sessionKey: z.string(),
-
-    /** AbortSignal to abort this operation */
-    signal: z.instanceof(AbortSignal).optional(),
-});
-
-export type ReadFileListParameters = z.infer<typeof ReadFileListParameters>;
+export type SessionFileList = z.infer<typeof SessionFileList>;

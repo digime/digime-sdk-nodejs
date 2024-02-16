@@ -6,7 +6,7 @@ import { createMachine, assign } from "xstate";
 import { logFetchWrapper } from "../debug-log";
 import type { DigiMeSdkError } from "../errors/errors";
 import { DigiMeSdkApiError, DigiMeSdkTypeError } from "../errors/errors";
-import { ApiErrorFromHeaders } from "../types/external/api-error-response";
+import { ApiErrorFromHeaders } from "../schemas/api/api-error";
 import { abortableDelay } from "../abortable-delay";
 import type { CalculateDelayOptions, RetryOptions } from "./retry";
 import { DEFAULT_RETRY_OPTIONS, defaultCalculateDelay } from "./retry";

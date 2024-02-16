@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 
-const AccountType = z.union([
+const UserAccountType = z.union([
     z.literal("USER"),
     z.literal("ADMIN"),
     z.literal("EVENT"),
@@ -20,18 +20,18 @@ const AccountType = z.union([
     z.literal("PUSH"),
 ]);
 
-const AccessTokenStatus = z
+const UserAccessTokenStatus = z
     .object({
         authorized: z.boolean(),
         expiresAt: z.number().optional(),
     })
     .passthrough();
 
-const Account = z
+const UserAccount = z
     .object({
         id: z.string(),
         reference: z.string(),
-        type: AccountType,
+        type: UserAccountType,
         createdDate: z.number(),
         serviceGroupId: z.number(),
         serviceGroupName: z.string(),
@@ -40,7 +40,7 @@ const Account = z
         serviceTypeReference: z.string(),
         sourceId: z.number(),
         updatedDate: z.number(),
-        accessTokenStatus: AccessTokenStatus.optional(),
+        accessTokenStatus: UserAccessTokenStatus.optional(),
         serviceProviderId: z.number().optional(),
         serviceProviderName: z.string().optional(),
         serviceProviderReference: z.string().optional(),
@@ -50,16 +50,6 @@ const Account = z
     })
     .passthrough();
 
-export const Accounts = z.array(Account);
+export const UserAccounts = z.array(UserAccount);
 
-export type Accounts = z.infer<typeof Accounts>;
-
-/**
- * `<instance>.readAccounts()` input parameters
- */
-export const ReadAccountsParameters = z.object({
-    /** AbortSignal to abort this operation */
-    signal: z.instanceof(AbortSignal).optional(),
-});
-
-export type ReadAccountsParameters = z.infer<typeof ReadAccountsParameters>;
+export type UserAccounts = z.infer<typeof UserAccounts>;

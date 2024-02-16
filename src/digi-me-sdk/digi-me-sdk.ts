@@ -2,42 +2,51 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import type { DiscoveryAPIServicesData } from "../types/external/discovery-api-services";
-import { DiscoveryAPIServicesResponse } from "../types/external/discovery-api-services";
-import type { GetAuthorizeUrlParametersInput } from "./get-authorize-url";
-import { GetAuthorizeUrlParameters } from "./get-authorize-url";
+import { DiscoveryApiServicesResponse } from "../schemas/api/discovery/response";
 import { fromBase64Url, getRandomAlphaNumeric, getSha256Hash, toBase64Url } from "../crypto";
 import SDK_VERSION from "../sdk-version";
-import { OauthAuthorizeResponse } from "../types/external/oauth-authorize";
-import { PayloadPreauthorizationCode } from "../types/external/jwt-payloads";
-import type { GetAuthorizeUrlReturn } from "./get-authorize-url";
-import { OauthTokenResponse } from "../types/external/oauth-token";
+import { OauthAuthorizeResponse } from "../schemas/api/oauth/authorize-response";
+import { PayloadPreauthorizationCode } from "../schemas/api/jwt-payloads";
+import { OauthTokenResponse } from "../schemas/api/oauth/tokens";
 import { parseWithSchema } from "../zod/zod-parse";
 import { fetchWrapper } from "../fetch/fetch";
 import { signTokenPayload } from "../sign-token-payload";
 import { getVerifiedTokenPayload } from "../get-verified-token-payload";
-import { GetAvailableServicesParameters } from "./get-available-services";
-import { GetSampleDataSetsForSourceParameters, SampleDataSets } from "./get-sample-data-sets-for-source";
-import { ExchangeCodeForUserAuthorizationParameters } from "./exchange-code-for-user-authorization";
 import { TrustedJwks } from "../trusted-jwks";
 import { UserAuthorization } from "../user-authorization";
 import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 import { errorMessages } from "../errors/messages";
-import { GetPortabilityReportAs, GetPortabilityReportOptions } from "./get-portability-report";
 import { z } from "zod";
 import { DEFAULT_BASE_URL, DEFAULT_ONBOARD_URL } from "../constants";
-import { Accounts, ReadAccountsParameters } from "./read-accounts";
-import { DeleteUserParameters } from "./delete-user";
-import { FileList } from "./read-file-list";
-import { ReadFileListParameters } from "./read-file-list";
-import type { Readable } from "node:stream";
 import { nodeReadableFromWeb } from "../node-streams";
-import type { ReadSessionOptionsInput } from "./read-session";
-import { ReadSessionOptions } from "./read-session";
-import { PushDataOptions } from "./push-data";
-import { ReadFileOptions } from "./read-file";
 import { DigiMeSessionFile } from "./digi-me-session-file";
-import { FileHeaderMetadata } from "../schemas/api/permission-access/query/session-key/file/schemas";
+import { SessionFileHeaderMetadata } from "../schemas/api/session/session-file-header-metadata";
+import { SessionFileList } from "../schemas/api/session/session-file-list";
+import { UserAccounts } from "../schemas/api/user-account";
+import { SampleDataSets } from "../schemas/api/sample-datasets/sample-data-sets";
+import type { GetAuthorizeUrlOptionsInput, GetAuthorizeUrlReturn } from "../schemas/digi-me-sdk";
+import {
+    ExchangeCodeForUserAuthorizationOptions,
+    GetAuthorizeUrlOptions,
+    GetAvailableServicesOptions,
+    GetSampleDataSetsForSourceOptions,
+} from "../schemas/digi-me-sdk";
+import type {
+    DeleteUserOptionsInput,
+    ReadAccountsOptionsInput,
+    ReadSessionOptionsInput,
+} from "../schemas/digi-me-sdk-authorized";
+import {
+    ReadAccountsOptions,
+    DeleteUserOptions,
+    GetPortabilityReportOptions,
+    GetPortabilityReportAs,
+    ReadSessionOptions,
+    ReadFileListOptions,
+    ReadFileOptions,
+    PushDataOptions,
+} from "../schemas/digi-me-sdk-authorized";
+import type { Readable } from "node:stream";
 
 // Transform and casting to have a more specific type for typechecking
 const UrlWithTrailingSlash = z
@@ -79,6 +88,7 @@ export const DigiMeSdkConfig = z.object(
         invalid_type_error: "SdkConfig must be an object",
     },
 );
+
 export type DigiMeSdkConfig = z.infer<typeof DigiMeSdkConfig>;
 
 /**
@@ -102,35 +112,35 @@ export class DigiMeSdk {
     /**
      * The `applicationId` this instance has been instantiated with
      */
-    get applicationId() {
+    get applicationId(): DigiMeSdkConfig["applicationId"] {
         return this.#config.applicationId;
     }
 
     /**
      * The `contractId` this instance has been instantiated with
      */
-    get contractId() {
+    get contractId(): DigiMeSdkConfig["contractId"] {
         return this.#config.contractId;
     }
 
     /**
      * The `contractPrivateKey` this instance has been instantiated with
      */
-    get contractPrivateKey() {
+    get contractPrivateKey(): DigiMeSdkConfig["contractPrivateKey"] {
         return this.#config.contractPrivateKey;
     }
 
     /**
      * The `baseUrl` this instance has been instantiated with
      */
-    get baseUrl() {
+    get baseUrl(): DigiMeSdkConfig["baseUrl"] {
         return this.#config.baseUrl;
     }
 
     /**
      * The `onboardUrl` this instance has been instantiated with
      */
-    get onboardUrl() {
+    get onboardUrl(): DigiMeSdkConfig["onboardUrl"] {
         return this.#config.onboardUrl;
     }
 
@@ -155,12 +165,14 @@ export class DigiMeSdk {
      *
      * However, if you pass in the `contractId` parameter, Digi.me Discovery API will instead
      * return only the services that can be onboarded with the provided contract
+     *
+     * TODO: Rename this to actually match what it is, it's not services, it's sources and it's also other stuff
      */
-    async getAvailableServices(parameters: GetAvailableServicesParameters = {}): Promise<DiscoveryAPIServicesData> {
+    async getAvailableServices(options?: GetAvailableServicesOptions): Promise<DiscoveryApiServicesResponse["data"]> {
         const { contractId, signal } = parseWithSchema(
-            parameters,
-            GetAvailableServicesParameters,
-            "`getAvailableServices` parameters",
+            options,
+            GetAvailableServicesOptions,
+            "`getAvailableServices` options",
         );
 
         const headers: HeadersInit = {
@@ -176,7 +188,7 @@ export class DigiMeSdk {
             signal,
         });
 
-        return parseWithSchema(await response.json(), DiscoveryAPIServicesResponse).data;
+        return parseWithSchema(await response.json(), DiscoveryApiServicesResponse).data;
     }
 
     /**
@@ -187,7 +199,7 @@ export class DigiMeSdk {
      * - `codeVerifier` - You should keep, as it will be needed later to exchange for `UserAuthorization`
      * - `session` - You should keep, as it will be needed later to access the data user has authorized access to
      */
-    async getAuthorizeUrl(parameters: GetAuthorizeUrlParametersInput): Promise<GetAuthorizeUrlReturn> {
+    async getAuthorizeUrl(options: GetAuthorizeUrlOptionsInput): Promise<GetAuthorizeUrlReturn> {
         const {
             callback,
             state,
@@ -198,7 +210,7 @@ export class DigiMeSdk {
             includeSampleDataOnlySources,
             userAuthorization,
             signal,
-        } = parseWithSchema(parameters, GetAuthorizeUrlParameters, "`getAuthorizeUrl` parameters");
+        } = parseWithSchema(options, GetAuthorizeUrlOptions, "`getAuthorizeUrl` options");
 
         const codeVerifier = toBase64Url(getRandomAlphaNumeric(32));
 
@@ -268,12 +280,12 @@ export class DigiMeSdk {
      * the callback provided to it for UserAuthorization.
      */
     async exchangeCodeForUserAuthorization(
-        parameters: ExchangeCodeForUserAuthorizationParameters,
+        options: ExchangeCodeForUserAuthorizationOptions,
     ): Promise<UserAuthorization> {
         const { codeVerifier, authorizationCode, signal } = parseWithSchema(
-            parameters,
-            ExchangeCodeForUserAuthorizationParameters,
-            "`exchangeCodeForUserAuthorization` parameters",
+            options,
+            ExchangeCodeForUserAuthorizationOptions,
+            "`exchangeCodeForUserAuthorization` options",
         );
 
         const token = await signTokenPayload(
@@ -341,11 +353,11 @@ export class DigiMeSdk {
     /**
      * Retrieve available sample datasets for a given source
      */
-    async getSampleDataSetsForSource(parameters: GetSampleDataSetsForSourceParameters): Promise<SampleDataSets> {
+    async getSampleDataSetsForSource(options: GetSampleDataSetsForSourceOptions): Promise<SampleDataSets> {
         const { sourceId, signal } = parseWithSchema(
-            parameters,
-            GetSampleDataSetsForSourceParameters,
-            "`getSampleDataSetsForSource` parameters",
+            options,
+            GetSampleDataSetsForSourceOptions,
+            "`getSampleDataSetsForSource` options",
         );
 
         const signedToken = await signTokenPayload(
@@ -444,8 +456,11 @@ export class DigiMeSdkAuthorized {
         return await this.refreshUserAuthorization();
     }
 
-    async readAccounts(parameters: ReadAccountsParameters = {}): Promise<Accounts> {
-        const { signal } = parseWithSchema(parameters, ReadAccountsParameters, "`readAcccounts` parameters");
+    /**
+     * Retrieve source accounts tied to the library
+     */
+    async readAccounts(options?: ReadAccountsOptionsInput): Promise<UserAccounts> {
+        const { signal } = parseWithSchema(options, ReadAccountsOptions, "`readAcccounts` options");
         const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
         const token = await signTokenPayload(
             {
@@ -468,11 +483,16 @@ export class DigiMeSdkAuthorized {
             },
         );
 
-        return parseWithSchema(await response.json(), Accounts);
+        return parseWithSchema(await response.json(), UserAccounts);
     }
 
-    async readSession(options: ReadSessionOptionsInput = {}) {
-        const { signal, ...sessionOptions } = parseWithSchema(options, ReadSessionOptions, "`readSession` options");
+    // TODO: Return type
+    async readSession(options?: ReadSessionOptionsInput): Promise<unknown> {
+        const { signal, ...sessionTriggerConfiguration } = parseWithSchema(
+            options,
+            ReadSessionOptions,
+            "`readSession` options",
+        );
         const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
         const token = await signTokenPayload(
             {
@@ -495,7 +515,7 @@ export class DigiMeSdkAuthorized {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    ...sessionOptions,
+                    ...sessionTriggerConfiguration,
                     agent: {
                         sdk: {
                             name: "nodejs",
@@ -520,8 +540,8 @@ export class DigiMeSdkAuthorized {
     /**
      * Attempts to delete the user that this instances UserAuthorization is bound to
      */
-    async deleteUser(parameters: DeleteUserParameters = {}): Promise<void> {
-        const { signal } = parseWithSchema(parameters, DeleteUserParameters, "`deleteUser` parameters");
+    async deleteUser(options?: DeleteUserOptionsInput): Promise<void> {
+        const { signal } = parseWithSchema(options, DeleteUserOptions, "`deleteUser` options");
         const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
         const token = await signTokenPayload(
             {
@@ -654,7 +674,33 @@ export class DigiMeSdkAuthorized {
         throw new Error("TODO: Provider NYI");
     }
 
-    async readAllFiles() {}
+    async readFileList(options: ReadFileListOptions): Promise<SessionFileList> {
+        const { sessionKey, signal } = parseWithSchema(options, ReadFileListOptions, "`readFileList` options");
+
+        const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
+        const token = await signTokenPayload(
+            {
+                access_token: userAuthorization.asPayload().access_token.value,
+                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
+                nonce: getRandomAlphaNumeric(32),
+                timestamp: Date.now(),
+            },
+            this.#config.digiMeSdkInstance.contractPrivateKey,
+        );
+
+        const response = await fetchWrapper(
+            new URL(`permission-access/query/${sessionKey}`, this.#config.digiMeSdkInstance.baseUrl),
+            {
+                signal,
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                },
+            },
+        );
+
+        return parseWithSchema(await response.json(), SessionFileList);
+    }
 
     async readFile(options: ReadFileOptions): Promise<DigiMeSessionFile> {
         const { sessionKey, fileName } = parseWithSchema(options, ReadFileOptions, "`readFile` options");
@@ -700,7 +746,7 @@ export class DigiMeSdkAuthorized {
 
         const { metadata, compression } = parseWithSchema(
             metadataHeader,
-            FileHeaderMetadata,
+            SessionFileHeaderMetadata,
             "`readFile` `x-metadata` header",
         );
 
@@ -713,31 +759,5 @@ export class DigiMeSdkAuthorized {
         });
     }
 
-    async readFileList(parameters: ReadFileListParameters): Promise<FileList> {
-        const { sessionKey, signal } = parseWithSchema(parameters, ReadFileListParameters, "`readFileList` parameters");
-
-        const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
-        const token = await signTokenPayload(
-            {
-                access_token: userAuthorization.asPayload().access_token.value,
-                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
-                nonce: getRandomAlphaNumeric(32),
-                timestamp: Date.now(),
-            },
-            this.#config.digiMeSdkInstance.contractPrivateKey,
-        );
-
-        const response = await fetchWrapper(
-            new URL(`permission-access/query/${sessionKey}`, this.#config.digiMeSdkInstance.baseUrl),
-            {
-                signal,
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/json",
-                },
-            },
-        );
-
-        return parseWithSchema(await response.json(), FileList);
-    }
+    async readAllFiles() {}
 }

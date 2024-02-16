@@ -88,7 +88,7 @@ const Scope = z.object({
     timeRanges: z.array(ScopeTimeRange).optional(),
 });
 
-export const ReadSessionOptions = z.object({
+export const SessionTriggerConfiguration = z.object({
     /** TODO: Document, what is this? */
     limits: z
         .object({
@@ -112,10 +112,7 @@ export const ReadSessionOptions = z.object({
      * @defaultValue `true`
      */
     sourceFetch: z.boolean().default(true),
-
-    /** AbortSignal to abort this operation */
-    signal: z.instanceof(AbortSignal).optional(),
 });
 
-export type ReadSessionOptionsInput = z.input<typeof ReadSessionOptions>;
-export type ReadSessionOptions = z.infer<typeof ReadSessionOptions>;
+export type SessionTriggerConfigurationInput = z.input<typeof SessionTriggerConfiguration>;
+export type SessionTriggerConfiguration = z.infer<typeof SessionTriggerConfiguration>;

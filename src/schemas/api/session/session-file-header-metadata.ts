@@ -3,24 +3,18 @@
  */
 
 import { z } from "zod";
+import { SessionFileDataSchema } from "./session-file-data-schema";
 
-export const DataStandard = z.union([z.literal("digime"), z.literal("fhir")]);
-
-export const FileDataSchema = z
-    .object({
-        version: z.string(),
-        id: z.string().optional(),
-        standard: DataStandard,
-    })
-    .passthrough();
-
-export const MappedFileMetadata = z
+/**
+ * Metadata for mapped files
+ */
+export const SessionFileMetadataMapped = z
     .object({
         objectCount: z.number(),
         objectType: z.string(),
         serviceGroup: z.string(),
         serviceName: z.string(),
-        schema: FileDataSchema,
+        schema: SessionFileDataSchema,
 
         // TODO: Get consultation
         /** @deprecated this will be removed in next major update. New schema prop should be used. */
@@ -28,7 +22,12 @@ export const MappedFileMetadata = z
     })
     .passthrough();
 
-export const RawFileMetadata = z
+export type SessionFileMetadataMapped = z.infer<typeof SessionFileMetadataMapped>;
+
+/**
+ * Metadata for raw files
+ */
+export const SessionFileMetadataRaw = z
     .object({
         mimetype: z.string(),
         accounts: z.array(
@@ -54,13 +53,15 @@ export const RawFileMetadata = z
     })
     .passthrough();
 
-export const AnyFileMetadata = z.union([MappedFileMetadata, RawFileMetadata]);
+export type SessionFileMetadataRaw = z.infer<typeof SessionFileMetadataRaw>;
 
-export const FileHeaderMetadata = z
+export const AnySessionFileMetadata = z.union([SessionFileMetadataMapped, SessionFileMetadataRaw]);
+
+export const SessionFileHeaderMetadata = z
     .object({
-        metadata: AnyFileMetadata,
+        metadata: AnySessionFileMetadata,
         compression: z.union([z.literal("brotli"), z.literal("gzip")]).optional(),
     })
     .passthrough();
 
-export type FileHeaderMetadata = z.infer<typeof FileHeaderMetadata>;
+export type SessionFileHeaderMetadata = z.infer<typeof SessionFileHeaderMetadata>;

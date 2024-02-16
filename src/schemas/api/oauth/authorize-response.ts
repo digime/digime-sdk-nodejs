@@ -3,7 +3,7 @@
  */
 
 import { z } from "zod";
-import { Session } from "../session";
+import { Session } from "../session/session";
 
 export const OauthAuthorizeResponse = z.object({
     token: z.string(),

@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { parseWithSchema } from "../zod/zod-parse";
 import { getDecryptReadableStream } from "../crypto";
-import { FileHeaderMetadata } from "../schemas/api/permission-access/query/session-key/file/schemas";
+import { SessionFileHeaderMetadata } from "../schemas/api/session/session-file-header-metadata";
 import { createBrotliDecompress } from "node:zlib";
 import { nodeDuplexToWeb, streamToText } from "../node-streams";
 
@@ -13,8 +13,8 @@ const DigiMeSessionFileHandlerOptions = z.object({
     input: z.instanceof(ReadableStream<Uint8Array>),
     privateKey: z.string(),
     fileName: z.string().optional(),
-    compression: FileHeaderMetadata.shape.compression.optional(),
-    metadata: FileHeaderMetadata.shape.metadata.optional(),
+    compression: SessionFileHeaderMetadata.shape.compression.optional(),
+    metadata: SessionFileHeaderMetadata.shape.metadata.optional(),
 });
 
 type DigiMeSessionFileHandlerOptions = z.infer<typeof DigiMeSessionFileHandlerOptions>;

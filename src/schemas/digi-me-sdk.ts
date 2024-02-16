@@ -3,90 +3,34 @@
  */
 
 import { z } from "zod";
-import type { Session } from "../types/session";
+import { SessionTriggerConfiguration } from "./api/session/session-trigger-configuration";
 import { UserAuthorization } from "../user-authorization";
+import type { Session } from "./api/session/session";
 
 /**
- * CAScope - timeRanges
+ * `<instance>.getAvailableServices()`
  */
-const TimeRange = z.object({
-    from: z.number().optional(),
-    to: z.number().optional(),
-    last: z.string().optional(),
-});
+
+/** Options argument */
+export const GetAvailableServicesOptions = z
+    .object({
+        /** ID of the contract you wish to filter the results by */
+        contractId: z.string().optional(),
+
+        /** AbortSignal that can be used to abort this operation */
+        signal: z.instanceof(AbortSignal).optional(),
+    })
+    .default({});
+
+export type GetAvailableServicesOptions = z.infer<typeof GetAvailableServicesOptions>;
+export type GetAvailableServicesOptionsInput = z.input<typeof GetAvailableServicesOptions>;
 
 /**
- * CAScope - serviceGroups
+ * `<instance>.getAuthorizeUrl()`
  */
-const ServiceObject = z.object({ id: z.number() });
 
-const Service = z.object({
-    id: z.number(),
-    serviceObjectTypes: z.array(ServiceObject).optional(),
-});
-
-const ServiceGroup = z.object({
-    id: z.number(),
-    serviceTypes: z.array(Service).optional(),
-});
-
-/**
- * CAScope - criteria
- */
-const Account = z.object({
-    accountId: z.string(),
-    username: z.string().optional(),
-});
-
-const Metadata = z.object({
-    appid: z.array(z.string()).optional(),
-    accounts: z.array(Account).optional(),
-    contractId: z.array(z.string()).optional(),
-    mimeType: z.array(z.string()).optional(),
-    reference: z.array(z.string()).optional(),
-    tags: z.array(z.string()).optional(),
-});
-
-const Criteria = z.object({
-    from: z.number().optional(),
-    last: z.string().optional(),
-    metadata: Metadata.optional(),
-});
-
-/**
- * CA Scope
- *
- */
-const CAScope = z.object({
-    // Mapped
-    timeRanges: z.array(TimeRange).optional(),
-    serviceGroups: z.array(ServiceGroup).optional(),
-
-    // Raw
-    criteria: z.array(Criteria).optional(),
-});
-
-/**
- * PullSessionOptions
- */
-const PullSessionOptions = z.object({
-    /** ???? */
-    limits: z
-        .object({
-            duration: z.object({
-                sourceFetch: z.number(),
-            }),
-        })
-        .optional(),
-
-    /** ??? */
-    scope: CAScope.optional(),
-});
-
-/**
- * `<instance>.getAuthorizeUrl()` input parameters
- */
-export const GetAuthorizeUrlParameters = z.object(
+/** Options argument */
+export const GetAuthorizeUrlOptions = z.object(
     {
         /** URL to be called after authorization is done */
         callback: z.string(),
@@ -100,7 +44,7 @@ export const GetAuthorizeUrlParameters = z.object(
         /** Any optional parameters for the share */
         sessionOptions: z
             .object({
-                pull: PullSessionOptions.optional(),
+                pull: SessionTriggerConfiguration.optional(),
             })
             .optional(),
 
@@ -140,14 +84,45 @@ export const GetAuthorizeUrlParameters = z.object(
     },
 );
 
-export type GetAuthorizeUrlParameters = z.infer<typeof GetAuthorizeUrlParameters>;
-export type GetAuthorizeUrlParametersInput = z.input<typeof GetAuthorizeUrlParameters>;
+export type GetAuthorizeUrlOptions = z.infer<typeof GetAuthorizeUrlOptions>;
+export type GetAuthorizeUrlOptionsInput = z.input<typeof GetAuthorizeUrlOptions>;
 
-/**
- * `<instance>.getAuthorizeUrl()` return type
- */
+/** Return type */
 export type GetAuthorizeUrlReturn = {
     url: string;
     codeVerifier: string;
     session: Session;
 };
+
+/**
+ * `<instance>.exchangeCodeForUserAuthorization()`
+ */
+
+/** Options argument */
+export const ExchangeCodeForUserAuthorizationOptions = z.object({
+    /** codeVerifier received as a result of `getAuthorizeUrl` call */
+    codeVerifier: z.string(),
+
+    /** authorizationCode received by the callback you provided to `getAuthorizeUrl` */
+    authorizationCode: z.string(),
+
+    /** AbortSignal to abort this operation */
+    signal: z.instanceof(AbortSignal).optional(),
+});
+
+export type ExchangeCodeForUserAuthorizationOptions = z.infer<typeof ExchangeCodeForUserAuthorizationOptions>;
+
+/**
+ * `<instance>.getSampleDataSetsForSourceParameters()`
+ */
+
+/** Options argument */
+export const GetSampleDataSetsForSourceOptions = z.object({
+    /** ID of the source to be queried for data sets */
+    sourceId: z.number(),
+
+    /** AbortSignal to abort this operation */
+    signal: z.instanceof(AbortSignal).optional(),
+});
+
+export type GetSampleDataSetsForSourceOptions = z.infer<typeof GetSampleDataSetsForSourceOptions>;

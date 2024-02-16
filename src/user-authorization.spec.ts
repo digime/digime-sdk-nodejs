@@ -5,7 +5,7 @@
 import { describe, test, expect } from "vitest";
 import { UserAuthorization } from "./user-authorization";
 import { DigiMeSdkError } from "./errors/errors";
-import type { LegacyUserAuthorizationPayload, UserAuthorizationPayload } from "./types/external/oauth-token";
+import type { LegacyUserAuthorizationPayload, UserAuthorizationPayload } from "./schemas/api/oauth/tokens";
 import { mockApiInternals } from "../mocks/api-internals";
 
 const DAY_IN_SECONDS = 86400;

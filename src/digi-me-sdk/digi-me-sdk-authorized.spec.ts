@@ -409,7 +409,7 @@ describe("DigiMeSdkAuthorized", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`deleteUser\` parameters (1 issue):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`deleteUser\` options (1 issue):
                    • Expected object, received array]
                 `);
             });
@@ -429,7 +429,7 @@ describe("DigiMeSdkAuthorized", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`deleteUser\` parameters (1 issue):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`deleteUser\` options (1 issue):
                    • "signal": Input not instance of AbortSignal]
                 `);
             });
@@ -479,7 +479,7 @@ describe("DigiMeSdkAuthorized", () => {
                 await expect(promise).rejects.toHaveProperty("name", "AbortError");
             });
 
-            test("Throws if `parameters` argument is not an object", async () => {
+            test("Throws if `options` argument is not an object", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
                 const userAuthorization = await UserAuthorization.fromJwt(
                     mockSdkConsumerCredentials.userAuthorizationJwt,
@@ -493,12 +493,12 @@ describe("DigiMeSdkAuthorized", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readAcccounts\` parameters (1 issue):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readAcccounts\` options (1 issue):
                    • Expected object, received array]
                 `);
             });
 
-            test("Throws if `parameters` argument is an object with incorrect shape", async () => {
+            test("Throws if `options` argument is an object with incorrect shape", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 const userAuthorization = await UserAuthorization.fromJwt(
@@ -513,7 +513,7 @@ describe("DigiMeSdkAuthorized", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readAcccounts\` parameters (1 issue):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readAcccounts\` options (1 issue):
                    • "signal": Input not instance of AbortSignal]
                 `);
             });
@@ -576,7 +576,7 @@ describe("DigiMeSdkAuthorized", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readFileList\` parameters (1 issue):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readFileList\` options (1 issue):
                    • Expected object, received array]
                 `);
             });
@@ -598,7 +598,7 @@ describe("DigiMeSdkAuthorized", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readFileList\` parameters (2 issues):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readFileList\` options (2 issues):
                    • "sessionKey": Expected string, received array
                    • "signal": Input not instance of AbortSignal]
                 `);

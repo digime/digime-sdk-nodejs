@@ -10,7 +10,7 @@ import {
     UserAuthorizationPayload,
     fromLegacyUserAuthorizationPayload,
     toLegacyUserAuthorizationPayload,
-} from "./types/external/oauth-token";
+} from "./schemas/api/oauth/tokens";
 import { parseWithSchema } from "./zod/zod-parse";
 
 const CONSTRUCTOR_TOKEN = Symbol();

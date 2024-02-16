@@ -119,6 +119,8 @@ describe("DigiMeSDK", () => {
 
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
+                // sdk.getAvailableServices({});
+
                 await expect(sdk.getAvailableServices({ contractId: "test" })).resolves.toMatchObject({
                     countries: expect.anything(),
                     services: expect.arrayContaining([expect.objectContaining({ name: "CONTRACT ONLY TEST SOURCE" })]),
@@ -146,7 +148,7 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getAvailableServices\` parameters (1 issue):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getAvailableServices\` options (1 issue):
                    • "contractId": Expected string, received array]
                 `);
             });
@@ -159,7 +161,7 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getAvailableServices\` parameters (1 issue):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getAvailableServices\` options (1 issue):
                    • "signal": Input not instance of AbortSignal]
                 `);
             });
@@ -274,7 +276,7 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getAuthorizeUrl\` parameters (1 issue):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getAuthorizeUrl\` options (1 issue):
                    • \`getAuthorizeUrl\` parameters are required]
                 `);
             });
@@ -287,7 +289,7 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getAuthorizeUrl\` parameters (1 issue):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getAuthorizeUrl\` options (1 issue):
                    • Expected object, received number]
                 `);
             });
@@ -300,13 +302,13 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getAuthorizeUrl\` parameters (2 issues):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getAuthorizeUrl\` options (2 issues):
                    • "callback": Required
                    • "state": Required]
                 `);
             });
 
-            test("Throws if `parameters` argument is an object with incorrect properties", async () => {
+            test("Throws if `options` argument is an object with incorrect options", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 const promise = sdk.getAuthorizeUrl({
@@ -318,7 +320,7 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getAuthorizeUrl\` parameters (2 issues):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getAuthorizeUrl\` options (2 issues):
                    • "callback": Expected string, received array
                    • "state": Expected string, received object]
                 `);
@@ -364,12 +366,12 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`exchangeCodeForUserAuthorization\` parameters (1 issue):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`exchangeCodeForUserAuthorization\` options (1 issue):
                    • Required]
                 `);
             });
 
-            test("Throws if `parameters` argument is not an object", async () => {
+            test("Throws if `options` argument is not an object", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 // @ts-expect-error Providing wrong type on purpose
@@ -377,12 +379,12 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`exchangeCodeForUserAuthorization\` parameters (1 issue):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`exchangeCodeForUserAuthorization\` options (1 issue):
                    • Expected object, received array]
                 `);
             });
 
-            test("Throws if `parameters` argument is an empty object", async () => {
+            test("Throws if `options` argument is an empty object", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 // @ts-expect-error Providing wrong type on purpose
@@ -390,13 +392,13 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`exchangeCodeForUserAuthorization\` parameters (2 issues):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`exchangeCodeForUserAuthorization\` options (2 issues):
                    • "codeVerifier": Required
                    • "authorizationCode": Required]
                 `);
             });
 
-            test("Throws if `parameters` argument is an object with incorrect shape", async () => {
+            test("Throws if `options` argument is an object with incorrect shape", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 const promise = sdk.exchangeCodeForUserAuthorization({
@@ -410,7 +412,7 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`exchangeCodeForUserAuthorization\` parameters (3 issues):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`exchangeCodeForUserAuthorization\` options (3 issues):
                    • "codeVerifier": Expected string, received number
                    • "authorizationCode": Expected string, received array
                    • "signal": Input not instance of AbortSignal]
@@ -518,12 +520,12 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getSampleDataSetsForSource\` parameters (1 issue):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getSampleDataSetsForSource\` options (1 issue):
                    • Required]
                 `);
             });
 
-            test("Throws if `parameters` argument is not an object", async () => {
+            test("Throws if `options` argument is not an object", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 // @ts-expect-error Providing wrong type on purpose
@@ -531,12 +533,12 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getSampleDataSetsForSource\` parameters (1 issue):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getSampleDataSetsForSource\` options (1 issue):
                    • Expected object, received array]
                 `);
             });
 
-            test("Throws if `parameters` argument is an empty object", async () => {
+            test("Throws if `options` argument is an empty object", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 // @ts-expect-error Providing wrong type on purpose
@@ -544,12 +546,12 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getSampleDataSetsForSource\` parameters (1 issue):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getSampleDataSetsForSource\` options (1 issue):
                    • "sourceId": Required]
                 `);
             });
 
-            test("Throws if `parameters` argument is an object with incorrect shape", async () => {
+            test("Throws if `options` argument is an object with incorrect shape", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 const promise = sdk.getSampleDataSetsForSource({
@@ -561,7 +563,7 @@ describe("DigiMeSDK", () => {
 
                 await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
                 await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getSampleDataSetsForSource\` parameters (2 issues):
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`getSampleDataSetsForSource\` options (2 issues):
                    • "sourceId": Expected number, received string
                    • "signal": Input not instance of AbortSignal]
                 `);
