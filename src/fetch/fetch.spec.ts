@@ -396,13 +396,7 @@ describe("fetch", () => {
                     }),
                 );
 
-                let response;
-                try {
-                    response = await fetchWrapper(url);
-                } catch (e) {
-                    console.log("ibv error", e);
-                    throw e;
-                }
+                const response = await fetchWrapper(url);
 
                 expect.assertions(2);
                 expect(response).toBeInstanceOf(Response);

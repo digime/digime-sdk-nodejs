@@ -739,9 +739,9 @@ export class DigiMeSdkAuthorized {
 
         try {
             metadataHeader = JSON.parse(fromBase64Url(metadataHeader));
-        } catch (e) {
+        } catch (error) {
             await response.body.cancel();
-            throw new DigiMeSdkTypeError("Unable to convert `x-metadata` header to object", { cause: e });
+            throw new DigiMeSdkTypeError("Unable to convert `x-metadata` header to object", { cause: error });
         }
 
         const { metadata, compression } = parseWithSchema(

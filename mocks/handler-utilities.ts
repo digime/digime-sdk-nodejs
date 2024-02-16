@@ -66,7 +66,7 @@ export const assertBearerToken = async (request: Request): Promise<void> => {
     // Verify signature
     try {
         await jwtVerify(token, mockSdkConsumerCredentials.publicKey);
-    } catch (e) {
+    } catch (error) {
         throw HttpResponse.json(bodyError, { status: 406, headers: headersError });
     }
 };
