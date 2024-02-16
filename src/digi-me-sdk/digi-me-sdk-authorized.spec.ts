@@ -17,6 +17,7 @@ import { Readable } from "node:stream";
 import { HttpResponse, http } from "msw";
 import { fromMockApiBase } from "../../mocks/utilities";
 import { DigiMeSessionFile } from "./digi-me-session-file";
+import { toBase64Url } from "../crypto";
 
 const mockSdkOptions = {
     applicationId: mockSdkConsumerCredentials.applicationId,
@@ -397,7 +398,7 @@ describe("DigiMeSdkAuthorized", () => {
                 await expect(promise).rejects.toHaveProperty("name", "AbortError");
             });
 
-            test("Throws if `parameters` argument is not an object", async () => {
+            test("Throws if `options` argument is not an object", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
                 const userAuthorization = await UserAuthorization.fromJwt(
                     mockSdkConsumerCredentials.userAuthorizationJwt,
@@ -414,7 +415,7 @@ describe("DigiMeSdkAuthorized", () => {
                 `);
             });
 
-            test("Throws if `parameters` argument is an object with incorrect shape", async () => {
+            test("Throws if `options` argument is an object with incorrect shape", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 const userAuthorization = await UserAuthorization.fromJwt(
@@ -562,7 +563,7 @@ describe("DigiMeSdkAuthorized", () => {
                 await expect(promise).rejects.toHaveProperty("name", "AbortError");
             });
 
-            test("Throws if `parameters` argument is not an object", async () => {
+            test("Throws if `options` argument is not an object", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
                 const userAuthorization = await UserAuthorization.fromJwt(
                     mockSdkConsumerCredentials.userAuthorizationJwt,
@@ -581,7 +582,7 @@ describe("DigiMeSdkAuthorized", () => {
                 `);
             });
 
-            test("Throws if `parameters` argument is an object with incorrect shape", async () => {
+            test("Throws if `options` argument is an object with incorrect shape", async () => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 const userAuthorization = await UserAuthorization.fromJwt(
@@ -619,6 +620,175 @@ describe("DigiMeSdkAuthorized", () => {
                 const file = await authorizedSdk.readFile({ sessionKey: "test-session", fileName: "test-file.json" });
 
                 expect(file).toBeInstanceOf(DigiMeSessionFile);
+            });
+
+            test("Throws if abort signal is triggered", async () => {
+                mswServer.use(...permissionAccessQueryHandlers);
+
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                const signal = AbortSignal.abort();
+
+                const promise = authorizedSdk.readFile({
+                    sessionKey: "test-session-key",
+                    fileName: "test-file.json",
+                    signal,
+                });
+
+                await expect(promise).rejects.toBeInstanceOf(Error);
+                await expect(promise).rejects.toHaveProperty("name", "AbortError");
+            });
+
+            test("Throws if `options` argument is not provided", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+
+                // @ts-expect-error Providing wrong type on purpose
+                const promise = authorizedSdk.readFile();
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readFile\` options (1 issue):
+                   • Required]
+                `);
+            });
+
+            test("Throws if `options` argument is not an object", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+
+                const promise = authorizedSdk.readFile(
+                    // @ts-expect-error Providing wrong type on purpose
+                    [],
+                );
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readFile\` options (1 issue):
+                   • Expected object, received array]
+                `);
+            });
+
+            test("Throws if `options` argument is an object with incorrect shape", async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+
+                const promise = authorizedSdk.readFile({
+                    // @ts-expect-error Providing wrong type on purpose
+                    sessionKey: [],
+                    // @ts-expect-error Providing wrong type on purpose
+                    fileName: 1,
+                    // @ts-expect-error Providing wrong type on purpose
+                    signal: "",
+                });
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readFile\` options (3 issues):
+                   • "sessionKey": Expected string, received array
+                   • "fileName": Expected string, received number
+                   • "signal": Input not instance of AbortSignal]
+                `);
+            });
+
+            test("Throws if the API does not return a body", async () => {
+                mswServer.use(
+                    http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
+                        return new HttpResponse(undefined, { status: 200 });
+                    }),
+                );
+                const sdk = new DigiMeSdk(mockSdkOptions);
+
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+
+                const promise = authorizedSdk.readFile({ sessionKey: "test-session-key", fileName: "test-file.json" });
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`[DigiMeSdkTypeError: Response contains no body]`);
+            });
+
+            test("Throws if the API does not send `x-metadata` header", async () => {
+                mswServer.use(
+                    http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
+                        return new HttpResponse("test-response", { status: 200 });
+                    }),
+                );
+                const sdk = new DigiMeSdk(mockSdkOptions);
+
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+
+                const promise = authorizedSdk.readFile({ sessionKey: "test-session-key", fileName: "test-file.json" });
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(
+                    `[DigiMeSdkTypeError: Missing \`x-metadata\` header from Digi.me API response]`,
+                );
+            });
+
+            test("Throws if the API sends a non-object `x-metadata` header", async () => {
+                mswServer.use(
+                    http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
+                        return new HttpResponse("test-response", { status: 200, headers: { "x-metadata": "test" } });
+                    }),
+                );
+                const sdk = new DigiMeSdk(mockSdkOptions);
+
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+
+                const promise = authorizedSdk.readFile({ sessionKey: "test-session-key", fileName: "test-file.json" });
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(
+                    `[DigiMeSdkTypeError: Unable to convert \`x-metadata\` header to object]`,
+                );
+            });
+
+            test("Throws if the API sends `x-metadata` header of invalid shape", async () => {
+                mswServer.use(
+                    http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
+                        return new HttpResponse("test-response", {
+                            status: 200,
+                            headers: { "x-metadata": toBase64Url(JSON.stringify({ compression: 1 })) },
+                        });
+                    }),
+                );
+                const sdk = new DigiMeSdk(mockSdkOptions);
+
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+
+                const promise = authorizedSdk.readFile({ sessionKey: "test-session-key", fileName: "test-file.json" });
+
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readFile\` \`x-metadata\` header (2 issues):
+                   • "metadata": Invalid input
+                   • "compression": Invalid input]
+                `);
             });
         });
     });

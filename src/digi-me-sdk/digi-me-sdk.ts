@@ -703,7 +703,7 @@ export class DigiMeSdkAuthorized {
     }
 
     async readFile(options: ReadFileOptions): Promise<DigiMeSessionFile> {
-        const { sessionKey, fileName } = parseWithSchema(options, ReadFileOptions, "`readFile` options");
+        const { sessionKey, fileName, signal } = parseWithSchema(options, ReadFileOptions, "`readFile` options");
 
         const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
         const token = await signTokenPayload(
@@ -719,6 +719,7 @@ export class DigiMeSdkAuthorized {
         const response = await fetchWrapper(
             new URL(`permission-access/query/${sessionKey}/${fileName}`, this.#config.digiMeSdkInstance.baseUrl),
             {
+                signal,
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/octet-stream",
