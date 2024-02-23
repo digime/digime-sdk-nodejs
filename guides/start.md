@@ -49,5 +49,5 @@ To see all the other options when initializing the SDK, please take a look [here
 
 ## Using the SDK
 * Use digi.me to [read data from your users](read-data-overview.html).
-* Use digi.me to [push data to your users](write-data-overview.html).
+* Use digi.me to [push data to your users](push-data-overview.html).
 * To see all the available functions in the SDK, please take a look [here](../../interfaces/SDK.DigimeSDK.html).
