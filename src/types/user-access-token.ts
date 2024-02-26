@@ -5,6 +5,9 @@
 import * as t from "io-ts";
 
 interface Token {
+    /**
+     * Value in seconds (Unix Epoch Time)
+     */
     expiry: number;
     value: string;
 }
