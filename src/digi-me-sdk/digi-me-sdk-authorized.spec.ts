@@ -29,311 +29,361 @@ const mockSdkOptions = {
 describe("DigiMeSdkAuthorized", () => {
     describe("Instanced", () => {
         describe("Constructor", () => {
-            test("Works with minimum parameters", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
+            test(
+                "Works with minimum parameters",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
 
-                const authorizedSdk = new DigiMeSdkAuthorized({
-                    digiMeSdkInstance: sdk,
-                    userAuthorization: userAuthorization,
-                    onUserAuthorizationUpdated: () => {},
-                });
+                    const authorizedSdk = new DigiMeSdkAuthorized({
+                        digiMeSdkInstance: sdk,
+                        userAuthorization: userAuthorization,
+                        onUserAuthorizationUpdated: () => {},
+                    });
 
-                expect(authorizedSdk).toBeInstanceOf(DigiMeSdkAuthorized);
-            });
+                    expect(authorizedSdk).toBeInstanceOf(DigiMeSdkAuthorized);
+                }),
+            );
 
-            test("Throws if provided no arguments", () => {
-                expect(
-                    // @ts-expect-error Providing wrong type on purpose
-                    () => new DigiMeSdkAuthorized(),
-                ).toThrowErrorMatchingInlineSnapshot(`
+            test(
+                "Throws if provided no arguments",
+                mswServer.boundary(() => {
+                    expect(
+                        // @ts-expect-error Providing wrong type on purpose
+                        () => new DigiMeSdkAuthorized(),
+                    ).toThrowErrorMatchingInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for DigiMeSdkAuthorized constructor parameter "config" (1 issue):
                    • DigiMeSdkAuthorized config is required]
                 `);
-            });
+                }),
+            );
 
-            test("Throws if `config` argument is not an object", () => {
-                expect(
-                    // @ts-expect-error Providing wrong type on purpose
-                    () => new DigiMeSdkAuthorized(""),
-                ).toThrowErrorMatchingInlineSnapshot(`
+            test(
+                "Throws if `config` argument is not an object",
+                mswServer.boundary(() => {
+                    expect(
+                        // @ts-expect-error Providing wrong type on purpose
+                        () => new DigiMeSdkAuthorized(""),
+                    ).toThrowErrorMatchingInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for DigiMeSdkAuthorized constructor parameter "config" (1 issue):
                    • DigiMeSdkAuthorized config must be an object]
                 `);
-            });
+                }),
+            );
 
-            test("Throws if `config` argument is an empty object", () => {
-                expect(
-                    // @ts-expect-error Providing wrong type on purpose
-                    () => new DigiMeSdkAuthorized({}),
-                ).toThrowErrorMatchingInlineSnapshot(`
+            test(
+                "Throws if `config` argument is an empty object",
+                mswServer.boundary(() => {
+                    expect(
+                        // @ts-expect-error Providing wrong type on purpose
+                        () => new DigiMeSdkAuthorized({}),
+                    ).toThrowErrorMatchingInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for DigiMeSdkAuthorized constructor parameter "config" (3 issues):
                    • "digiMeSdkInstance": Input not instance of DigiMeSdk
                    • "userAuthorization": Input not instance of UserAuthorization
                    • "onUserAuthorizationUpdated": Required]
                 `);
-            });
+                }),
+            );
 
-            test("Throws if `config` argument is an object with incorrect shape", () => {
-                expect(
-                    () =>
-                        new DigiMeSdkAuthorized({
-                            // @ts-expect-error Providing wrong type on purpose
-                            digiMeSdkInstance: 1,
-                            // @ts-expect-error Providing wrong type on purpose
-                            userAuthorization: [],
-                            // @ts-expect-error Providing wrong type on purpose
-                            onUserAuthorizationUpdated: {},
-                        }),
-                ).toThrowErrorMatchingInlineSnapshot(`
+            test(
+                "Throws if `config` argument is an object with incorrect shape",
+                mswServer.boundary(() => {
+                    expect(
+                        () =>
+                            new DigiMeSdkAuthorized({
+                                // @ts-expect-error Providing wrong type on purpose
+                                digiMeSdkInstance: 1,
+                                // @ts-expect-error Providing wrong type on purpose
+                                userAuthorization: [],
+                                // @ts-expect-error Providing wrong type on purpose
+                                onUserAuthorizationUpdated: {},
+                            }),
+                    ).toThrowErrorMatchingInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for DigiMeSdkAuthorized constructor parameter "config" (3 issues):
                    • "digiMeSdkInstance": Input not instance of DigiMeSdk
                    • "userAuthorization": Input not instance of UserAuthorization
                    • "onUserAuthorizationUpdated": Expected function, received object]
                 `);
-            });
+                }),
+            );
         });
 
         describe(".refreshUserAuthorization()", () => {
-            test("Returns a new `UserAuthorization` instance", async () => {
-                mswServer.use(...oauthTokenHandlers);
+            test(
+                "Returns a new `UserAuthorization` instance",
+                mswServer.boundary(async () => {
+                    mswServer.use(...oauthTokenHandlers);
 
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
 
-                const authorizedSdk = new DigiMeSdkAuthorized({
-                    digiMeSdkInstance: sdk,
-                    userAuthorization: userAuthorization,
-                    onUserAuthorizationUpdated: () => {},
-                });
+                    const authorizedSdk = new DigiMeSdkAuthorized({
+                        digiMeSdkInstance: sdk,
+                        userAuthorization: userAuthorization,
+                        onUserAuthorizationUpdated: () => {},
+                    });
 
-                const returnedUserAuthorization = await authorizedSdk.refreshUserAuthorization();
+                    const returnedUserAuthorization = await authorizedSdk.refreshUserAuthorization();
 
-                expect.assertions(2);
-                expect(returnedUserAuthorization).toBeInstanceOf(UserAuthorization);
-                expect(returnedUserAuthorization).not.toBe(userAuthorization);
-            });
+                    expect.assertions(2);
+                    expect(returnedUserAuthorization).toBeInstanceOf(UserAuthorization);
+                    expect(returnedUserAuthorization).not.toBe(userAuthorization);
+                }),
+            );
 
-            test("Triggers `onUserAuthorizationUpdated` handler correctly", async () => {
-                mswServer.use(...oauthTokenHandlers);
+            test(
+                "Triggers `onUserAuthorizationUpdated` handler correctly",
+                mswServer.boundary(async () => {
+                    mswServer.use(...oauthTokenHandlers);
 
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const updateHandler = vi.fn();
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const updateHandler = vi.fn();
 
-                const authorizedSdk = new DigiMeSdkAuthorized({
-                    digiMeSdkInstance: sdk,
-                    userAuthorization: userAuthorization,
-                    onUserAuthorizationUpdated: updateHandler,
-                });
+                    const authorizedSdk = new DigiMeSdkAuthorized({
+                        digiMeSdkInstance: sdk,
+                        userAuthorization: userAuthorization,
+                        onUserAuthorizationUpdated: updateHandler,
+                    });
 
-                const returnedUserAuthorization = await authorizedSdk.refreshUserAuthorization();
+                    const returnedUserAuthorization = await authorizedSdk.refreshUserAuthorization();
 
-                expect.assertions(5);
-                expect(returnedUserAuthorization).toBeInstanceOf(UserAuthorization);
-                expect(returnedUserAuthorization).not.toBe(userAuthorization);
-                expect(updateHandler).toHaveBeenCalledOnce();
-                expect(updateHandler.mock.lastCall[0].oldUserAuthorization).toBe(userAuthorization);
-                expect(updateHandler.mock.lastCall[0].newUserAuthorization).toBe(returnedUserAuthorization);
-            });
+                    expect.assertions(5);
+                    expect(returnedUserAuthorization).toBeInstanceOf(UserAuthorization);
+                    expect(returnedUserAuthorization).not.toBe(userAuthorization);
+                    expect(updateHandler).toHaveBeenCalledOnce();
+                    expect(updateHandler.mock.lastCall[0].oldUserAuthorization).toBe(userAuthorization);
+                    expect(updateHandler.mock.lastCall[0].newUserAuthorization).toBe(returnedUserAuthorization);
+                }),
+            );
 
-            test("Throws if the UserAuthorization can't be refreshed", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = UserAuthorization.fromPayload({
-                    access_token: {
-                        value: "test-access-token",
-                        expires_on: 1,
-                    },
-                    refresh_token: {
-                        value: "test-refresh-token",
-                        expires_on: 2,
-                    },
-                    sub: "test-sub",
-                });
-                const authorizedSdk = new DigiMeSdkAuthorized({
-                    digiMeSdkInstance: sdk,
-                    userAuthorization: userAuthorization,
-                    onUserAuthorizationUpdated: () => {},
-                });
+            test(
+                "Throws if the UserAuthorization can't be refreshed",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = UserAuthorization.fromPayload({
+                        access_token: {
+                            value: "test-access-token",
+                            expires_on: 1,
+                        },
+                        refresh_token: {
+                            value: "test-refresh-token",
+                            expires_on: 2,
+                        },
+                        sub: "test-sub",
+                    });
+                    const authorizedSdk = new DigiMeSdkAuthorized({
+                        digiMeSdkInstance: sdk,
+                        userAuthorization: userAuthorization,
+                        onUserAuthorizationUpdated: () => {},
+                    });
 
-                const promise = authorizedSdk.refreshUserAuthorization();
+                    const promise = authorizedSdk.refreshUserAuthorization();
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkError);
-                await expect(promise).rejects.toMatchInlineSnapshot(
-                    `[DigiMeSdkError: SDK tried to refresh the UserAuthorization that has expired, but the provided UserAuthorization's refresh token has also expired]`,
-                );
-            });
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(
+                        `[DigiMeSdkError: SDK tried to refresh the UserAuthorization that has expired, but the provided UserAuthorization's refresh token has also expired]`,
+                    );
+                }),
+            );
         });
 
         describe(".getPortabilityReport()", () => {
-            test('Returns a string when `as` is "string"', async () => {
-                mswServer.use(...exportHandlers);
+            test(
+                'Returns a string when `as` is "string"',
+                mswServer.boundary(async () => {
+                    mswServer.use(...exportHandlers);
 
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const result = await authorizedSdk.getPortabilityReport("string", {
-                    serviceType: "medmij",
-                    format: "xml",
-                });
+                    const result = await authorizedSdk.getPortabilityReport("string", {
+                        serviceType: "medmij",
+                        format: "xml",
+                    });
 
-                expect(result).toEqual(expect.any(String));
-            });
+                    expect(result).toEqual(expect.any(String));
+                }),
+            );
 
-            test('Returns a `ReadableStream` when `as` is "ReadableStream"', async () => {
-                mswServer.use(...exportHandlers);
+            test(
+                'Returns a `ReadableStream` when `as` is "ReadableStream"',
+                mswServer.boundary(async () => {
+                    mswServer.use(...exportHandlers);
 
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const result = await authorizedSdk.getPortabilityReport("ReadableStream", {
-                    serviceType: "medmij",
-                    format: "xml",
-                });
+                    const result = await authorizedSdk.getPortabilityReport("ReadableStream", {
+                        serviceType: "medmij",
+                        format: "xml",
+                    });
 
-                expect(result).toEqual(expect.any(ReadableStream));
-            });
+                    expect(result).toEqual(expect.any(ReadableStream));
+                }),
+            );
 
-            test('Returns a Node.js `Readable` when `as` is "NodeReadable"', async () => {
-                mswServer.use(...exportHandlers);
+            test(
+                'Returns a Node.js `Readable` when `as` is "NodeReadable"',
+                mswServer.boundary(async () => {
+                    mswServer.use(...exportHandlers);
 
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const result = await authorizedSdk.getPortabilityReport("NodeReadable", {
-                    serviceType: "medmij",
-                    format: "xml",
-                });
+                    const result = await authorizedSdk.getPortabilityReport("NodeReadable", {
+                        serviceType: "medmij",
+                        format: "xml",
+                    });
 
-                expect(result).toEqual(expect.any(Readable));
-            });
+                    expect(result).toEqual(expect.any(Readable));
+                }),
+            );
 
-            test("Throws if abort signal is triggered", async () => {
-                mswServer.use(...exportHandlers);
+            test(
+                "Throws if abort signal is triggered",
+                mswServer.boundary(async () => {
+                    mswServer.use(...exportHandlers);
 
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
-                const signal = AbortSignal.abort();
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const signal = AbortSignal.abort();
 
-                const promise = authorizedSdk.getPortabilityReport("string", {
-                    serviceType: "medmij",
-                    format: "xml",
-                    signal,
-                });
+                    const promise = authorizedSdk.getPortabilityReport("string", {
+                        serviceType: "medmij",
+                        format: "xml",
+                        signal,
+                    });
 
-                await expect(promise).rejects.toBeInstanceOf(Error);
-                await expect(promise).rejects.toHaveProperty("name", "AbortError");
-            });
+                    await expect(promise).rejects.toBeInstanceOf(Error);
+                    await expect(promise).rejects.toHaveProperty("name", "AbortError");
+                }),
+            );
 
-            test("Throws if provided no arguments", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+            test(
+                "Throws if provided no arguments",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                // @ts-expect-error Providing wrong type on purpose
-                const promise = authorizedSdk.getPortabilityReport();
+                    // @ts-expect-error Providing wrong type on purpose
+                    const promise = authorizedSdk.getPortabilityReport();
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for \`getPortabilityReport\` \`as\` argument (1 issue):
                    • Must be one of: "string", "ReadableStream",  "NodeReadable"]
                 `);
-            });
+                }),
+            );
 
-            test("Throws if `as` argument is invalid", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+            test(
+                "Throws if `as` argument is invalid",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                // @ts-expect-error Providing wrong type on purpose
-                const promise = authorizedSdk.getPortabilityReport(0, {
-                    serviceType: "medmij",
-                    format: "xml",
-                });
+                    // @ts-expect-error Providing wrong type on purpose
+                    const promise = authorizedSdk.getPortabilityReport(0, {
+                        serviceType: "medmij",
+                        format: "xml",
+                    });
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for \`getPortabilityReport\` \`as\` argument (1 issue):
                    • Must be one of: "string", "ReadableStream",  "NodeReadable"]
                 `);
-            });
+                }),
+            );
 
-            test("Throws if `options` argument is not an object", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+            test(
+                "Throws if `options` argument is not an object",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                // @ts-expect-error Providing wrong type on purpose
-                const promise = authorizedSdk.getPortabilityReport("string", []);
+                    // @ts-expect-error Providing wrong type on purpose
+                    const promise = authorizedSdk.getPortabilityReport("string", []);
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for \`getPortabilityReport\` \`options\` argument (1 issue):
                    • Expected object, received array]
                 `);
-            });
+                }),
+            );
 
-            test("Throws if `options` argument is an empty object", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+            test(
+                "Throws if `options` argument is an empty object",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                // @ts-expect-error Providing wrong type on purpose
-                const promise = authorizedSdk.getPortabilityReport("string", {});
+                    // @ts-expect-error Providing wrong type on purpose
+                    const promise = authorizedSdk.getPortabilityReport("string", {});
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for \`getPortabilityReport\` \`options\` argument (2 issues):
                    • "format": Invalid literal value, expected "xml"
                    • "serviceType": Invalid literal value, expected "medmij"]
                 `);
-            });
+                }),
+            );
 
-            test("Throws if `options` argument is an object with incorrect shape", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
+            test(
+                "Throws if `options` argument is an object with incorrect shape",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
 
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                // @ts-expect-error Providing wrong type on purpose
-                const promise = authorizedSdk.getPortabilityReport("string", {
-                    format: 1,
-                    serviceType: [],
-                    from: "1",
-                    to: null,
-                    signal: "",
-                });
+                    // @ts-expect-error Providing wrong type on purpose
+                    const promise = authorizedSdk.getPortabilityReport("string", {
+                        format: 1,
+                        serviceType: [],
+                        from: "1",
+                        to: null,
+                        signal: "",
+                    });
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for \`getPortabilityReport\` \`options\` argument (5 issues):
                    • "format": Invalid literal value, expected "xml"
                    • "serviceType": Invalid literal value, expected "medmij"
@@ -341,533 +391,642 @@ describe("DigiMeSdkAuthorized", () => {
                    • "to": Expected number, received null
                    • "signal": Input not instance of AbortSignal]
                 `);
-            });
+                }),
+            );
 
-            test("Throws if the API does not return a body", async () => {
-                mswServer.use(
-                    http.get(fromMockApiBase("export/:serviceType/report"), async () => {
-                        return new HttpResponse(undefined, { status: 204 });
-                    }),
-                );
+            test(
+                "Throws if the API does not return a body",
+                mswServer.boundary(async () => {
+                    mswServer.use(
+                        http.get(fromMockApiBase("export/:serviceType/report"), async () => {
+                            return new HttpResponse(undefined, { status: 204 });
+                        }),
+                    );
 
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const promise = authorizedSdk.getPortabilityReport("ReadableStream", {
-                    serviceType: "medmij",
-                    format: "xml",
-                });
+                    const promise = authorizedSdk.getPortabilityReport("ReadableStream", {
+                        serviceType: "medmij",
+                        format: "xml",
+                    });
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`[DigiMeSdkTypeError: Response contains no body]`);
-            });
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(
+                        `[DigiMeSdkTypeError: Response contains no body]`,
+                    );
+                }),
+            );
         });
 
         describe(".deleteUser()", () => {
-            test("Works with no parameters", async () => {
-                mswServer.use(...userHandlers);
+            test(
+                "Works with no parameters",
+                mswServer.boundary(async () => {
+                    mswServer.use(...userHandlers);
 
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const result = await authorizedSdk.deleteUser();
+                    const result = await authorizedSdk.deleteUser();
 
-                expect(result).toBe(undefined);
-            });
+                    expect(result).toBe(undefined);
+                }),
+            );
 
-            test("Throws if abort signal is triggered", async () => {
-                mswServer.use(...userHandlers);
+            test(
+                "Throws if abort signal is triggered",
+                mswServer.boundary(async () => {
+                    mswServer.use(...userHandlers);
 
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
-                const signal = AbortSignal.abort();
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const signal = AbortSignal.abort();
 
-                const promise = authorizedSdk.deleteUser({
-                    signal,
-                });
+                    const promise = authorizedSdk.deleteUser({
+                        signal,
+                    });
 
-                await expect(promise).rejects.toBeInstanceOf(Error);
-                await expect(promise).rejects.toHaveProperty("name", "AbortError");
-            });
+                    await expect(promise).rejects.toBeInstanceOf(Error);
+                    await expect(promise).rejects.toHaveProperty("name", "AbortError");
+                }),
+            );
 
-            test("Throws if `options` argument is not an object", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+            test(
+                "Throws if `options` argument is not an object",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                // @ts-expect-error Providing wrong type on purpose
-                const promise = authorizedSdk.deleteUser([]);
+                    // @ts-expect-error Providing wrong type on purpose
+                    const promise = authorizedSdk.deleteUser([]);
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for \`deleteUser\` options (1 issue):
                    • Expected object, received array]
                 `);
-            });
+                }),
+            );
 
-            test("Throws if `options` argument is an object with incorrect shape", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
+            test(
+                "Throws if `options` argument is an object with incorrect shape",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
 
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const promise = authorizedSdk.deleteUser({
-                    // @ts-expect-error Providing wrong type on purpose
-                    signal: "",
-                });
+                    const promise = authorizedSdk.deleteUser({
+                        // @ts-expect-error Providing wrong type on purpose
+                        signal: "",
+                    });
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for \`deleteUser\` options (1 issue):
                    • "signal": Input not instance of AbortSignal]
                 `);
-            });
+                }),
+            );
         });
 
         describe(".readAccounts()", () => {
-            test("Returns an array of accounts", async () => {
-                mswServer.use(...permissionAccessAccountsHandlers);
+            test(
+                "Returns an array of accounts",
+                mswServer.boundary(async () => {
+                    mswServer.use(...permissionAccessAccountsHandlers);
 
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const promise = authorizedSdk.readAccounts();
+                    const promise = authorizedSdk.readAccounts();
 
-                await expect(promise).resolves.toBeInstanceOf(Array);
-                await expect(promise).resolves.toEqual(
-                    expect.arrayContaining([
-                        expect.objectContaining({
-                            id: expect.any(String),
-                            type: expect.any(String),
-                            sourceId: expect.any(Number),
-                            createdDate: expect.any(Number),
-                            updatedDate: expect.any(Number),
-                        }),
-                    ]),
-                );
-            });
-
-            test("Throws if abort signal is triggered", async () => {
-                mswServer.use(...permissionAccessAccountsHandlers);
-
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
-                const signal = AbortSignal.abort();
-
-                const promise = authorizedSdk.readAccounts({
-                    signal,
-                });
-
-                await expect(promise).rejects.toBeInstanceOf(Error);
-                await expect(promise).rejects.toHaveProperty("name", "AbortError");
-            });
-
-            test("Throws if `options` argument is not an object", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
-
-                const promise = authorizedSdk.readAccounts(
-                    // @ts-expect-error Providing wrong type on purpose
-                    [],
-                );
-
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readAcccounts\` options (1 issue):
-                   • Expected object, received array]
-                `);
-            });
-
-            test("Throws if `options` argument is an object with incorrect shape", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
-
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
-
-                const promise = authorizedSdk.readAccounts({
-                    // @ts-expect-error Providing wrong type on purpose
-                    signal: "",
-                });
-
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
-                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readAcccounts\` options (1 issue):
-                   • "signal": Input not instance of AbortSignal]
-                `);
-            });
-        });
-
-        describe(".readFileList()", () => {
-            test("Returns the file list", async () => {
-                mswServer.use(...permissionAccessQueryHandlers);
-
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
-
-                const promise = authorizedSdk.readFileList({ sessionKey: "test-session-key" });
-
-                await expect(promise).resolves.toEqual(
-                    expect.objectContaining({
-                        status: expect.objectContaining({
-                            state: expect.any(String),
-                        }),
-                        fileList: expect.arrayContaining([
+                    await expect(promise).resolves.toBeInstanceOf(Array);
+                    await expect(promise).resolves.toEqual(
+                        expect.arrayContaining([
                             expect.objectContaining({
-                                name: expect.any(String),
+                                id: expect.any(String),
+                                type: expect.any(String),
+                                sourceId: expect.any(Number),
+                                createdDate: expect.any(Number),
                                 updatedDate: expect.any(Number),
                             }),
                         ]),
-                    }),
-                );
-            });
+                    );
+                }),
+            );
 
-            test("Throws if abort signal is triggered", async () => {
-                mswServer.use(...permissionAccessQueryHandlers);
+            test(
+                "Throws if abort signal is triggered",
+                mswServer.boundary(async () => {
+                    mswServer.use(...permissionAccessAccountsHandlers);
 
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
-                const signal = AbortSignal.abort();
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const signal = AbortSignal.abort();
 
-                const promise = authorizedSdk.readFileList({ sessionKey: "test-session-key", signal });
+                    const promise = authorizedSdk.readAccounts({
+                        signal,
+                    });
 
-                await expect(promise).rejects.toBeInstanceOf(Error);
-                await expect(promise).rejects.toHaveProperty("name", "AbortError");
-            });
+                    await expect(promise).rejects.toBeInstanceOf(Error);
+                    await expect(promise).rejects.toHaveProperty("name", "AbortError");
+                }),
+            );
 
-            test("Throws if `options` argument is not an object", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+            test(
+                "Throws if `options` argument is not an object",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const promise = authorizedSdk.readFileList(
-                    // @ts-expect-error Providing wrong type on purpose
-                    [],
-                );
+                    const promise = authorizedSdk.readAccounts(
+                        // @ts-expect-error Providing wrong type on purpose
+                        [],
+                    );
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readAcccounts\` options (1 issue):
+                   • Expected object, received array]
+                `);
+                }),
+            );
+
+            test(
+                "Throws if `options` argument is an object with incorrect shape",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+
+                    const promise = authorizedSdk.readAccounts({
+                        // @ts-expect-error Providing wrong type on purpose
+                        signal: "",
+                    });
+
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(`
+                  [DigiMeSdkTypeError: Encountered an unexpected value for \`readAcccounts\` options (1 issue):
+                   • "signal": Input not instance of AbortSignal]
+                `);
+                }),
+            );
+        });
+
+        describe(".readFileList()", () => {
+            test(
+                "Returns the file list",
+                mswServer.boundary(async () => {
+                    mswServer.use(...permissionAccessQueryHandlers);
+
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+
+                    const promise = authorizedSdk.readFileList({ sessionKey: "test-session-key" });
+
+                    await expect(promise).resolves.toEqual(
+                        expect.objectContaining({
+                            status: expect.objectContaining({
+                                state: expect.any(String),
+                            }),
+                            fileList: expect.arrayContaining([
+                                expect.objectContaining({
+                                    name: expect.any(String),
+                                    updatedDate: expect.any(Number),
+                                }),
+                            ]),
+                        }),
+                    );
+                }),
+            );
+
+            test(
+                "Throws if abort signal is triggered",
+                mswServer.boundary(async () => {
+                    mswServer.use(...permissionAccessQueryHandlers);
+
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const signal = AbortSignal.abort();
+
+                    const promise = authorizedSdk.readFileList({ sessionKey: "test-session-key", signal });
+
+                    await expect(promise).rejects.toBeInstanceOf(Error);
+                    await expect(promise).rejects.toHaveProperty("name", "AbortError");
+                }),
+            );
+
+            test(
+                "Throws if `options` argument is not an object",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+
+                    const promise = authorizedSdk.readFileList(
+                        // @ts-expect-error Providing wrong type on purpose
+                        [],
+                    );
+
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for \`readFileList\` options (1 issue):
                    • Expected object, received array]
                 `);
-            });
+                }),
+            );
 
-            test("Throws if `options` argument is an object with incorrect shape", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
+            test(
+                "Throws if `options` argument is an object with incorrect shape",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
 
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const promise = authorizedSdk.readFileList({
-                    // @ts-expect-error Providing wrong type on purpose
-                    sessionKey: [],
-                    // @ts-expect-error Providing wrong type on purpose
-                    signal: "",
-                });
+                    const promise = authorizedSdk.readFileList({
+                        // @ts-expect-error Providing wrong type on purpose
+                        sessionKey: [],
+                        // @ts-expect-error Providing wrong type on purpose
+                        signal: "",
+                    });
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for \`readFileList\` options (2 issues):
                    • "sessionKey": Expected string, received array
                    • "signal": Input not instance of AbortSignal]
                 `);
-            });
+                }),
+            );
         });
 
         describe(".readFile()", () => {
-            test("Returns a DigiMeSessionFile", async () => {
-                expect.assertions(1);
-                mswServer.use(...permissionAccessQueryHandlers);
+            test(
+                "Returns a DigiMeSessionFile",
+                mswServer.boundary(async () => {
+                    expect.assertions(1);
+                    mswServer.use(...permissionAccessQueryHandlers);
 
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const file = await authorizedSdk.readFile({ sessionKey: "test-session", fileName: "test-file.json" });
+                    const file = await authorizedSdk.readFile({
+                        sessionKey: "test-session",
+                        fileName: "test-file.json",
+                    });
 
-                expect(file).toBeInstanceOf(DigiMeSessionFile);
-            });
+                    expect(file).toBeInstanceOf(DigiMeSessionFile);
+                }),
+            );
 
-            test("Throws if abort signal is triggered", async () => {
-                mswServer.use(...permissionAccessQueryHandlers);
+            test(
+                "Throws if abort signal is triggered",
+                mswServer.boundary(async () => {
+                    mswServer.use(...permissionAccessQueryHandlers);
 
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
-                const signal = AbortSignal.abort();
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const signal = AbortSignal.abort();
 
-                const promise = authorizedSdk.readFile({
-                    sessionKey: "test-session-key",
-                    fileName: "test-file.json",
-                    signal,
-                });
+                    const promise = authorizedSdk.readFile({
+                        sessionKey: "test-session-key",
+                        fileName: "test-file.json",
+                        signal,
+                    });
 
-                await expect(promise).rejects.toBeInstanceOf(Error);
-                await expect(promise).rejects.toHaveProperty("name", "AbortError");
-            });
+                    await expect(promise).rejects.toBeInstanceOf(Error);
+                    await expect(promise).rejects.toHaveProperty("name", "AbortError");
+                }),
+            );
 
-            test("Throws if `options` argument is not provided", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+            test(
+                "Throws if `options` argument is not provided",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                // @ts-expect-error Providing wrong type on purpose
-                const promise = authorizedSdk.readFile();
+                    // @ts-expect-error Providing wrong type on purpose
+                    const promise = authorizedSdk.readFile();
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for \`readFile\` options (1 issue):
                    • Required]
                 `);
-            });
+                }),
+            );
 
-            test("Throws if `options` argument is not an object", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+            test(
+                "Throws if `options` argument is not an object",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const promise = authorizedSdk.readFile(
-                    // @ts-expect-error Providing wrong type on purpose
-                    [],
-                );
+                    const promise = authorizedSdk.readFile(
+                        // @ts-expect-error Providing wrong type on purpose
+                        [],
+                    );
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for \`readFile\` options (1 issue):
                    • Expected object, received array]
                 `);
-            });
+                }),
+            );
 
-            test("Throws if `options` argument is an object with incorrect shape", async () => {
-                const sdk = new DigiMeSdk(mockSdkOptions);
+            test(
+                "Throws if `options` argument is an object with incorrect shape",
+                mswServer.boundary(async () => {
+                    const sdk = new DigiMeSdk(mockSdkOptions);
 
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const promise = authorizedSdk.readFile({
-                    // @ts-expect-error Providing wrong type on purpose
-                    sessionKey: [],
-                    // @ts-expect-error Providing wrong type on purpose
-                    fileName: 1,
-                    // @ts-expect-error Providing wrong type on purpose
-                    signal: "",
-                });
+                    const promise = authorizedSdk.readFile({
+                        // @ts-expect-error Providing wrong type on purpose
+                        sessionKey: [],
+                        // @ts-expect-error Providing wrong type on purpose
+                        fileName: 1,
+                        // @ts-expect-error Providing wrong type on purpose
+                        signal: "",
+                    });
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for \`readFile\` options (3 issues):
                    • "sessionKey": Expected string, received array
                    • "fileName": Expected string, received number
                    • "signal": Input not instance of AbortSignal]
                 `);
-            });
+                }),
+            );
 
-            test("Throws if the API does not return a body", async () => {
-                mswServer.use(
-                    http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
-                        return new HttpResponse(undefined, { status: 200 });
-                    }),
-                );
-                const sdk = new DigiMeSdk(mockSdkOptions);
+            test(
+                "Throws if the API does not return a body",
+                mswServer.boundary(async () => {
+                    mswServer.use(
+                        http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
+                            return new HttpResponse(undefined, { status: 200 });
+                        }),
+                    );
+                    const sdk = new DigiMeSdk(mockSdkOptions);
 
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const promise = authorizedSdk.readFile({ sessionKey: "test-session-key", fileName: "test-file.json" });
+                    const promise = authorizedSdk.readFile({
+                        sessionKey: "test-session-key",
+                        fileName: "test-file.json",
+                    });
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`[DigiMeSdkTypeError: Response contains no body]`);
-            });
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(
+                        `[DigiMeSdkTypeError: Response contains no body]`,
+                    );
+                }),
+            );
 
-            test("Throws if the API does not send `x-metadata` header", async () => {
-                mswServer.use(
-                    http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
-                        return new HttpResponse("test-response", { status: 200 });
-                    }),
-                );
-                const sdk = new DigiMeSdk(mockSdkOptions);
+            test(
+                "Throws if the API does not send `x-metadata` header",
+                mswServer.boundary(async () => {
+                    mswServer.use(
+                        http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
+                            return new HttpResponse("test-response", { status: 200 });
+                        }),
+                    );
+                    const sdk = new DigiMeSdk(mockSdkOptions);
 
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const promise = authorizedSdk.readFile({ sessionKey: "test-session-key", fileName: "test-file.json" });
+                    const promise = authorizedSdk.readFile({
+                        sessionKey: "test-session-key",
+                        fileName: "test-file.json",
+                    });
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(
-                    `[DigiMeSdkTypeError: Missing \`x-metadata\` header from Digi.me API response]`,
-                );
-            });
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(
+                        `[DigiMeSdkTypeError: Missing \`x-metadata\` header from Digi.me API response]`,
+                    );
+                }),
+            );
 
-            test("Throws if the API sends a non-object `x-metadata` header", async () => {
-                mswServer.use(
-                    http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
-                        return new HttpResponse("test-response", { status: 200, headers: { "x-metadata": "test" } });
-                    }),
-                );
-                const sdk = new DigiMeSdk(mockSdkOptions);
+            test(
+                "Throws if the API sends a non-object `x-metadata` header",
+                mswServer.boundary(async () => {
+                    mswServer.use(
+                        http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
+                            return new HttpResponse("test-response", {
+                                status: 200,
+                                headers: { "x-metadata": "test" },
+                            });
+                        }),
+                    );
+                    const sdk = new DigiMeSdk(mockSdkOptions);
 
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const promise = authorizedSdk.readFile({ sessionKey: "test-session-key", fileName: "test-file.json" });
+                    const promise = authorizedSdk.readFile({
+                        sessionKey: "test-session-key",
+                        fileName: "test-file.json",
+                    });
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(
-                    `[DigiMeSdkTypeError: Unable to convert \`x-metadata\` header to object]`,
-                );
-            });
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(
+                        `[DigiMeSdkTypeError: Unable to convert \`x-metadata\` header to object]`,
+                    );
+                }),
+            );
 
-            test("Throws if the API sends `x-metadata` header of invalid shape", async () => {
-                mswServer.use(
-                    http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
-                        return new HttpResponse("test-response", {
-                            status: 200,
-                            headers: { "x-metadata": toBase64Url(JSON.stringify({ compression: 1 })) },
-                        });
-                    }),
-                );
-                const sdk = new DigiMeSdk(mockSdkOptions);
+            test(
+                "Throws if the API sends `x-metadata` header of invalid shape",
+                mswServer.boundary(async () => {
+                    mswServer.use(
+                        http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
+                            return new HttpResponse("test-response", {
+                                status: 200,
+                                headers: { "x-metadata": toBase64Url(JSON.stringify({ compression: 1 })) },
+                            });
+                        }),
+                    );
+                    const sdk = new DigiMeSdk(mockSdkOptions);
 
-                const userAuthorization = await UserAuthorization.fromJwt(
-                    mockSdkConsumerCredentials.userAuthorizationJwt,
-                );
-                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                    const userAuthorization = await UserAuthorization.fromJwt(
+                        mockSdkConsumerCredentials.userAuthorizationJwt,
+                    );
+                    const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                const promise = authorizedSdk.readFile({ sessionKey: "test-session-key", fileName: "test-file.json" });
+                    const promise = authorizedSdk.readFile({
+                        sessionKey: "test-session-key",
+                        fileName: "test-file.json",
+                    });
 
-                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-                await expect(promise).rejects.toMatchInlineSnapshot(`
+                    await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                    await expect(promise).rejects.toMatchInlineSnapshot(`
                   [DigiMeSdkTypeError: Encountered an unexpected value for \`readFile\` \`x-metadata\` header (2 issues):
                    • "metadata": Invalid input
                    • "compression": Invalid input]
                 `);
-            });
+                }),
+            );
         });
     });
 
     describe(".readSession()", () => {
-        test("Returns the session", async () => {
-            mswServer.use(...permissionAccessTriggerHandlers);
+        test(
+            "Returns the session",
+            mswServer.boundary(async () => {
+                mswServer.use(...permissionAccessTriggerHandlers);
 
-            const userAuthorization = await UserAuthorization.fromJwt(mockSdkConsumerCredentials.userAuthorizationJwt);
-            const sdk = new DigiMeSdk(mockSdkOptions);
-            const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-            const promise = authorizedSdk.readSession();
+                const promise = authorizedSdk.readSession();
 
-            await expect(promise).resolves.toEqual(
-                expect.objectContaining({
-                    key: expect.any(String),
-                    expiry: expect.any(Number),
-                }),
-            );
-        });
+                await expect(promise).resolves.toEqual(
+                    expect.objectContaining({
+                        key: expect.any(String),
+                        expiry: expect.any(Number),
+                    }),
+                );
+            }),
+        );
 
-        test("Throws if abort signal is triggered", async () => {
-            mswServer.use(...permissionAccessTriggerHandlers);
+        test(
+            "Throws if abort signal is triggered",
+            mswServer.boundary(async () => {
+                mswServer.use(...permissionAccessTriggerHandlers);
 
-            const sdk = new DigiMeSdk(mockSdkOptions);
-            const userAuthorization = await UserAuthorization.fromJwt(mockSdkConsumerCredentials.userAuthorizationJwt);
-            const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
-            const signal = AbortSignal.abort();
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                const signal = AbortSignal.abort();
 
-            const promise = authorizedSdk.readSession({ signal });
+                const promise = authorizedSdk.readSession({ signal });
 
-            await expect(promise).rejects.toBeInstanceOf(Error);
-            await expect(promise).rejects.toHaveProperty("name", "AbortError");
-        });
+                await expect(promise).rejects.toBeInstanceOf(Error);
+                await expect(promise).rejects.toHaveProperty("name", "AbortError");
+            }),
+        );
 
-        test("Throws if `options` argument is not an object", async () => {
-            const sdk = new DigiMeSdk(mockSdkOptions);
-            const userAuthorization = await UserAuthorization.fromJwt(mockSdkConsumerCredentials.userAuthorizationJwt);
-            const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+        test(
+            "Throws if `options` argument is not an object",
+            mswServer.boundary(async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-            const promise = authorizedSdk.readSession(
-                // @ts-expect-error Providing wrong type on purpose
-                [],
-            );
+                const promise = authorizedSdk.readSession(
+                    // @ts-expect-error Providing wrong type on purpose
+                    [],
+                );
 
-            await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-            await expect(promise).rejects.toMatchInlineSnapshot(`
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
               [DigiMeSdkTypeError: Encountered an unexpected value for \`readSession\` options (1 issue):
                • Expected object, received array]
             `);
-        });
+            }),
+        );
 
-        test("Throws if `options` argument is an object with incorrect shape", async () => {
-            const sdk = new DigiMeSdk(mockSdkOptions);
+        test(
+            "Throws if `options` argument is an object with incorrect shape",
+            mswServer.boundary(async () => {
+                const sdk = new DigiMeSdk(mockSdkOptions);
 
-            const userAuthorization = await UserAuthorization.fromJwt(mockSdkConsumerCredentials.userAuthorizationJwt);
-            const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
+                const userAuthorization = await UserAuthorization.fromJwt(
+                    mockSdkConsumerCredentials.userAuthorizationJwt,
+                );
+                const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-            const promise = authorizedSdk.readSession({
-                // @ts-expect-error Providing wrong type on purpose
-                limits: [],
-                // @ts-expect-error Providing wrong type on purpose
-                scope: false,
-                // @ts-expect-error Providing wrong type on purpose
-                sourceFetch: 1,
-                // @ts-expect-error Providing wrong type on purpose
-                signal: "",
-            });
+                const promise = authorizedSdk.readSession({
+                    // @ts-expect-error Providing wrong type on purpose
+                    limits: [],
+                    // @ts-expect-error Providing wrong type on purpose
+                    scope: false,
+                    // @ts-expect-error Providing wrong type on purpose
+                    sourceFetch: 1,
+                    // @ts-expect-error Providing wrong type on purpose
+                    signal: "",
+                });
 
-            await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
-            await expect(promise).rejects.toMatchInlineSnapshot(`
+                await expect(promise).rejects.toBeInstanceOf(DigiMeSdkTypeError);
+                await expect(promise).rejects.toMatchInlineSnapshot(`
               [DigiMeSdkTypeError: Encountered an unexpected value for \`readSession\` options (4 issues):
                • "limits": Expected object, received array
                • "scope": Expected object, received boolean
                • "sourceFetch": Expected boolean, received number
                • "signal": Input not instance of AbortSignal]
             `);
-        });
+            }),
+        );
     });
 });
