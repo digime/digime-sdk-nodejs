@@ -2,7 +2,8 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { describe, test, expect, vi } from "vitest";
+import type { TestFunction } from "vitest";
+import { describe, test, vi } from "vitest";
 import { DigiMeSdk, DigiMeSdkAuthorized } from "./digi-me-sdk";
 import { mockSdkConsumerCredentials } from "../../mocks/sdk-consumer-credentials";
 import { handlers as oauthTokenHandlers } from "../../mocks/api/oauth/token/handlers";
@@ -26,12 +27,12 @@ const mockSdkOptions = {
     contractPrivateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
 } as const satisfies ConstructorParameters<typeof DigiMeSdk>[0];
 
-describe("DigiMeSdkAuthorized", () => {
+describe.concurrent("DigiMeSdkAuthorized", () => {
     describe("Instanced", () => {
         describe("Constructor", () => {
             test(
                 "Works with minimum parameters",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
                     const userAuthorization = await UserAuthorization.fromJwt(
                         mockSdkConsumerCredentials.userAuthorizationJwt,
@@ -49,7 +50,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if provided no arguments",
-                mswServer.boundary(() => {
+                mswServer.boundary<TestFunction>(({ expect }) => {
                     expect(
                         // @ts-expect-error Providing wrong type on purpose
                         () => new DigiMeSdkAuthorized(),
@@ -62,7 +63,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `config` argument is not an object",
-                mswServer.boundary(() => {
+                mswServer.boundary<TestFunction>(({ expect }) => {
                     expect(
                         // @ts-expect-error Providing wrong type on purpose
                         () => new DigiMeSdkAuthorized(""),
@@ -75,7 +76,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `config` argument is an empty object",
-                mswServer.boundary(() => {
+                mswServer.boundary<TestFunction>(({ expect }) => {
                     expect(
                         // @ts-expect-error Providing wrong type on purpose
                         () => new DigiMeSdkAuthorized({}),
@@ -90,7 +91,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `config` argument is an object with incorrect shape",
-                mswServer.boundary(() => {
+                mswServer.boundary<TestFunction>(({ expect }) => {
                     expect(
                         () =>
                             new DigiMeSdkAuthorized({
@@ -114,7 +115,7 @@ describe("DigiMeSdkAuthorized", () => {
         describe(".refreshUserAuthorization()", () => {
             test(
                 "Returns a new `UserAuthorization` instance",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(...oauthTokenHandlers);
 
                     const sdk = new DigiMeSdk(mockSdkOptions);
@@ -138,7 +139,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Triggers `onUserAuthorizationUpdated` handler correctly",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(...oauthTokenHandlers);
 
                     const sdk = new DigiMeSdk(mockSdkOptions);
@@ -166,7 +167,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if the UserAuthorization can't be refreshed",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
                     const userAuthorization = UserAuthorization.fromPayload({
                         access_token: {
@@ -198,7 +199,7 @@ describe("DigiMeSdkAuthorized", () => {
         describe(".getPortabilityReport()", () => {
             test(
                 'Returns a string when `as` is "string"',
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(...exportHandlers);
 
                     const userAuthorization = await UserAuthorization.fromJwt(
@@ -218,7 +219,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 'Returns a `ReadableStream` when `as` is "ReadableStream"',
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(...exportHandlers);
 
                     const userAuthorization = await UserAuthorization.fromJwt(
@@ -238,7 +239,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 'Returns a Node.js `Readable` when `as` is "NodeReadable"',
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(...exportHandlers);
 
                     const userAuthorization = await UserAuthorization.fromJwt(
@@ -258,7 +259,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if abort signal is triggered",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(...exportHandlers);
 
                     const sdk = new DigiMeSdk(mockSdkOptions);
@@ -281,7 +282,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if provided no arguments",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
                     const userAuthorization = await UserAuthorization.fromJwt(
                         mockSdkConsumerCredentials.userAuthorizationJwt,
@@ -301,7 +302,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `as` argument is invalid",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
                     const userAuthorization = await UserAuthorization.fromJwt(
                         mockSdkConsumerCredentials.userAuthorizationJwt,
@@ -324,7 +325,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `options` argument is not an object",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
                     const userAuthorization = await UserAuthorization.fromJwt(
                         mockSdkConsumerCredentials.userAuthorizationJwt,
@@ -344,7 +345,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `options` argument is an empty object",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
                     const userAuthorization = await UserAuthorization.fromJwt(
                         mockSdkConsumerCredentials.userAuthorizationJwt,
@@ -365,7 +366,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `options` argument is an object with incorrect shape",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
 
                     const userAuthorization = await UserAuthorization.fromJwt(
@@ -396,7 +397,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if the API does not return a body",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(
                         http.get(fromMockApiBase("export/:serviceType/report"), async () => {
                             return new HttpResponse(undefined, { status: 204 });
@@ -425,7 +426,7 @@ describe("DigiMeSdkAuthorized", () => {
         describe(".deleteUser()", () => {
             test(
                 "Works with no parameters",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(...userHandlers);
 
                     const userAuthorization = await UserAuthorization.fromJwt(
@@ -442,7 +443,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if abort signal is triggered",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(...userHandlers);
 
                     const sdk = new DigiMeSdk(mockSdkOptions);
@@ -463,7 +464,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `options` argument is not an object",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
                     const userAuthorization = await UserAuthorization.fromJwt(
                         mockSdkConsumerCredentials.userAuthorizationJwt,
@@ -483,7 +484,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `options` argument is an object with incorrect shape",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
 
                     const userAuthorization = await UserAuthorization.fromJwt(
@@ -508,7 +509,7 @@ describe("DigiMeSdkAuthorized", () => {
         describe(".readAccounts()", () => {
             test(
                 "Returns an array of accounts",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(...permissionAccessAccountsHandlers);
 
                     const userAuthorization = await UserAuthorization.fromJwt(
@@ -536,7 +537,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if abort signal is triggered",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(...permissionAccessAccountsHandlers);
 
                     const sdk = new DigiMeSdk(mockSdkOptions);
@@ -557,7 +558,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `options` argument is not an object",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
                     const userAuthorization = await UserAuthorization.fromJwt(
                         mockSdkConsumerCredentials.userAuthorizationJwt,
@@ -579,7 +580,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `options` argument is an object with incorrect shape",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
 
                     const userAuthorization = await UserAuthorization.fromJwt(
@@ -604,7 +605,7 @@ describe("DigiMeSdkAuthorized", () => {
         describe(".readFileList()", () => {
             test(
                 "Returns the file list",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(...permissionAccessQueryHandlers);
 
                     const userAuthorization = await UserAuthorization.fromJwt(
@@ -633,7 +634,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if abort signal is triggered",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(...permissionAccessQueryHandlers);
 
                     const sdk = new DigiMeSdk(mockSdkOptions);
@@ -652,7 +653,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `options` argument is not an object",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
                     const userAuthorization = await UserAuthorization.fromJwt(
                         mockSdkConsumerCredentials.userAuthorizationJwt,
@@ -674,7 +675,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `options` argument is an object with incorrect shape",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
 
                     const userAuthorization = await UserAuthorization.fromJwt(
@@ -702,7 +703,7 @@ describe("DigiMeSdkAuthorized", () => {
         describe(".readFile()", () => {
             test(
                 "Returns a DigiMeSessionFile",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     expect.assertions(1);
                     mswServer.use(...permissionAccessQueryHandlers);
 
@@ -723,7 +724,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if abort signal is triggered",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(...permissionAccessQueryHandlers);
 
                     const sdk = new DigiMeSdk(mockSdkOptions);
@@ -746,7 +747,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `options` argument is not provided",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
                     const userAuthorization = await UserAuthorization.fromJwt(
                         mockSdkConsumerCredentials.userAuthorizationJwt,
@@ -766,7 +767,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `options` argument is not an object",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
                     const userAuthorization = await UserAuthorization.fromJwt(
                         mockSdkConsumerCredentials.userAuthorizationJwt,
@@ -788,7 +789,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if `options` argument is an object with incorrect shape",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     const sdk = new DigiMeSdk(mockSdkOptions);
 
                     const userAuthorization = await UserAuthorization.fromJwt(
@@ -817,7 +818,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if the API does not return a body",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(
                         http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
                             return new HttpResponse(undefined, { status: 200 });
@@ -844,7 +845,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if the API does not send `x-metadata` header",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(
                         http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
                             return new HttpResponse("test-response", { status: 200 });
@@ -871,7 +872,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if the API sends a non-object `x-metadata` header",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(
                         http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
                             return new HttpResponse("test-response", {
@@ -901,7 +902,7 @@ describe("DigiMeSdkAuthorized", () => {
 
             test(
                 "Throws if the API sends `x-metadata` header of invalid shape",
-                mswServer.boundary(async () => {
+                mswServer.boundary<TestFunction>(async ({ expect }) => {
                     mswServer.use(
                         http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName"), async () => {
                             return new HttpResponse("test-response", {
@@ -936,7 +937,7 @@ describe("DigiMeSdkAuthorized", () => {
     describe(".readSession()", () => {
         test(
             "Returns the session",
-            mswServer.boundary(async () => {
+            mswServer.boundary<TestFunction>(async ({ expect }) => {
                 mswServer.use(...permissionAccessTriggerHandlers);
 
                 const userAuthorization = await UserAuthorization.fromJwt(
@@ -958,7 +959,7 @@ describe("DigiMeSdkAuthorized", () => {
 
         test(
             "Throws if abort signal is triggered",
-            mswServer.boundary(async () => {
+            mswServer.boundary<TestFunction>(async ({ expect }) => {
                 mswServer.use(...permissionAccessTriggerHandlers);
 
                 const sdk = new DigiMeSdk(mockSdkOptions);
@@ -977,7 +978,7 @@ describe("DigiMeSdkAuthorized", () => {
 
         test(
             "Throws if `options` argument is not an object",
-            mswServer.boundary(async () => {
+            mswServer.boundary<TestFunction>(async ({ expect }) => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
                 const userAuthorization = await UserAuthorization.fromJwt(
                     mockSdkConsumerCredentials.userAuthorizationJwt,
@@ -999,7 +1000,7 @@ describe("DigiMeSdkAuthorized", () => {
 
         test(
             "Throws if `options` argument is an object with incorrect shape",
-            mswServer.boundary(async () => {
+            mswServer.boundary<TestFunction>(async ({ expect }) => {
                 const sdk = new DigiMeSdk(mockSdkOptions);
 
                 const userAuthorization = await UserAuthorization.fromJwt(
