@@ -62,18 +62,18 @@ export class DigiMeSessionFile {
     }
 
     /**
-     * Returns a stream with no transformation applied to it.
-     * Useful, for example, if you don't wish to decypher the stream now and just store it somewhere for later.
+     * Returns a stream as it was provided, without any transformation applied to it.
+     * Useful if you don't wish to process the stream now and just store it somewhere for later.
      */
-    asRawStream(): ReadableStream<Uint8Array> {
+    rawStream(): ReadableStream<Uint8Array> {
         return this.#input;
     }
 
     /**
-     * Returns a stream with decryption and decompression transformers
+     * Returns a stream with decryption and decompression transformers applied to it
      */
-    async asProcessedStream(): Promise<ReadableStream<Uint8Array>> {
-        let pipeline = await getDecryptReadableStream(this.privateKey, this.asRawStream());
+    async processedStream(): Promise<ReadableStream<Uint8Array>> {
+        let pipeline = await getDecryptReadableStream(this.privateKey, this.rawStream());
 
         if (this.compression === "brotli") {
             pipeline = pipeline.pipeThrough(nodeDuplexToWeb(createBrotliDecompress()));
@@ -87,23 +87,23 @@ export class DigiMeSessionFile {
     /**
      * Returns a processed text stream
      */
-    async asTextStream(): Promise<ReadableStream<string>> {
-        return (await this.asProcessedStream()).pipeThrough(new TextDecoderStream());
+    async textStream(): Promise<ReadableStream<string>> {
+        return (await this.processedStream()).pipeThrough(new TextDecoderStream());
     }
 
     /**
-     * Returns text representation of the file
+     * Returns processed text representation of the file
      */
-    async asText(): Promise<string> {
-        return await streamToText(await this.asTextStream());
+    async text(): Promise<string> {
+        return await streamToText(await this.textStream());
     }
 
     /**
-     * Returns JSON representation of the file
+     * Returns the result of JSON parsing the processed text representation of the input file
      */
-    async asJson(): Promise<unknown> {
+    async jsonParse(): Promise<unknown> {
         try {
-            return JSON.parse(await this.asText());
+            return JSON.parse(await this.text());
         } catch (error) {
             throw new DigiMeSdkError("Failed parsing file contents as JSON", { cause: error });
         }
@@ -112,7 +112,7 @@ export class DigiMeSessionFile {
     async asJsonStream() {
         const { parser } = (await import("stream-json")).default;
         const { streamArray } = (await import("stream-json/streamers/StreamArray")).default;
-        return (await this.asTextStream())
+        return (await this.textStream())
             .pipeThrough(nodeDuplexToWeb(parser()))
             .pipeThrough(nodeDuplexToWeb(streamArray()));
     }

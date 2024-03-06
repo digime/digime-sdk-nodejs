@@ -5,11 +5,12 @@
 import { describe, test, expect } from "vitest";
 import { DigiMeSessionFile } from "./digi-me-session-file";
 import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
-import { createFileEncryptPipeline } from "../../mocks/utilities";
+import { createFileEncryptPipeline, createReadableStream } from "../../mocks/utilities";
 import { randomInt } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { mockSdkConsumerCredentials } from "../../mocks/sdk-consumer-credentials";
-import { streamToUint8Array } from "../node-streams";
+import { nodeDuplexToWeb, streamToText, streamToUint8Array } from "../node-streams";
+import { createBrotliCompress } from "node:zlib";
 
 describe("DigiMeSessionFile", () => {
     describe("Constructor", () => {
@@ -115,32 +116,108 @@ describe("DigiMeSessionFile", () => {
             }
         });
 
-        describe(".asRawStream", () => {
+        describe(".rawStream()", () => {
             test("Returns the input stream", () => {
                 const input = new ReadableStream();
                 const privateKey = "test-key";
                 const sessionFile = new DigiMeSessionFile({ input, privateKey });
 
-                const result = sessionFile.asRawStream();
+                const result = sessionFile.rawStream();
 
                 expect(result).toBe(input);
             });
         });
 
-        describe(".asRawStream", () => {
-            test("Returns the input stream", () => {
-                const input = new ReadableStream();
-                const privateKey = "test-key";
-                const sessionFile = new DigiMeSessionFile({ input, privateKey });
+        describe(".processedStream()", () => {
+            test("Handles uncompressed files", async () => {
+                expect.assertions(3);
 
-                const result = sessionFile.asRawStream();
+                const targetFile = new URL(
+                    "../../mocks/api/permission-access/query/test-mapped-file.json",
+                    import.meta.url,
+                );
 
-                expect(result).toBe(input);
+                let dataStream = createReadableStream(targetFile, {
+                    highWaterMark: randomInt(1, 101),
+                });
+
+                dataStream = createFileEncryptPipeline(mockSdkConsumerCredentials.publicKey, dataStream);
+
+                const sessionFile = new DigiMeSessionFile({
+                    input: dataStream,
+                    privateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
+                });
+
+                const resultStream = await sessionFile.processedStream();
+                const resultBuffer = await streamToUint8Array(resultStream);
+                const expected = await readFile(targetFile);
+
+                expect(sessionFile.compression).toBe(undefined);
+                expect(resultStream).instanceOf(ReadableStream);
+                expect(expected.compare(resultBuffer)).toBe(0);
+            });
+
+            test("Handles `gzip` compression", async () => {
+                expect.assertions(3);
+
+                const targetFile = new URL(
+                    "../../mocks/api/permission-access/query/test-mapped-file.json",
+                    import.meta.url,
+                );
+
+                let dataStream = createReadableStream(targetFile, {
+                    highWaterMark: randomInt(1, 101),
+                }).pipeThrough(new CompressionStream("gzip"));
+
+                dataStream = createFileEncryptPipeline(mockSdkConsumerCredentials.publicKey, dataStream);
+
+                const sessionFile = new DigiMeSessionFile({
+                    input: dataStream,
+                    privateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
+                    compression: "gzip",
+                });
+
+                const resultStream = await sessionFile.processedStream();
+                const resultBuffer = await streamToUint8Array(resultStream);
+                const expected = await readFile(targetFile);
+
+                expect(sessionFile.compression).toBe("gzip");
+                expect(resultStream).instanceOf(ReadableStream);
+                expect(expected.compare(resultBuffer)).toBe(0);
+            });
+
+            test("Handles `brotli` compression", async () => {
+                expect.assertions(3);
+
+                const targetFile = new URL(
+                    "../../mocks/api/permission-access/query/test-mapped-file.json",
+                    import.meta.url,
+                );
+
+                let dataStream = createReadableStream(targetFile, {
+                    highWaterMark: randomInt(1, 101),
+                }).pipeThrough(nodeDuplexToWeb(createBrotliCompress()));
+
+                dataStream = createFileEncryptPipeline(mockSdkConsumerCredentials.publicKey, dataStream);
+
+                const sessionFile = new DigiMeSessionFile({
+                    input: dataStream,
+                    privateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
+                    compression: "brotli",
+                });
+
+                const resultStream = await sessionFile.processedStream();
+                const resultBuffer = await streamToUint8Array(resultStream);
+                const expected = await readFile(targetFile);
+
+                expect(sessionFile.compression).toBe("brotli");
+                expect(resultStream).instanceOf(ReadableStream);
+                expect(expected.compare(resultBuffer)).toBe(0);
             });
         });
 
-        describe(".asProcessedStream", () => {
-            test("Processes the file in an expected manner", async () => {
+        describe(".textStream()", () => {
+            test("Produces a stream of UTF-8 text", async () => {
                 expect.assertions(2);
 
                 const targetFile = new URL(
@@ -148,21 +225,50 @@ describe("DigiMeSessionFile", () => {
                     import.meta.url,
                 );
 
-                const input = createFileEncryptPipeline(mockSdkConsumerCredentials.publicKey, targetFile, {
+                let dataStream = createReadableStream(targetFile, {
                     highWaterMark: randomInt(1, 101),
                 });
 
+                dataStream = createFileEncryptPipeline(mockSdkConsumerCredentials.publicKey, dataStream);
+
                 const sessionFile = new DigiMeSessionFile({
-                    input,
+                    input: dataStream,
                     privateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
                 });
 
-                const resultStream = await sessionFile.asProcessedStream();
-                const resultBuffer = await streamToUint8Array(resultStream);
-                const expected = await readFile(targetFile);
+                const resultStream = await sessionFile.textStream();
+                const result = await streamToText(resultStream);
+                const expected = (await readFile(targetFile)).toString("utf-8");
 
                 expect(resultStream).instanceOf(ReadableStream);
-                expect(expected.compare(resultBuffer)).toBe(0);
+                expect(result).toBe(expected);
+            });
+        });
+
+        describe(".text()", () => {
+            test("Produces a UTF-8 string", async () => {
+                expect.assertions(1);
+
+                const targetFile = new URL(
+                    "../../mocks/api/permission-access/query/test-mapped-file.json",
+                    import.meta.url,
+                );
+
+                let dataStream = createReadableStream(targetFile, {
+                    highWaterMark: randomInt(1, 101),
+                });
+
+                dataStream = createFileEncryptPipeline(mockSdkConsumerCredentials.publicKey, dataStream);
+
+                const sessionFile = new DigiMeSessionFile({
+                    input: dataStream,
+                    privateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
+                });
+
+                const result = await sessionFile.text();
+                const expected = (await readFile(targetFile)).toString("utf-8");
+
+                expect(result).toBe(expected);
             });
         });
     });

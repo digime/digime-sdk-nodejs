@@ -7,10 +7,12 @@
  */
 
 import { http, HttpResponse } from "msw";
-import { createFileEncryptPipeline, fromMockApiBase } from "../../../utilities";
+import { createFileEncryptPipeline, createReadableStream, fromMockApiBase } from "../../../utilities";
 import { assertAcceptsJson, assertBearerToken, assertAcceptsOctetStream } from "../../../handler-utilities";
 import { randomInt, randomUUID } from "node:crypto";
 import { mockSdkConsumerCredentials } from "../../../sdk-consumer-credentials";
+import { nodeDuplexToWeb } from "../../../../src/node-streams";
+import { createBrotliCompress } from "node:zlib";
 
 const availableFiles = {
     "test-image.png": {
@@ -56,7 +58,7 @@ const availableFiles = {
     },
 } as const;
 
-export const makeHandlers = (baseUrl?: string) => [
+export const makeHandlers = (compression?: "gzip" | "brotli", baseUrl?: string) => [
     // File handler
     http.get(fromMockApiBase("permission-access/query/:sessionKey/:fileName", baseUrl), async ({ request, params }) => {
         assertAcceptsOctetStream(request);
@@ -74,19 +76,31 @@ export const makeHandlers = (baseUrl?: string) => [
             : availableFiles["test-mapped-file.json"];
 
         // Create metadata
-        const metadata = JSON.stringify(targetFile.headerMetadata);
+        const metadata: Record<string, unknown> = {
+            ...targetFile.headerMetadata,
+        };
+
+        // Add compression metadata
+        if (compression) {
+            metadata.compression = compression;
+        }
+
+        let dataStream = createReadableStream(new URL(targetFile.name, import.meta.url), {
+            highWaterMark: randomInt(1, 101),
+        });
+
+        // Add compression if requested
+        if (compression === "gzip") {
+            dataStream = dataStream.pipeThrough(new CompressionStream("gzip"));
+        } else if (compression === "brotli") {
+            dataStream = dataStream.pipeThrough(nodeDuplexToWeb(createBrotliCompress()));
+        }
 
         // Get data encryption pipeline
-        const fileReadableStream = createFileEncryptPipeline(
-            mockSdkConsumerCredentials.publicKey,
-            new URL(targetFile.name, import.meta.url),
-            {
-                highWaterMark: randomInt(1, 101),
-            },
-        );
+        dataStream = createFileEncryptPipeline(mockSdkConsumerCredentials.publicKey, dataStream);
 
-        return new HttpResponse(fileReadableStream, {
-            headers: { "x-metadata": Buffer.from(metadata).toString("base64url") },
+        return new HttpResponse(dataStream, {
+            headers: { "x-metadata": Buffer.from(JSON.stringify(metadata)).toString("base64url") },
         });
     }),
 
