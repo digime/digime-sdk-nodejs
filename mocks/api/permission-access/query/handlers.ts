@@ -67,7 +67,6 @@ export const makeHandlers = (compression?: "gzip" | "brotli", baseUrl?: string) 
         const fileName = params.fileName;
 
         if (typeof fileName !== "string") {
-            console.log("Handler error");
             throw new TypeError("Unexpected filename");
         }
 

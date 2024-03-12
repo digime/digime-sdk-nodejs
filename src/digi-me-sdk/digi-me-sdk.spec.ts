@@ -5,7 +5,7 @@
 import { describe, test, expect } from "vitest";
 import { mswServer } from "../../mocks/server";
 import { handlers as discoveryServicesHandlers } from "../../mocks/api/discovery/services/handlers";
-import { handlers as oauthAuthorizeHandlers } from "../../mocks/api/oauth/authorize/handlers";
+import { makeFailOnceHandlers, handlers as oauthAuthorizeHandlers } from "../../mocks/api/oauth/authorize/handlers";
 import { handlers as oauthTokenHandlers } from "../../mocks/api/oauth/token/handlers";
 import { handlers as permissionAccessSampleDataSetsHandlers } from "../../mocks/api/permission-access/sample/datasets/handlers";
 import { DigiMeSdk, DigiMeSdkAuthorized } from "./digi-me-sdk";
@@ -170,6 +170,26 @@ describe("DigiMeSDK", () => {
         describe(".getAuthorizeUrl()", () => {
             test("Works with minimal parameters", async () => {
                 mswServer.use(...oauthAuthorizeHandlers);
+
+                const sdk = new DigiMeSdk(mockSdkOptions);
+
+                const result = await sdk.getAuthorizeUrl({
+                    callback: "test-callback",
+                    state: "",
+                });
+
+                expect(result).toEqual(expect.any(Object));
+                expect(result.codeVerifier).toEqual(expect.any(String));
+                expect(result.url).toMatchInlineSnapshot(
+                    `"https://api.digi.me/apps/saas/authorize?code=test-preauthorization-code&sourceType=pull"`,
+                );
+                expect(result.session).toEqual(expect.any(Object));
+                expect(result.session.expiry).toEqual(expect.any(Number));
+                expect(result.session.key).toMatchInlineSnapshot(`"test-session-key"`);
+            });
+
+            test.only("Retries with a new nonce", async () => {
+                mswServer.use(...makeFailOnceHandlers());
 
                 const sdk = new DigiMeSdk(mockSdkOptions);
 

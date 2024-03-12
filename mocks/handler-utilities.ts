@@ -45,6 +45,11 @@ export const assertContentTypeJson = (request: Request): void => {
 };
 
 /**
+ * Cache for nonces within the bearer tokens
+ */
+const seenNonces = new Set();
+
+/**
  * Mimics the way Digi.me API handles the request with an invalid Authorization header
  */
 export const assertBearerToken = async (request: Request): Promise<void> => {
@@ -64,9 +69,27 @@ export const assertBearerToken = async (request: Request): Promise<void> => {
     }
 
     // Verify signature
+    let result;
     try {
-        await jwtVerify(token, mockSdkConsumerCredentials.publicKey);
+        result = await jwtVerify(token, mockSdkConsumerCredentials.publicKey);
     } catch (error) {
         throw HttpResponse.json(bodyError, { status: 406, headers: headersError });
+    }
+
+    const nonce = result.payload.nonce;
+
+    if (nonce) {
+        if (seenNonces.has(nonce)) {
+            const nonceError = {
+                code: "InvalidRequest",
+                message: `The nonce provided in JWT payload (${nonce}) has already been used`,
+            };
+            throw HttpResponse.json(formatBodyError(nonceError), {
+                status: 400,
+                headers: formatHeadersError(nonceError),
+            });
+        } else {
+            seenNonces.add(nonce);
+        }
     }
 };

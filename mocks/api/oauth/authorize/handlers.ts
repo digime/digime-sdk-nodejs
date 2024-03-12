@@ -25,4 +25,18 @@ export const makeHandlers = (baseUrl?: string) => [
     }),
 ];
 
+export const makeFailOnceHandlers = (baseUrl?: string) => [
+    http.post(
+        fromMockApiBase("oauth/authorize", baseUrl),
+        async ({ request }) => {
+            assertAcceptsJson(request);
+            assertContentTypeJson(request);
+            await assertBearerToken(request);
+            return HttpResponse.error();
+        },
+        { once: true },
+    ),
+    ...makeHandlers(baseUrl),
+];
+
 export const handlers = makeHandlers();
