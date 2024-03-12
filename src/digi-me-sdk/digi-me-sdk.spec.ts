@@ -188,7 +188,7 @@ describe("DigiMeSDK", () => {
                 expect(result.session.key).toMatchInlineSnapshot(`"test-session-key"`);
             });
 
-            test.only("Retries with a new nonce", async () => {
+            test("Retries with a new nonce", async () => {
                 mswServer.use(...makeFailOnceHandlers());
 
                 const sdk = new DigiMeSdk(mockSdkOptions);
