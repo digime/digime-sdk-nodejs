@@ -3,7 +3,7 @@
  */
 
 import { createMachine, assign } from "xstate";
-import { logFetchWrapper } from "../debug-log";
+import { logSendApiRequest } from "../debug-log";
 import type { DigiMeSdkError } from "../errors/errors";
 import { DigiMeSdkApiError, DigiMeSdkTypeError } from "../errors/errors";
 import { ApiErrorFromHeaders } from "../schemas/api/api-error";
@@ -12,30 +12,68 @@ import type { CalculateDelayOptions, RetryOptions } from "./retry";
 import { DEFAULT_RETRY_OPTIONS, defaultCalculateDelay } from "./retry";
 import { getRetryAfterDelay } from "./get-retry-after-delay";
 
+export type RequestInitializer = () => Request | Promise<Request>;
+
+export const getRequestLabel = (request: Request | undefined): string => {
+    if (request instanceof Request) {
+        return `${request.method} ${request.url}`;
+    }
+
+    return "UNKNOWN REQUEST";
+};
+
+const serializeRequestOrResponse = async (objectToSerialize: Request | Response): Promise<string> => {
+    // Headers
+    const headers = JSON.stringify(Object.fromEntries(objectToSerialize.headers.entries()), undefined, 2);
+
+    // Body reading
+    let textBody = await objectToSerialize.text();
+    try {
+        textBody = JSON.stringify(JSON.parse(textBody), undefined, 2);
+    } catch {
+        // Nothing to do here, body isn't JSON
+    }
+
+    const lines: string[] = [];
+
+    if (objectToSerialize instanceof Response) {
+        lines.push("==== STATUS =====", `${objectToSerialize.status} ${objectToSerialize.statusText}`);
+    }
+
+    lines.push("==== HEADERS ====", `${headers}`, "==== BODY =======", `${textBody}`, "=================");
+
+    return lines.join("\n");
+};
 /**
- * Fetch machine
+ * API Request Machine
  */
-export const fetchMachine = createMachine(
+export const apiRequestMachine = createMachine(
     {
-        /** @xstate-layout N4IgpgJg5mDOIC5QDMwBcDGALAsgQ2wEsA7MAOkIgBswBiAMQFEAVAYQAkBtABgF1FQABwD2sQmkLDiAkAA9EAWgBMAFgCsZAByaVATk1qAjEqXd1hgDQgAnomNkAbDpUqA7EdcHNupQF9fVqiYuARYJORBRMRQtBBS5CQAbsIA1hHo2PhR6cEkUAhJwhh4ElI8vOUyImKl0khyikq6rlqGXkqartyuAMymPVa2CB3cZD29SuNNDpMzav6BGSHZZJFh0bHxFMTJaatLWes5UfmFxbXlnIb89dXiknWg8gjKmg5k3Ny63yqGauq6QyuQaIHouMZqTRKBz-YyGFSfFQLEBrQ7hfa5DZgABO2OE2LIgioJWQ+IAthjMqF0Ws8gUdkUSg9LnwqqJ7lIZM81KNNGDDA4utwemoZtw-iCECp3rpupNtCoOr9pcjUdTSJT1jEcXiCUSSeTNWiNbTovTkudmXwrjchOzalzEG4ZXzdCLvEpDN0VJLpWRZa5VJogUpXDDvKqDuryAB3PD3aLMYQAJXQ2Osmw1hT2apWcYTUCTqbQ6fNjIu1tZt3tD0dCC9LVUKh63D5Xz6PSBkramg+gtlmlbbt0Dl08wCKKjefjEkTKbTGZ1+MJxLQpOxFNzRzI+dnhfnJesZctZUrtpAdwd9Weipa3BMTXcvShgMlfUMY2DThc8M8gZ6kbBMa5DYnAwhUIkYCprAIjELAYCMLi+KZgkDI5lO26gbA4GQdBsHwYhurHkyp4VFWdo1LW16NC0nSCl0npKGozSDmob4jmQbh6KoYbfD0MJIhOW7olhOFQXA+EIUh2IodsuzHMsmFgRB4kwVIBHScRFYVNcbKUZy1H1u8wqBoOX7qKYTi+roKicTyQI9D0I7MSKgFUisokqXh6lSbqtBLnqq7rpuGEicpuEST5hH4lpVpkeel5UU8iC9I4kyejChgjjZZiSpCvb9kYDi-OKTnjhOxDCBAcAyMJpB6RyjwNC8YIaMG7SdN0fTCpKCiGGCWj9jZ-WdN4-VuYp6KUDQDVXslLymEoZDuJ6riKrerYir1bhjENpWKgKxUTcBmp5LNSXNa8S2yhZrh-MK-zdjyfaeLKsrjD4kzHdGqzxjQEDnQZ80uO8Rh8k4gKAv0eXwo4YZrdwPJqGtBjfSsGDCGSRLoGAgNNdyYyOQi0Jg6o3zAjYiChi0Mwdvejl3dK46LEBP27nkRYLnjdb8RoPiuD4Y4GConRKN2Dg9C93jCj86iimjSnYV5kVwb5+Lc4Zyg2R8ahNJC8IzAJvr9f60qjsVyM6J4-j+EAA */
+        /** @xstate-layout N4IgpgJg5mDOIC5QEMAOBLASmAjgVzgBcBZZAYwAt0A7MAOnQgBswBiAZQBUBBTTgbQAMAXUShUAe1jpC6CdTEgAHogC0AJgBsAdjoBGAKyaAzNqMBOPevXnNAFgA0IAJ6IAHHU1ujgvXcHGlnbGggYAvmFOaFi4BLAk5FS0dABmYISUNFCsEPL0NABuEgDW9NHY+ESkmclpGUlQCIUSZMiy8kLCnYqS0u0KSMpqxnp6ntrmboLqEwYhdgbaTq4ImurGdNpuloL2buvmlhFRGBVxCTX0dTXZucnNpXTlsVWJNFfpN03URa39nfw9KJBr0ZHIBqAVAgNIc6G5tFZjAZbLYEW5jMtEF5dAt-OtBAtrOZtMcQM9KvFqkkPvUsqwwAAnBkSBl0VBMNopFkAWyepxelLetU+DW+vza4IBIh6UjB8kUUNU5g2ekExL0E20xmM+22mIQdnRmwJdlN2i1qtNmlJ5POVPeqRFdMZzNZ7M5PL5MQpF2pjtp1EazT+kpEgOB4ll-QViHUBnUdEEgjcJlR6j0Orcbn1ho22hNeyzWm8Nv5PvtyQA7sgwYHOBJsIQGc4cnkGD8SmUy3ahfRq7WoPXG82xS0JR0w9KQVHwTHocZNJ5DgYjAY9JoNXZ1Pr0wZNnp4fttJpzHMDG5S96e5c6P3ZHWG+lm-SmSy2RzCFyGbzba8b3esiHJ9nFHEMJy6KdIz6WdBihBY9xRdRTQCEZpnMfU9HMBNtC3OMdDsc0sIvSIyW7P8-QZOAJCYAowGwWBJGoWAwAAUVfBlW3uDtHl-QUb0o2BqNo+jGOYtjXVA8dqClCMQFBaNYMQDU6DXJMNXRdNjHTbcXEQY87E8KZ7FVDNtWCS8znIh0BKEui4FE1j2M4-JuK7K8rOSGyaLshj5DE9jJP+MMgRlaD5UU1Yxi3QJTxPRZDmmfUUwM9R0T8Ix82Q8ISN431rKo7yRL8xzXRfV13w9b8vUsviKIK4T7OK8SWUC0MINk+SYMhNQbDzEIVyCbYRk0TR9XMAjPDVAxdnMNCkOyk53Nqh0yEoiVAxqwhnPbIoeLI5bklWsB1qgTbWvA7ppzCiEhmhGYxm8U9pkwiZrGzXSEGMCbBBw1MtO2Sw9AiEjqAkCA4EUXKKzAUK5RuxUkXMcZJmmWZ5kWfVVD8DxFjNBFlS1eNiMWzboYYZgYauuG5w0ddPAzU0Vz8TQBoMTGN0THCCLsQxTENU0LIFPLhQDKBYYU7q7qMOg7C8WacIPCY3EcD7DTGLxVXUXxZssLwFtIpbhauGsWAgcWutugi91luYAiMWXZZ0lYswM6bbB0LRlS1kkcv2o26DICRuXZdJKag6mIqxwQ6FsH7pt2bwtBZpYPrWMYAh2LXkTmexBfLXtbxre9B0fJsVnDiXbozJHRjmYktFMawrAw2b9yzLT1x8eN9ahguvIa3ymJKllzfCyXVBCXQgi1nUDFllMMQ+48E2T9N7BGZnrV9w2yaOk7NtH+GetsTZk-03UTydpTzTbqZAi3LD12IiIgA */
         schema: {
             context: {} as {
+                requestInitializer?: RequestInitializer;
                 request?: Request;
                 attempts: number;
                 retryOptions: RetryOptions;
                 lastError?: unknown;
             },
-            events: {} as { type: "FETCH"; request: Request; retryOptions?: Partial<RetryOptions> },
+            events: {} as {
+                type: "START";
+                requestInitializer: RequestInitializer;
+                retryOptions?: Partial<RetryOptions>;
+            },
             services: {} as {
                 delayRetry: { data: void };
                 fetch: { data: Response };
                 resolveResponseError: { data: { response: Response; error: DigiMeSdkError } };
+                createRequest: { data: Request };
             },
         },
 
-        tsTypes: {} as import("./fetch-machine.typegen").Typegen0,
+        tsTypes: {} as import("./api-request-machine.typegen").Typegen0,
         predictableActionArguments: true,
-        id: "fetchMachine",
+        id: "apiRequestMachine",
         initial: "idle",
 
         context: {
@@ -47,9 +85,9 @@ export const fetchMachine = createMachine(
         states: {
             idle: {
                 on: {
-                    FETCH: {
-                        target: "fetching",
-                        actions: ["setRequest", "setRetryOptions"],
+                    START: {
+                        target: "creatingRequest",
+                        actions: ["setRetryOptions", "setRequestCreator"],
                     },
                 },
             },
@@ -66,7 +104,7 @@ export const fetchMachine = createMachine(
                         },
                         {
                             target: "failed",
-                            actions: ["setLastError"],
+                            actions: "setLastError",
                         },
                     ],
 
@@ -78,8 +116,6 @@ export const fetchMachine = createMachine(
                         "resolveResponseError",
                     ],
                 },
-
-                entry: "incrementAttempts",
             },
 
             failed: {
@@ -93,14 +129,14 @@ export const fetchMachine = createMachine(
                 type: "final",
 
                 data: (context, event) => {
-                    return event.request;
+                    return event.requestInitializer;
                 },
             },
 
             waitingToRetry: {
                 invoke: {
                     src: "delayRetry",
-                    onDone: "fetching",
+                    onDone: "creatingRequest",
                     onError: {
                         target: "failed",
                         actions: "setLastError",
@@ -128,12 +164,29 @@ export const fetchMachine = createMachine(
                     },
                 },
             },
+
+            creatingRequest: {
+                invoke: {
+                    src: "createRequest",
+
+                    onDone: {
+                        target: "fetching",
+                        actions: "setRequest",
+                    },
+                },
+
+                entry: "incrementAttempts",
+            },
         },
     },
     {
         actions: {
             setRequest: assign({
-                request: (context, event) => event.request,
+                request: (context, event) => event.data,
+            }),
+
+            setRequestCreator: assign({
+                requestInitializer: (context, event) => event.requestInitializer,
             }),
 
             setRetryOptions: assign({
@@ -167,10 +220,18 @@ export const fetchMachine = createMachine(
         },
 
         services: {
+            createRequest: async (context) => {
+                if (!context.requestInitializer) {
+                    throw new Error("TODO");
+                }
+
+                return await context.requestInitializer();
+            },
+
             delayRetry: async (context, event) => {
                 let retryAfter: number | undefined;
 
-                if (event.type === "done.invoke.fetchMachine.resolveResponseError:invocation[0]") {
+                if (event.type === "done.invoke.apiRequestMachine.resolveResponseError:invocation[0]") {
                     retryAfter = getRetryAfterDelay(event.data.response);
                 }
 
@@ -188,8 +249,8 @@ export const fetchMachine = createMachine(
                     (await context.retryOptions.calculateDelay?.(calculatedDelayOptions)) ??
                     calculatedDelayOptions.computedDelay;
 
-                logFetchWrapper(
-                    `[${context.request?.url}] Delaying attempt #${context.attempts + 1} for ${resolvedDelay}ms`,
+                logSendApiRequest(
+                    `[${getRequestLabel(context.request)}] Delaying attempt #${context.attempts + 1} for ${resolvedDelay}ms`,
                 );
 
                 await abortableDelay(resolvedDelay, context.request?.signal);
@@ -197,42 +258,24 @@ export const fetchMachine = createMachine(
                 return;
             },
 
-            fetch: async (context) => {
-                logFetchWrapper(
-                    `[${context.request?.url}] Attempt: ${context.attempts}/${context.retryOptions.maxAttempts + 1}`,
+            fetch: async (context, event) => {
+                const request = event.data;
+                const requestLabel = getRequestLabel(request);
+                logSendApiRequest(
+                    `[${requestLabel}] Attempt: ${context.attempts}/${context.retryOptions.maxAttempts + 1}`,
                 );
 
-                // We're not using typestates, so we have to guard against this
-                // See: https://xstate.js.org/docs/guides/typescript.html#typestates
-                if (!context.request) {
-                    throw new DigiMeSdkTypeError("No request in fetch machine!");
+                if (logSendApiRequest.enabled) {
+                    logSendApiRequest(
+                        `[${requestLabel}] Making request:\n${await serializeRequestOrResponse(request.clone())}`,
+                    );
                 }
 
-                const response = await globalThis.fetch(context.request.clone());
+                const response = await globalThis.fetch(request);
 
-                if (logFetchWrapper.enabled) {
-                    const headers = JSON.stringify(Object.fromEntries(response.headers.entries()), undefined, 2);
-
-                    // Body reading
-                    const clonedResponse = response.clone();
-                    let responseBody = await clonedResponse.text();
-                    try {
-                        responseBody = JSON.stringify(JSON.parse(responseBody), undefined, 2);
-                    } catch {
-                        // Nothing to do here, body isn't JSON
-                    }
-                    // End body reading
-
-                    logFetchWrapper(
-                        `[${context.request?.url}] Received response:\n${[
-                            "==== STATUS =====",
-                            `${response.status} ${response.statusText}`,
-                            "==== HEADERS ====",
-                            `${headers}`,
-                            "==== BODY =======",
-                            `${responseBody}`,
-                            "=================",
-                        ].join("\n")}`,
+                if (logSendApiRequest.enabled) {
+                    logSendApiRequest(
+                        `[${requestLabel}] Received response:\n${await serializeRequestOrResponse(response.clone())}`,
                     );
                 }
 

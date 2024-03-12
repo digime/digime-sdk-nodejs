@@ -9,7 +9,7 @@ import { OauthAuthorizeResponse } from "../schemas/api/oauth/authorize-response"
 import { PayloadPreauthorizationCode } from "../schemas/api/jwt-payloads";
 import { OauthTokenResponse } from "../schemas/api/oauth/tokens";
 import { parseWithSchema } from "../zod/zod-parse";
-import { fetchWrapper } from "../fetch/fetch";
+import { sendApiRequest } from "../send-api-request/send-api-request";
 import { signTokenPayload } from "../sign-token-payload";
 import { getVerifiedTokenPayload } from "../get-verified-token-payload";
 import { TrustedJwks } from "../trusted-jwks";
@@ -184,10 +184,13 @@ export class DigiMeSdk {
             headers.contractId = contractId;
         }
 
-        const response = await fetchWrapper(new URL("discovery/services", this.baseUrl), {
-            headers,
-            signal,
-        });
+        const response = await sendApiRequest(
+            () =>
+                new Request(new URL("discovery/services", this.baseUrl), {
+                    headers,
+                    signal,
+                }),
+        );
 
         return parseWithSchema(await response.json(), DiscoveryApiServicesResponse).data;
     }
@@ -214,45 +217,48 @@ export class DigiMeSdk {
         } = parseWithSchema(options, GetAuthorizeUrlOptions, "`getAuthorizeUrl` options");
 
         const codeVerifier = toBase64Url(getRandomAlphaNumeric(32));
+        const codeChallenge = toBase64Url(getSha256Hash(codeVerifier));
 
-        const tokenPayload: Record<string, unknown> = {
-            client_id: `${this.applicationId}_${this.contractId}`,
-            code_challenge: toBase64Url(getSha256Hash(codeVerifier)),
-            code_challenge_method: "S256",
-            nonce: getRandomAlphaNumeric(32),
-            redirect_uri: callback,
-            response_mode: "query",
-            response_type: "code",
-            state,
-            timestamp: Date.now(),
-        };
+        const response = await sendApiRequest(async () => {
+            const tokenPayload: Record<string, unknown> = {
+                client_id: `${this.applicationId}_${this.contractId}`,
+                code_challenge: codeChallenge,
+                code_challenge_method: "S256",
+                redirect_uri: callback,
+                response_mode: "query",
+                response_type: "code",
+                state,
+                nonce: getRandomAlphaNumeric(32),
+                timestamp: Date.now(),
+            };
 
-        if (userAuthorization) {
-            tokenPayload.access_token = userAuthorization.asPayload().access_token.value;
-        }
+            if (userAuthorization) {
+                tokenPayload.access_token = userAuthorization.asPayload().access_token.value;
+            }
 
-        const token = await signTokenPayload(tokenPayload, this.contractPrivateKey);
+            const token = await signTokenPayload(tokenPayload, this.contractPrivateKey);
 
-        const response = await fetchWrapper(new URL("oauth/authorize", this.baseUrl), {
-            signal,
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                Accept: "application/json",
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                agent: {
-                    sdk: {
-                        name: "nodejs",
-                        version: SDK_VERSION,
-                        meta: {
-                            node: process.version,
+            return new Request(new URL("oauth/authorize", this.baseUrl), {
+                signal,
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    agent: {
+                        sdk: {
+                            name: "nodejs",
+                            version: SDK_VERSION,
+                            meta: {
+                                node: process.version,
+                            },
                         },
                     },
-                },
-                actions: sessionOptions,
-            }),
+                    actions: sessionOptions,
+                }),
+            });
         });
 
         // Process response data
@@ -289,25 +295,27 @@ export class DigiMeSdk {
             "`exchangeCodeForUserAuthorization` options",
         );
 
-        const token = await signTokenPayload(
-            {
-                client_id: `${this.applicationId}_${this.contractId}`,
-                code: authorizationCode,
-                code_verifier: codeVerifier,
-                grant_type: "authorization_code",
-                nonce: getRandomAlphaNumeric(32),
-                timestamp: Date.now(),
-            },
-            this.contractPrivateKey,
-        );
+        const response = await sendApiRequest(async () => {
+            const token = await signTokenPayload(
+                {
+                    client_id: `${this.applicationId}_${this.contractId}`,
+                    code: authorizationCode,
+                    code_verifier: codeVerifier,
+                    grant_type: "authorization_code",
+                    nonce: getRandomAlphaNumeric(32),
+                    timestamp: Date.now(),
+                },
+                this.contractPrivateKey,
+            );
 
-        const response = await fetchWrapper(new URL("oauth/token", this.baseUrl), {
-            signal,
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                Accept: "application/json",
-            },
+            return new Request(new URL("oauth/token", this.baseUrl), {
+                signal,
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                },
+            });
         });
 
         const responseData = parseWithSchema(await response.json(), OauthTokenResponse);
@@ -328,23 +336,25 @@ export class DigiMeSdk {
             throw new DigiMeSdkError(errorMessages.accessAndRefreshTokenExpired);
         }
 
-        const signedToken = await signTokenPayload(
-            {
-                client_id: `${this.applicationId}_${this.contractId}`,
-                grant_type: "refresh_token",
-                nonce: getRandomAlphaNumeric(32),
-                refresh_token: userAuthorization.asPayload().refresh_token.value,
-                timestamp: Date.now(),
-            },
-            this.contractPrivateKey,
-        );
+        const response = await sendApiRequest(async () => {
+            const signedToken = await signTokenPayload(
+                {
+                    client_id: `${this.applicationId}_${this.contractId}`,
+                    grant_type: "refresh_token",
+                    nonce: getRandomAlphaNumeric(32),
+                    refresh_token: userAuthorization.asPayload().refresh_token.value,
+                    timestamp: Date.now(),
+                },
+                this.contractPrivateKey,
+            );
 
-        const response = await fetchWrapper(new URL("oauth/token", this.baseUrl), {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${signedToken}`,
-                Accept: "application/json",
-            },
+            return new Request(new URL("oauth/token", this.baseUrl), {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${signedToken}`,
+                    Accept: "application/json",
+                },
+            });
         });
 
         const responseData = parseWithSchema(await response.json(), OauthTokenResponse);
@@ -361,21 +371,23 @@ export class DigiMeSdk {
             "`getSampleDataSetsForSource` options",
         );
 
-        const signedToken = await signTokenPayload(
-            {
-                client_id: `${this.applicationId}_${this.contractId}`,
-                nonce: getRandomAlphaNumeric(32),
-                timestamp: Date.now(),
-            },
-            this.contractPrivateKey,
-        );
+        const response = await sendApiRequest(async () => {
+            const signedToken = await signTokenPayload(
+                {
+                    client_id: `${this.applicationId}_${this.contractId}`,
+                    nonce: getRandomAlphaNumeric(32),
+                    timestamp: Date.now(),
+                },
+                this.contractPrivateKey,
+            );
 
-        const response = await fetchWrapper(new URL(`permission-access/sample/datasets/${sourceId}`, this.baseUrl), {
-            signal,
-            headers: {
-                Authorization: `Bearer ${signedToken}`,
-                Accept: "application/json",
-            },
+            return new Request(new URL(`permission-access/sample/datasets/${sourceId}`, this.baseUrl), {
+                signal,
+                headers: {
+                    Authorization: `Bearer ${signedToken}`,
+                    Accept: "application/json",
+                },
+            });
         });
 
         return parseWithSchema(await response.json(), SampleDataSets);
@@ -462,27 +474,28 @@ export class DigiMeSdkAuthorized {
      */
     async readAccounts(options?: ReadAccountsOptionsInput): Promise<UserAccounts> {
         const { signal } = parseWithSchema(options, ReadAccountsOptions, "`readAcccounts` options");
-        const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
-        const token = await signTokenPayload(
-            {
-                access_token: userAuthorization.asPayload().access_token.value,
-                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
-                nonce: getRandomAlphaNumeric(32),
-                timestamp: Date.now(),
-            },
-            this.#config.digiMeSdkInstance.contractPrivateKey,
-        );
 
-        const response = await fetchWrapper(
-            new URL("permission-access/accounts", this.#config.digiMeSdkInstance.baseUrl),
-            {
+        const response = await sendApiRequest(async () => {
+            const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
+
+            const token = await signTokenPayload(
+                {
+                    access_token: userAuthorization.asPayload().access_token.value,
+                    client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
+                    nonce: getRandomAlphaNumeric(32),
+                    timestamp: Date.now(),
+                },
+                this.#config.digiMeSdkInstance.contractPrivateKey,
+            );
+
+            return new Request(new URL("permission-access/accounts", this.#config.digiMeSdkInstance.baseUrl), {
                 signal,
                 headers: {
                     Authorization: `Bearer ${token}`,
                     Accept: "application/json",
                 },
-            },
-        );
+            });
+        });
 
         return parseWithSchema(await response.json(), UserAccounts);
     }
@@ -493,20 +506,21 @@ export class DigiMeSdkAuthorized {
             ReadSessionOptions,
             "`readSession` options",
         );
-        const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
-        const token = await signTokenPayload(
-            {
-                access_token: userAuthorization.asPayload().access_token.value,
-                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
-                nonce: getRandomAlphaNumeric(32),
-                timestamp: Date.now(),
-            },
-            this.#config.digiMeSdkInstance.contractPrivateKey,
-        );
 
-        const response = await fetchWrapper(
-            new URL("permission-access/trigger", this.#config.digiMeSdkInstance.baseUrl),
-            {
+        const response = await sendApiRequest(async () => {
+            const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
+
+            const token = await signTokenPayload(
+                {
+                    access_token: userAuthorization.asPayload().access_token.value,
+                    client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
+                    nonce: getRandomAlphaNumeric(32),
+                    timestamp: Date.now(),
+                },
+                this.#config.digiMeSdkInstance.contractPrivateKey,
+            );
+
+            return new Request(new URL("permission-access/trigger", this.#config.digiMeSdkInstance.baseUrl), {
                 method: "POST",
                 signal,
                 headers: {
@@ -526,8 +540,8 @@ export class DigiMeSdkAuthorized {
                         },
                     },
                 }),
-            },
-        );
+            });
+        });
 
         return parseWithSchema(await response.json(), SessionTriggerResponse).session;
     }
@@ -541,24 +555,28 @@ export class DigiMeSdkAuthorized {
      */
     async deleteUser(options?: DeleteUserOptionsInput): Promise<void> {
         const { signal } = parseWithSchema(options, DeleteUserOptions, "`deleteUser` options");
-        const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
-        const token = await signTokenPayload(
-            {
-                access_token: userAuthorization.asPayload().access_token.value,
-                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
-                nonce: getRandomAlphaNumeric(32),
-                timestamp: Date.now(),
-            },
-            this.#config.digiMeSdkInstance.contractPrivateKey,
-        );
 
-        await fetchWrapper(new URL("user", this.#config.digiMeSdkInstance.baseUrl), {
-            method: "DELETE",
-            signal,
-            headers: {
-                Authorization: `Bearer ${token}`,
-                Accept: "application/json",
-            },
+        await sendApiRequest(async () => {
+            const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
+
+            const token = await signTokenPayload(
+                {
+                    access_token: userAuthorization.asPayload().access_token.value,
+                    client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
+                    nonce: getRandomAlphaNumeric(32),
+                    timestamp: Date.now(),
+                },
+                this.#config.digiMeSdkInstance.contractPrivateKey,
+            );
+
+            return new Request(new URL("user", this.#config.digiMeSdkInstance.baseUrl), {
+                method: "DELETE",
+                signal,
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/json",
+                },
+            });
         });
     }
 
@@ -582,28 +600,31 @@ export class DigiMeSdkAuthorized {
             "`getPortabilityReport` `options` argument",
         );
 
-        const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
-        const token = await signTokenPayload(
-            {
-                access_token: userAuthorization.asPayload().access_token.value,
-                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
-                nonce: getRandomAlphaNumeric(32),
-                timestamp: Date.now(),
-            },
-            this.#config.digiMeSdkInstance.contractPrivateKey,
-        );
-
         const url = new URL(`export/${serviceType}/report`, this.#config.digiMeSdkInstance.baseUrl);
         url.searchParams.set("format", format);
         if (from) url.searchParams.set("from", from.toString());
         if (to) url.searchParams.set("to", to.toString());
 
-        const response = await fetchWrapper(url, {
-            signal,
-            headers: {
-                Authorization: `Bearer ${token}`,
-                Accept: "application/octet-stream",
-            },
+        const response = await sendApiRequest(async () => {
+            const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
+
+            const token = await signTokenPayload(
+                {
+                    access_token: userAuthorization.asPayload().access_token.value,
+                    client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
+                    nonce: getRandomAlphaNumeric(32),
+                    timestamp: Date.now(),
+                },
+                this.#config.digiMeSdkInstance.contractPrivateKey,
+            );
+
+            return new Request(url, {
+                signal,
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "application/octet-stream",
+                },
+            });
         });
 
         if (as === "string") {
@@ -625,17 +646,53 @@ export class DigiMeSdkAuthorized {
     async pushData(options: PushDataOptions): Promise<void> {
         options = parseWithSchema(options, PushDataOptions, "`pushData` options");
 
-        // switch (options.type) {
-        //     case "library":
-        //         return;
-        //     case "provider":
-        //         return;
-        //     default:
-        //         return assertUnreachableCase(options);
-        // }
-
         if (options.type === "library") {
             // LIBRARY PUSH
+            const { data, signal } = options;
+
+            const fileDescriptor = await signTokenPayload(
+                // TODO: Move this around?
+                { metadata: options.fileDescriptor },
+                this.#config.digiMeSdkInstance.contractPrivateKey,
+            );
+
+            await sendApiRequest(async () => {
+                const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
+
+                const token = await signTokenPayload(
+                    {
+                        access_token: userAuthorization.asPayload().access_token.value,
+                        client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
+                        nonce: getRandomAlphaNumeric(32),
+                        timestamp: Date.now(),
+                    },
+                    this.#config.digiMeSdkInstance.contractPrivateKey,
+                );
+
+                return new Request(new URL("permission-access/import", this.#config.digiMeSdkInstance.baseUrl), {
+                    method: "POST",
+                    // @ts-expect-error Undici requires duplex option
+                    duplex: "half",
+                    signal,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: "application/octet-stream",
+                        FileDescriptor: fileDescriptor,
+                    },
+                    body: data,
+                });
+            });
+
+            return;
+        }
+
+        throw new Error("TODO: Provider NYI");
+    }
+
+    async readFileList(options: ReadFileListOptions): Promise<SessionFileList> {
+        const { sessionKey, signal } = parseWithSchema(options, ReadFileListOptions, "`readFileList` options");
+
+        const response = await sendApiRequest(async () => {
             const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
 
             const token = await signTokenPayload(
@@ -648,55 +705,17 @@ export class DigiMeSdkAuthorized {
                 this.#config.digiMeSdkInstance.contractPrivateKey,
             );
 
-            const fileDescriptor = await signTokenPayload(
-                // TODO: Move this around?
-                { metadata: options.fileDescriptor },
-                this.#config.digiMeSdkInstance.contractPrivateKey,
+            return new Request(
+                new URL(`permission-access/query/${sessionKey}`, this.#config.digiMeSdkInstance.baseUrl),
+                {
+                    signal,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: "application/json",
+                    },
+                },
             );
-
-            await fetchWrapper(new URL("permission-access/import", this.#config.digiMeSdkInstance.baseUrl), {
-                method: "POST",
-                // @ts-expect-error Undici requires duplex option
-                duplex: "half",
-                signal: options.signal,
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/octet-stream",
-                    FileDescriptor: fileDescriptor,
-                },
-                body: options.data,
-            });
-
-            return;
-        }
-
-        throw new Error("TODO: Provider NYI");
-    }
-
-    async readFileList(options: ReadFileListOptions): Promise<SessionFileList> {
-        const { sessionKey, signal } = parseWithSchema(options, ReadFileListOptions, "`readFileList` options");
-
-        const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
-        const token = await signTokenPayload(
-            {
-                access_token: userAuthorization.asPayload().access_token.value,
-                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
-                nonce: getRandomAlphaNumeric(32),
-                timestamp: Date.now(),
-            },
-            this.#config.digiMeSdkInstance.contractPrivateKey,
-        );
-
-        const response = await fetchWrapper(
-            new URL(`permission-access/query/${sessionKey}`, this.#config.digiMeSdkInstance.baseUrl),
-            {
-                signal,
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/json",
-                },
-            },
-        );
+        });
 
         return parseWithSchema(await response.json(), SessionFileList);
     }
@@ -704,27 +723,30 @@ export class DigiMeSdkAuthorized {
     async readFile(options: ReadFileOptions): Promise<DigiMeSessionFile> {
         const { sessionKey, fileName, signal } = parseWithSchema(options, ReadFileOptions, "`readFile` options");
 
-        const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
-        const token = await signTokenPayload(
-            {
-                access_token: userAuthorization.asPayload().access_token.value,
-                client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
-                nonce: getRandomAlphaNumeric(32),
-                timestamp: Date.now(),
-            },
-            this.#config.digiMeSdkInstance.contractPrivateKey,
-        );
+        const response = await sendApiRequest(async () => {
+            const userAuthorization = await this.#getCurrentUserAuthorizationOrThrow();
 
-        const response = await fetchWrapper(
-            new URL(`permission-access/query/${sessionKey}/${fileName}`, this.#config.digiMeSdkInstance.baseUrl),
-            {
-                signal,
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    Accept: "application/octet-stream",
+            const token = await signTokenPayload(
+                {
+                    access_token: userAuthorization.asPayload().access_token.value,
+                    client_id: `${this.#config.digiMeSdkInstance.applicationId}_${this.#config.digiMeSdkInstance.contractId}`,
+                    nonce: getRandomAlphaNumeric(32),
+                    timestamp: Date.now(),
                 },
-            },
-        );
+                this.#config.digiMeSdkInstance.contractPrivateKey,
+            );
+
+            return new Request(
+                new URL(`permission-access/query/${sessionKey}/${fileName}`, this.#config.digiMeSdkInstance.baseUrl),
+                {
+                    signal,
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        Accept: "application/octet-stream",
+                    },
+                },
+            );
+        });
 
         if (!response.body) {
             throw new DigiMeSdkTypeError("Response contains no body");

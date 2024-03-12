@@ -4,19 +4,19 @@
 
 import { describe, test, expect, vi } from "vitest";
 import { mswServer } from "../../mocks/server";
-import { fetchWrapper } from "./fetch";
+import { sendApiRequest } from "./send-api-request";
 import { HttpResponse, http } from "msw";
 import { DigiMeSdkApiError, DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 import { formatBodyError, formatHeadersError, getTestUrl } from "../../mocks/utilities";
 import { abortableDelay } from "../abortable-delay";
 import { randomInt } from "node:crypto";
 
-describe("fetch", () => {
+describe("sendApiRequest", () => {
     test("Returns response on success", async () => {
         const url = getTestUrl();
         mswServer.use(http.get(url, () => HttpResponse.text("fetch-success", { status: 200 })));
 
-        const response = await fetchWrapper(url);
+        const response = await sendApiRequest(() => new Request(url));
 
         expect.assertions(2);
 
@@ -24,7 +24,7 @@ describe("fetch", () => {
         await expect(response.text()).resolves.toBe("fetch-success");
     });
 
-    describe("Wrapper config", () => {
+    describe("Config", () => {
         test("Uses custom maximum retry attempts", async () => {
             const url = getTestUrl();
             mswServer.use(
@@ -34,7 +34,7 @@ describe("fetch", () => {
                 }),
             );
 
-            const fetchPromise = fetchWrapper(url, undefined, {
+            const fetchPromise = sendApiRequest(() => new Request(url, undefined), {
                 retryOptions: {
                     maxAttempts: 0,
                 },
@@ -57,7 +57,7 @@ describe("fetch", () => {
                 }),
             );
 
-            const fetchPromise = fetchWrapper(url, undefined, {
+            const fetchPromise = sendApiRequest(() => new Request(url, undefined), {
                 retryOptions: {
                     calculateDelay: () => {
                         throw new Error("Custom calculateDelay error");
@@ -79,7 +79,7 @@ describe("fetch", () => {
                 }),
             );
 
-            const response = await fetchWrapper(url, undefined, {
+            const response = await sendApiRequest(() => new Request(url, undefined), {
                 retryOptions: {
                     statusCodes: [402],
                 },
@@ -99,7 +99,7 @@ describe("fetch", () => {
                 }),
             );
 
-            const fetchPromise = fetchWrapper(url, undefined, {
+            const fetchPromise = sendApiRequest(() => new Request(url, undefined), {
                 retryOptions: {
                     isErrorRetryable: () => {
                         return false;
@@ -129,7 +129,7 @@ describe("fetch", () => {
                 }),
             );
 
-            const fetchPromise = fetchWrapper(url, undefined, {
+            const fetchPromise = sendApiRequest(() => new Request(url, undefined), {
                 retryOptions: {
                     maxRetryAfterDelay: 1000,
                 },
@@ -148,7 +148,7 @@ describe("fetch", () => {
             const url = getTestUrl();
             mswServer.use(http.get(url, () => HttpResponse.text("fetch-success", { status: 200 })));
 
-            const responsePromise = fetchWrapper(url, { signal: AbortSignal.abort() });
+            const responsePromise = sendApiRequest(() => new Request(url, { signal: AbortSignal.abort() }));
 
             expect.assertions(2);
 
@@ -175,12 +175,12 @@ describe("fetch", () => {
 
             performance.mark("fetch-start");
 
-            const responsePromise = fetchWrapper(
-                url,
-                {
-                    // We pass in the abort signal that will trigger in 50 milliseconds, so that retry never happens
-                    signal: abortController.signal,
-                },
+            const responsePromise = sendApiRequest(
+                () =>
+                    new Request(url, {
+                        // We pass in the abort signal that will trigger in 50 milliseconds, so that retry never happens
+                        signal: abortController.signal,
+                    }),
                 { retryOptions: { maxAttempts: 2 } },
             );
 
@@ -229,7 +229,7 @@ describe("fetch", () => {
                 ),
             );
 
-            const fetchPromise = fetchWrapper(url);
+            const fetchPromise = sendApiRequest(() => new Request(url));
 
             expect.assertions(3);
             await expect(fetchPromise).rejects.toBeInstanceOf(Error);
@@ -257,7 +257,7 @@ describe("fetch", () => {
                     ),
                 );
 
-                const fetchPromise = fetchWrapper(url);
+                const fetchPromise = sendApiRequest(() => new Request(url));
 
                 await expect(fetchPromise).rejects.toThrowError(Error);
                 await expect(fetchPromise).rejects.toThrowError(DigiMeSdkError);
@@ -280,7 +280,7 @@ describe("fetch", () => {
                     ),
                 );
 
-                const fetchPromise = fetchWrapper(url);
+                const fetchPromise = sendApiRequest(() => new Request(url));
 
                 await expect(fetchPromise).rejects.toThrowError(Error);
                 await expect(fetchPromise).rejects.toThrowError(DigiMeSdkError);
@@ -313,7 +313,7 @@ describe("fetch", () => {
                 }),
             );
 
-            const fetchPromise = fetchWrapper(url, undefined, {
+            const fetchPromise = sendApiRequest(() => new Request(url, undefined), {
                 retryOptions: {
                     maxAttempts: maxRetryAttempts,
                     calculateDelay: async () => 5,
@@ -349,7 +349,7 @@ describe("fetch", () => {
 
                 vi.useFakeTimers();
 
-                const fetchPromise = fetchWrapper(url);
+                const fetchPromise = sendApiRequest(() => new Request(url));
 
                 let advancedByTime = 0;
                 await vi.waitFor(() => {
@@ -396,7 +396,7 @@ describe("fetch", () => {
                     }),
                 );
 
-                const response = await fetchWrapper(url);
+                const response = await sendApiRequest(() => new Request(url));
 
                 expect.assertions(2);
                 expect(response).toBeInstanceOf(Response);
@@ -411,7 +411,7 @@ describe("fetch", () => {
                 http.get(url, () => HttpResponse.text("fetch-success", { status: 200 }), { once: true }),
             );
 
-            const response = await fetchWrapper(url);
+            const response = await sendApiRequest(() => new Request(url));
 
             expect.assertions(3);
             expect(response).toBeInstanceOf(Response);
@@ -429,7 +429,7 @@ describe("fetch", () => {
                 http.get(url, () => HttpResponse.text("fetch-success", { status: 200 })),
             );
 
-            const response = await fetchWrapper(url);
+            const response = await sendApiRequest(() => new Request(url));
 
             expect.assertions(2);
             expect(response).toBeInstanceOf(Response);
@@ -448,7 +448,7 @@ describe("fetch", () => {
                 }),
             );
 
-            const response = await fetchWrapper(url, { method: "POST", body: "test-string" });
+            const response = await sendApiRequest(() => new Request(url, { method: "POST", body: "test-string" }));
 
             expect(await response.text()).toBe("test-string");
             expect.assertions(1);
@@ -466,7 +466,7 @@ describe("fetch", () => {
                 }),
             );
 
-            const fetchPromise = fetchWrapper(url);
+            const fetchPromise = sendApiRequest(() => new Request(url));
 
             expect.assertions(2);
             await expect(fetchPromise).rejects.toBeInstanceOf(Error);

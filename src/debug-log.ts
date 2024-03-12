@@ -5,6 +5,6 @@
 import debug from "debug";
 
 export const debugLog = debug("@digime/digime-sdk-nodejs");
-export const logFetchWrapper = debugLog.extend("fetch-wrapper");
+export const logSendApiRequest = debugLog.extend("send-api-request");
 
 // debug.enable("@digime/digime-sdk-nodejs:*");
