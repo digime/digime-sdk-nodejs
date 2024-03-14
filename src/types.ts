@@ -14,7 +14,6 @@ export {
 } from "./get-revoke-account-permission-url";
 export { ExchangeCodeForTokenOptions } from "./exchange-code-for-token";
 export { GetAuthorizeUrlResponse, GetAuthorizeUrlOptions } from "./get-authorize-url";
-export { GetAvailableServicesResponse, DiscoveryService } from "./get-available-services";
 export { GetOnboardServiceUrlOptions, GetOnboardServiceUrlResponse } from "./get-onboard-service-url";
 export { GetReauthorizeAccountUrlOptions, GetReauthorizeAccountUrlResponse } from "./get-reauthorize-account-url";
 export { ReadAccountsOptions, ReadAccountsResponse } from "./read-accounts";
@@ -30,5 +29,9 @@ export { SDKConfiguration } from "./types/sdk-configuration";
 export { Session } from "./types/api/session";
 export { MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
 export { CAScope, ContractDetails, PullSessionOptions } from "./types/common";
+export { QuerySourcesOptions, QuerySourcesResponse } from "./query-sources";
+export { QueryCountriesOptions, QueryCountriesResponse } from "./query-countries";
+export { QueryPlatformsOptions, QueryPlatformsResponse } from "./query-platforms";
+export { QueryCategoriesOptions, QueryCategoriesResponse } from "./query-categories";
 
 export * from "./codecs";

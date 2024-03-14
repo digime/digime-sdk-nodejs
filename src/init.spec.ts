@@ -16,16 +16,21 @@ describe("init", () => {
     describe("Returns an object containing", () => {
         it.each([
             "getAuthorizeUrl",
+            "getReauthorizeAccountUrl",
+            "refreshToken",
             "getOnboardServiceUrl",
             "exchangeCodeForToken",
             "pushData",
             "readSession",
             "deleteUser",
-            "getAvailableServices",
             "readFile",
             "readFileList",
             "readAllFiles",
             "readAccounts",
+            "querySources",
+            "queryCountries",
+            "queryPlatforms",
+            "queryCategories",
         ])("%s function", (property) => {
             const SDK = init({ applicationId: "valid-application-id" });
             expect(SDK).toHaveProperty(property, expect.any(Function));
