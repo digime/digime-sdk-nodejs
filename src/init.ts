@@ -26,6 +26,10 @@ import { getReauthorizeAccountUrl, GetReauthorizeAccountUrlOptions } from "./get
 import { getPortabilityReport, GetPortabilityReportOptions } from "./get-portability-report";
 import { getServiceSampleDataSets, GetServiceSampleDataSetsOptions } from "./get-service-sample-datasets";
 import { refreshToken, RefreshTokenOptions } from "./refresh-token";
+import { querySources, QuerySourcesOptions } from "./query-sources";
+import { queryCountries, QueryCountriesOptions } from "./query-countries";
+import { queryPlatforms, QueryPlatformsOptions } from "./query-platforms";
+import { queryCategories, QueryCategoriesOptions } from "./query-categories";
 
 const DEFAULT_BASE_URL = "https://api.digi.me/v1.7/";
 const DEFAULT_ONBOARD_URL = "https://api.digi.me/apps/saas/";
@@ -72,6 +76,10 @@ const init = (config: SDKConfiguration): DigimeSDK => {
         getServiceSampleDataSets: (props: GetServiceSampleDataSetsOptions) =>
             getServiceSampleDataSets(props, sdkConfig),
         refreshToken: (props: RefreshTokenOptions) => refreshToken(props, sdkConfig),
+        querySources: (props: QuerySourcesOptions) => querySources(props, sdkConfig),
+        queryCountries: (props: QueryCountriesOptions) => queryCountries(props, sdkConfig),
+        queryPlatforms: (props: QueryPlatformsOptions) => queryPlatforms(props, sdkConfig),
+        queryCategories: (props: QueryCategoriesOptions) => queryCategories(props, sdkConfig),
     };
 };
 

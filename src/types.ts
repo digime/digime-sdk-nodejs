@@ -30,5 +30,9 @@ export { SDKConfiguration } from "./types/sdk-configuration";
 export { Session } from "./types/api/session";
 export { MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
 export { CAScope, ContractDetails, PullSessionOptions } from "./types/common";
+export { QuerySourcesOptions, QuerySourcesResponse } from "./query-sources";
+export { QueryCountriesOptions, QueryCountriesResponse } from "./query-countries";
+export { QueryPlatformsOptions, QueryPlatformsResponse } from "./query-platforms";
+export { QueryCategoriesOptions, QueryCategoriesResponse } from "./query-categories";
 
 export * from "./codecs";

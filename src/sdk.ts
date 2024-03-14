@@ -28,6 +28,10 @@ import { PushDataOptions } from "./push";
 import { GetPortabilityReportOptions, GetPortabilityReportResponse } from "./get-portability-report";
 import { GetServiceSampleDataSetsOptions, GetServiceSampleDataSetsResponse } from "./get-service-sample-datasets";
 import { RefreshTokenOptions } from "./refresh-token";
+import { QuerySourcesOptions, QuerySourcesResponse } from "./query-sources";
+import { QueryCountriesOptions, QueryCountriesResponse } from "./query-countries";
+import { QueryPlatformsOptions, QueryPlatformsResponse } from "./query-platforms";
+import { QueryCategoriesOptions, QueryCategoriesResponse } from "./query-categories";
 
 export interface DigimeSDK {
     /**
@@ -144,6 +148,34 @@ export interface DigimeSDK {
      * @category Read
      */
     getAvailableServices: (props: GetAvailableServicesOptions) => Promise<GetAvailableServicesResponse>;
+
+    /**
+     * Get a list of possible sources a user can onboard
+     *
+     * @category Read
+     */
+    querySources: (props: QuerySourcesOptions) => Promise<QuerySourcesResponse>;
+
+    /**
+     * Get a list of possible countries
+     *
+     * @category Read
+     */
+    queryCountries: (props: QueryCountriesOptions) => Promise<QueryCountriesResponse>;
+
+    /**
+     * Get a list of possible platforms
+     *
+     * @category Read
+     */
+    queryPlatforms: (props: QueryPlatformsOptions) => Promise<QueryPlatformsResponse>;
+
+    /**
+     * Get a list of possible categories
+     *
+     * @category Read
+     */
+    queryCategories: (props: QueryCategoriesOptions) => Promise<QueryCategoriesResponse>;
 
     /**
      * Get Portability Report.
