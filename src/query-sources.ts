@@ -317,6 +317,7 @@ const querySources = async (
                     country: sourcesBodyParams?.query?.filter?.country,
                 }),
             },
+            ...(sourcesBodyParams?.query?.search && { search: sourcesBodyParams?.query?.search }),
         },
     };
 
