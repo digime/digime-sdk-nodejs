@@ -15,7 +15,6 @@ import {
 } from "./get-revoke-account-permission-url";
 import { ExchangeCodeForTokenOptions } from "./exchange-code-for-token";
 import { GetAuthorizeUrlResponse, GetAuthorizeUrlOptions } from "./get-authorize-url";
-import { GetAvailableServicesOptions, GetAvailableServicesResponse } from "./get-available-services";
 import { GetOnboardServiceUrlOptions, GetOnboardServiceUrlResponse } from "./get-onboard-service-url";
 import { GetReauthorizeAccountUrlOptions, GetReauthorizeAccountUrlResponse } from "./get-reauthorize-account-url";
 import { ReadAccountsOptions, ReadAccountsResponse } from "./read-accounts";
@@ -28,6 +27,10 @@ import { PushDataOptions } from "./push";
 import { GetPortabilityReportOptions, GetPortabilityReportResponse } from "./get-portability-report";
 import { GetServiceSampleDataSetsOptions, GetServiceSampleDataSetsResponse } from "./get-service-sample-datasets";
 import { RefreshTokenOptions } from "./refresh-token";
+import { QuerySourcesOptions, QuerySourcesResponse } from "./query-sources";
+import { QueryCountriesOptions, QueryCountriesResponse } from "./query-countries";
+import { QueryPlatformsOptions, QueryPlatformsResponse } from "./query-platforms";
+import { QueryCategoriesOptions, QueryCategoriesResponse } from "./query-categories";
 
 export interface DigimeSDK {
     /**
@@ -139,11 +142,32 @@ export interface DigimeSDK {
     ) => Promise<GetRevokeAccountPermissionUrlResponse>;
 
     /**
-     * Get a list of possible services a user can onboard to their digi.me
+     * Get a list of possible sources a user can onboard
      *
      * @category Read
      */
-    getAvailableServices: (props: GetAvailableServicesOptions) => Promise<GetAvailableServicesResponse>;
+    querySources: (props: QuerySourcesOptions) => Promise<QuerySourcesResponse>;
+
+    /**
+     * Get a list of possible countries
+     *
+     * @category Read
+     */
+    queryCountries: (props: QueryCountriesOptions) => Promise<QueryCountriesResponse>;
+
+    /**
+     * Get a list of possible platforms
+     *
+     * @category Read
+     */
+    queryPlatforms: (props: QueryPlatformsOptions) => Promise<QueryPlatformsResponse>;
+
+    /**
+     * Get a list of possible categories
+     *
+     * @category Read
+     */
+    queryCategories: (props: QueryCategoriesOptions) => Promise<QueryCategoriesResponse>;
 
     /**
      * Get Portability Report.

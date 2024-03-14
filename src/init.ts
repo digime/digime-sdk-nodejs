@@ -4,7 +4,6 @@
 
 import { pushData, PushDataOptions } from "./push";
 import { assertIsSDKConfiguration, SDKConfiguration } from "./types/sdk-configuration";
-import { getAvailableServices, GetAvailableServicesOptions } from "./get-available-services";
 import { getAuthorizeUrl, GetAuthorizeUrlOptions } from "./get-authorize-url";
 import { getOnboardServiceUrl, GetOnboardServiceUrlOptions } from "./get-onboard-service-url";
 import { addTrailingSlash, isPlainObject } from "./utils/basic-utils";
@@ -26,6 +25,10 @@ import { getReauthorizeAccountUrl, GetReauthorizeAccountUrlOptions } from "./get
 import { getPortabilityReport, GetPortabilityReportOptions } from "./get-portability-report";
 import { getServiceSampleDataSets, GetServiceSampleDataSetsOptions } from "./get-service-sample-datasets";
 import { refreshToken, RefreshTokenOptions } from "./refresh-token";
+import { querySources, QuerySourcesOptions } from "./query-sources";
+import { queryCountries, QueryCountriesOptions } from "./query-countries";
+import { queryPlatforms, QueryPlatformsOptions } from "./query-platforms";
+import { queryCategories, QueryCategoriesOptions } from "./query-categories";
 
 const DEFAULT_BASE_URL = "https://api.digi.me/v1.7/";
 const DEFAULT_ONBOARD_URL = "https://api.digi.me/apps/saas/";
@@ -63,7 +66,6 @@ const init = (config: SDKConfiguration): DigimeSDK => {
         deleteAccount: (props: DeleteAccountOptions) => deleteAccount(props, sdkConfig),
         getRevokeAccountPermissionUrl: (props: GetRevokeAccountPermissionUrlOptions) =>
             getRevokeAccountPermissionUrl(props, sdkConfig),
-        getAvailableServices: (props: GetAvailableServicesOptions) => getAvailableServices(props, sdkConfig),
         readFile: (props: ReadFileOptions) => readFile(props, sdkConfig),
         readFileList: (props: ReadFileListOptions) => readFileList(props, sdkConfig),
         readAllFiles: (props: ReadAllFilesOptions) => readAllFiles(props, sdkConfig),
@@ -72,6 +74,10 @@ const init = (config: SDKConfiguration): DigimeSDK => {
         getServiceSampleDataSets: (props: GetServiceSampleDataSetsOptions) =>
             getServiceSampleDataSets(props, sdkConfig),
         refreshToken: (props: RefreshTokenOptions) => refreshToken(props, sdkConfig),
+        querySources: (props: QuerySourcesOptions) => querySources(props, sdkConfig),
+        queryCountries: (props: QueryCountriesOptions) => queryCountries(props, sdkConfig),
+        queryPlatforms: (props: QueryPlatformsOptions) => queryPlatforms(props, sdkConfig),
+        queryCategories: (props: QueryCategoriesOptions) => queryCategories(props, sdkConfig),
     };
 };
 

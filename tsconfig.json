@@ -72,8 +72,23 @@
                             "source": "initialise-sdk.md"
                         },
                         {
-                            "name": "Getting Available Services",
-                            "source": "available-services.md"
+                            "name": "Query Available Sources",
+                            "source": "query-sources.md",
+                            "childrenSourceDir": "../guides",
+                            "children": [
+                                {
+                                    "name": "Query Countries",
+                                    "source": "query-countries.md"
+                                },
+                                {
+                                    "name": "Query Categories",
+                                    "source": "query-categories.md"
+                                },
+                                {
+                                    "name": "Query Platforms",
+                                    "source": "query-platforms.md"
+                                }
+                            ]
                         }
                         ,
                         {
