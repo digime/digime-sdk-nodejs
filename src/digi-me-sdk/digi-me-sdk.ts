@@ -45,9 +45,11 @@ import {
     ReadFileListOptions,
     ReadFileOptions,
     PushDataOptions,
+    GetSessionObserverOptions,
 } from "../schemas/digi-me-sdk-authorized";
 import type { Readable } from "node:stream";
 import { SessionTriggerResponse } from "../schemas/api/session/session-trigger";
+import { DigiMeSessionObserver } from "./session/digi-me-session-observer";
 
 // Transform and casting to have a more specific type for typechecking
 const UrlWithTrailingSlash = z
@@ -687,6 +689,15 @@ export class DigiMeSdkAuthorized {
         }
 
         throw new Error("TODO: Provider NYI");
+    }
+
+    getSessionObserver(options: GetSessionObserverOptions): DigiMeSessionObserver {
+        const { sessionKey } = parseWithSchema(options, GetSessionObserverOptions, "`observeSession` options");
+
+        return new DigiMeSessionObserver({
+            fetchFileList: () => this.readFileList({ sessionKey }),
+            fetchFile: (fileName) => this.readFile({ sessionKey, fileName }),
+        });
     }
 
     async readFileList(options: ReadFileListOptions): Promise<SessionFileList> {

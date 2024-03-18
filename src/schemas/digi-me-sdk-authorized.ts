@@ -151,3 +151,33 @@ const PushDataOptionsToProvider = z.object({
 export const PushDataOptions = z.union([PushDataOptionsToLibrary, PushDataOptionsToProvider]);
 
 export type PushDataOptions = z.infer<typeof PushDataOptions>;
+
+/**
+ * `<instance>.readAllFiles()` input parameters
+ */
+// const ReadAllFilesOptions = z.object({
+//     sessionKey: z.string(),
+//     onFileError: z.function(), // Reevaluate
+//     onStatusChange: z.function(), // Reevaluate
+
+//     signal: z.instanceof(AbortSignal).optional(),
+// });
+
+// /** Options argument */
+// export type ReadAllFilesOptions = z.infer<typeof ReadAllFilesOptions>;
+
+/**
+ * `<instance>.getSessionObserver()` input parameters
+ */
+export const GetSessionObserverOptions = z.object({
+    sessionKey: z.string(),
+    /**
+     * Signal for aborting the creation of the session observer
+     *
+     * **NOTE:** Does not affect the returned SessionObserver itself
+     */
+    signal: z.instanceof(AbortSignal).optional(),
+});
+
+/** Options argument */
+export type GetSessionObserverOptions = z.infer<typeof GetSessionObserverOptions>;
