@@ -62,6 +62,12 @@ export interface CAScope {
     criteria?: Criteria[];
 }
 
+export interface SourceFetchFilter {
+    account: {
+        id: string[];
+    };
+}
+
 export interface PullSessionOptions {
     limits?: {
         duration?: {
@@ -73,7 +79,17 @@ export interface PullSessionOptions {
      * If set to false user will be able to see only existing data, without refreshing the library. Default value is true.
      */
     sourceFetch?: boolean;
+    /**
+     * Trigger account data sync only for accounts matching session scope and specified filter
+     */
+    sourceFetchFilter?: SourceFetchFilter;
 }
+
+export const SourceFetchFilterCodec: t.Type<SourceFetchFilter> = t.type({
+    account: t.type({
+        id: t.array(t.string),
+    }),
+});
 
 export interface ServiceGroup {
     id: number;
@@ -178,4 +194,5 @@ export const PullSessionOptionsCodec: t.Type<PullSessionOptions> = t.partial({
     }),
     scope: CAScopeCodec,
     sourceFetch: t.boolean,
+    sourceFetchFilter: SourceFetchFilterCodec,
 });
