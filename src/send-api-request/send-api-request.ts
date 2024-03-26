@@ -2,12 +2,11 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { interpret } from "xstate";
+import { createActor, waitFor } from "xstate";
 import type { RequestInitializer } from "./api-request-machine";
 import { apiRequestMachine } from "./api-request-machine";
-import { waitFor } from "xstate/lib/waitFor";
 import { logSendApiRequest } from "../debug-log";
-import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
+import { DigiMeSdkError } from "../errors/errors";
 import type { RetryOptions } from "./retry";
 
 /**
@@ -29,39 +28,37 @@ export async function sendApiRequest(
     requestInitializer: RequestInitializer,
     config?: SendApiRequestConfig,
 ): Promise<DigiMeSendApiRequestResponse> {
-    const requestActor = interpret(apiRequestMachine)
-        .onTransition((state) => {
-            let label = "UNKNOWN REQUEST";
+    const requestActor = createActor(apiRequestMachine, {
+        input: {
+            requestInitializer,
+            retryOptions: config?.retryOptions,
+        },
+    }).start();
 
-            if (state.context.request) {
-                label = `${state.context.request?.method} ${state.context.request?.url}`;
-            }
+    requestActor.subscribe((state) => {
+        let label = "UNKNOWN REQUEST";
 
-            logSendApiRequest(`[${label}] State: ${state.value}`);
-        })
-        .start();
+        if (state.context.request) {
+            label = `${state.context.request?.method} ${state.context.request?.url}`;
+        }
 
-    requestActor.send({ type: "START", requestInitializer, retryOptions: config?.retryOptions });
+        logSendApiRequest(`[${label}] State: ${state.value}`);
+    });
 
-    const endState = await waitFor(requestActor, (state) => Boolean(state.done), { timeout: Infinity });
+    requestActor.send({ type: "START" });
+
+    const endState = await waitFor(requestActor, ({ status }) => status === "done", { timeout: Infinity });
+
     logSendApiRequest(`[${endState.context.request?.url}] Fetch machine resolved in: "${endState.value}"`);
 
-    // XState types don't expose `data`, even though it should be there, so we check for it
-    if (!("data" in endState.event)) {
-        // This shouldn't happen unless either we or XState are the cause of it
-        throw new DigiMeSdkTypeError(
-            `API request state machine finished without "data" in the resolved event. Please report this as a bug.`,
-        );
-    }
-
     // Return `Response`s
-    if (endState.matches("complete") && endState.event.data instanceof Response) {
-        return endState.event.data;
+    if (endState.matches("complete") && endState.output instanceof Response) {
+        return endState.output;
     }
 
     // Throw errors
     if (endState.matches("failed")) {
-        throw endState.context.lastError;
+        throw endState.output;
     }
 
     // Fallthrough case, this shouldn't be reached unless either we or XState are the cause of it

@@ -28,7 +28,7 @@ const ObjectTypeError = z
 const PartialError = z
     .object({
         code: z.string(),
-        statusCode: z.string(),
+        statusCode: z.number(),
         message: z.string(),
         reauth: z.boolean().optional(),
         retryAfter: z.number().optional(),
@@ -42,7 +42,11 @@ const AccountSyncStatePartial = z.object({ state: z.literal("partial"), error: P
 
 const AccountSyncStateCompleted = z.object({ state: z.literal("completed") }).passthrough();
 
-const AccountSyncStates = z.union([AccountSyncStateRunning, AccountSyncStatePartial, AccountSyncStateCompleted]);
+const AccountSyncStates = z.discriminatedUnion("state", [
+    AccountSyncStateRunning,
+    AccountSyncStatePartial,
+    AccountSyncStateCompleted,
+]);
 
 const FileListFile = z
     .object({

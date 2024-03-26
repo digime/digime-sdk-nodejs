@@ -18,7 +18,7 @@ import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 import { errorMessages } from "../errors/messages";
 import { z } from "zod";
 import { DEFAULT_BASE_URL, DEFAULT_ONBOARD_URL } from "../constants";
-import { nodeReadableFromWeb } from "../node-streams";
+import { nodeReadableFromWeb, streamAsyncIterator } from "../node-streams";
 import { DigiMeSessionFile } from "./digi-me-session-file";
 import { SessionFileHeaderMetadata } from "../schemas/api/session/session-file-header-metadata";
 import { SessionFileList } from "../schemas/api/session/session-file-list";
@@ -45,11 +45,11 @@ import {
     ReadFileListOptions,
     ReadFileOptions,
     PushDataOptions,
-    GetSessionObserverOptions,
 } from "../schemas/digi-me-sdk-authorized";
 import type { Readable } from "node:stream";
 import { SessionTriggerResponse } from "../schemas/api/session/session-trigger";
-import { DigiMeSessionObserver } from "./session/digi-me-session-observer";
+import { sessionDataFetcherMachine } from "./session/session-data-fetcher-machine";
+import { createActor } from "xstate";
 
 // Transform and casting to have a more specific type for typechecking
 const UrlWithTrailingSlash = z
@@ -691,15 +691,6 @@ export class DigiMeSdkAuthorized {
         throw new Error("TODO: Provider NYI");
     }
 
-    getSessionObserver(options: GetSessionObserverOptions): DigiMeSessionObserver {
-        const { sessionKey } = parseWithSchema(options, GetSessionObserverOptions, "`observeSession` options");
-
-        return new DigiMeSessionObserver({
-            fetchFileList: () => this.readFileList({ sessionKey }),
-            fetchFile: (fileName) => this.readFile({ sessionKey, fileName }),
-        });
-    }
-
     async readFileList(options: ReadFileListOptions): Promise<SessionFileList> {
         const { sessionKey, signal } = parseWithSchema(options, ReadFileListOptions, "`readFileList` options");
 
@@ -792,5 +783,43 @@ export class DigiMeSdkAuthorized {
         });
     }
 
-    async readAllFiles() {}
+    getVaultData() {
+        const { readable, writable } = new TransformStream<Record<string, unknown>, Record<string, unknown>>();
+        const writer = writable.getWriter();
+        const actor = createActor(sessionDataFetcherMachine, {
+            input: {
+                sessionKey: undefined,
+                createSession: async () => {
+                    return (await this.readSession()).key;
+                },
+                fetchFileList: async (sessionKey) => {
+                    console.log(`SessionKey: ${typeof sessionKey} - ${sessionKey}`);
+                    return this.readFileList({ sessionKey });
+                },
+                processFile: async ({ sessionKey, fileName }) => {
+                    const file = await this.readFile({
+                        sessionKey,
+                        fileName,
+                    });
+
+                    const stream = await file.asJsonStream();
+
+                    for await (const object of streamAsyncIterator(stream)) {
+                        // @ts-expect-error TODO TODO TODO
+                        writer.write(object.value);
+                    }
+                },
+            },
+        });
+
+        actor.subscribe((state) => {
+            console.log(`Observer Actor transition:`, state.value);
+        });
+
+        actor.start();
+
+        actor.send({ type: "START" });
+
+        return readable;
+    }
 }

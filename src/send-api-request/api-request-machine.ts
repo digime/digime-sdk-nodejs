@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { createMachine, assign } from "xstate";
+import { setup, assign, fromPromise } from "xstate";
 import { logSendApiRequest } from "../debug-log";
 import type { DigiMeSdkError } from "../errors/errors";
 import { DigiMeSdkApiError, DigiMeSdkTypeError } from "../errors/errors";
@@ -11,6 +11,32 @@ import { abortableDelay } from "../abortable-delay";
 import type { CalculateDelayOptions, RetryOptions } from "./retry";
 import { DEFAULT_RETRY_OPTIONS, defaultCalculateDelay } from "./retry";
 import { getRetryAfterDelay } from "./get-retry-after-delay";
+import { z } from "zod";
+
+const OutputResponseSchema = z.object({
+    output: z.instanceof(Response),
+});
+
+const OutputWithResponseAndErrorSchema = z.object({
+    output: z.object({
+        response: z.instanceof(Response),
+        error: z.unknown(),
+    }),
+});
+
+const EventWithErrorSchema = z.object({
+    event: z.object({
+        error: z.unknown(),
+    }),
+});
+
+const EventOutputWithErrorSchema = z.object({
+    event: z.object({
+        output: z.object({
+            error: z.unknown(),
+        }),
+    }),
+});
 
 export type RequestInitializer = () => Request | Promise<Request>;
 
@@ -47,223 +73,59 @@ const serializeRequestOrResponse = async (objectToSerialize: Request | Response)
 /**
  * API Request Machine
  */
-export const apiRequestMachine = createMachine(
-    {
-        /** @xstate-layout N4IgpgJg5mDOIC5QEMAOBLASmAjgVzgBcBZZAYwAt0A7MAOnQgBswBiAZQBUBBTTgbQAMAXUShUAe1jpC6CdTEgAHogC0AJgBsAdjoBGAKyaAzNqMBOPevXnNAFgA0IAJ6IAHHU1ujgvXcHGlnbGggYAvmFOaFi4BLAk5FS0dABmYISUNFCsEPL0NABuEgDW9NHY+ESkmclpGUlQCIUSZMiy8kLCnYqS0u0KSMpqxnp6ntrmboLqEwYhdgbaTq4ImurGdNpuloL2buvmlhFRGBVxCTX0dTXZucnNpXTlsVWJNFfpN03URa39nfw9KJBr0ZHIBqAVAgNIc6G5tFZjAZbLYEW5jMtEF5dAt-OtBAtrOZtMcQM9KvFqkkPvUsqwwAAnBkSBl0VBMNopFkAWyepxelLetU+DW+vza4IBIh6UjB8kUUNU5g2ekExL0E20xmM+22mIQdnRmwJdlN2i1qtNmlJ5POVPeqRFdMZzNZ7M5PL5MQpF2pjtp1EazT+kpEgOB4ll-QViHUBnUdEEgjcJlR6j0Orcbn1ho22hNeyzWm8Nv5PvtyQA7sgwYHOBJsIQGc4cnkGD8SmUy3ahfRq7WoPXG82xS0JR0w9KQVHwTHocZNJ5DgYjAY9JoNXZ1Pr0wZNnp4fttJpzHMDG5S96e5c6P3ZHWG+lm-SmSy2RzCFyGbzba8b3esiHJ9nFHEMJy6KdIz6WdBihBY9xRdRTQCEZpnMfU9HMBNtC3OMdDsc0sIvSIyW7P8-QZOAJCYAowGwWBJGoWAwAAUVfBlW3uDtHl-QUb0o2BqNo+jGOYtjXVA8dqClCMQFBaNYMQDU6DXJMNXRdNjHTbcXEQY87E8KZ7FVDNtWCS8znIh0BKEui4FE1j2M4-JuK7K8rOSGyaLshj5DE9jJP+MMgRlaD5UU1Yxi3QJTxPRZDmmfUUwM9R0T8Ix82Q8ISN431rKo7yRL8xzXRfV13w9b8vUsviKIK4T7OK8SWUC0MINk+SYMhNQbDzEIVyCbYRk0TR9XMAjPDVAxdnMNCkOyk53Nqh0yEoiVAxqwhnPbIoeLI5bklWsB1qgTbWvA7ppzCiEhmhGYxm8U9pkwiZrGzXSEGMCbBBw1MtO2Sw9AiEjqAkCA4EUXKKzAUK5RuxUkXMcZJmmWZ5kWfVVD8DxFjNBFlS1eNiMWzboYYZgYauuG5w0ddPAzU0Vz8TQBoMTGN0THCCLsQxTENU0LIFPLhQDKBYYU7q7qMOg7C8WacIPCY3EcD7DTGLxVXUXxZssLwFtIpbhauGsWAgcWutugi91luYAiMWXZZ0lYswM6bbB0LRlS1kkcv2o26DICRuXZdJKag6mIqxwQ6FsH7pt2bwtBZpYPrWMYAh2LXkTmexBfLXtbxre9B0fJsVnDiXbozJHRjmYktFMawrAw2b9yzLT1x8eN9ahguvIa3ymJKllzfCyXVBCXQgi1nUDFllMMQ+48E2T9N7BGZnrV9w2yaOk7NtH+GetsTZk-03UTydpTzTbqZAi3LD12IiIgA */
-        schema: {
-            context: {} as {
-                requestInitializer?: RequestInitializer;
-                request?: Request;
-                attempts: number;
-                retryOptions: RetryOptions;
-                lastError?: unknown;
-            },
-            events: {} as {
-                type: "START";
-                requestInitializer: RequestInitializer;
-                retryOptions?: Partial<RetryOptions>;
-            },
-            services: {} as {
-                delayRetry: { data: void };
-                fetch: { data: Response };
-                resolveResponseError: { data: { response: Response; error: DigiMeSdkError } };
-                createRequest: { data: Request };
-            },
-        },
-
-        tsTypes: {} as import("./api-request-machine.typegen").Typegen0,
-        predictableActionArguments: true,
-        id: "apiRequestMachine",
-        initial: "idle",
-
+export const apiRequestMachine = setup({
+    types: {} as {
+        input: {
+            requestInitializer: RequestInitializer;
+            retryOptions?: Partial<RetryOptions> | undefined;
+        };
+        events: { type: "START" };
         context: {
-            attempts: 0,
-            lastError: new Error("TEMP: Default lastError"),
-            retryOptions: DEFAULT_RETRY_OPTIONS,
+            requestInitializer: RequestInitializer;
+            attempts: number;
+            retryOptions: RetryOptions;
+            request?: Request;
+
+            lastError?: unknown;
+        };
+    },
+
+    actions: {
+        setRequest: assign({
+            request: (_, request: Request) => request,
+        }),
+
+        incrementAttempts: assign({
+            attempts: ({ context }) => context.attempts + 1,
+        }),
+
+        setLastError: assign({
+            lastError: (_, error: unknown) => error,
+        }),
+    },
+
+    guards: {
+        isResponseOk: (_, response: Response) => {
+            return response.ok;
         },
-
-        states: {
-            idle: {
-                on: {
-                    START: {
-                        target: "creatingRequest",
-                        actions: ["setRetryOptions", "setRequestCreator"],
-                    },
-                },
-            },
-
-            fetching: {
-                invoke: {
-                    src: "fetch",
-
-                    onError: [
-                        {
-                            target: "waitingToRetry",
-                            cond: "isRetryableError",
-                            actions: ["setLastError"],
-                        },
-                        {
-                            target: "failed",
-                            actions: "setLastError",
-                        },
-                    ],
-
-                    onDone: [
-                        {
-                            target: "complete",
-                            cond: "isResponseOk",
-                        },
-                        "resolveResponseError",
-                    ],
-                },
-            },
-
-            failed: {
-                type: "final",
-                data: (context) => {
-                    return context.lastError;
-                },
-            },
-
-            complete: {
-                type: "final",
-
-                data: (context, event) => {
-                    return event.requestInitializer;
-                },
-            },
-
-            waitingToRetry: {
-                invoke: {
-                    src: "delayRetry",
-                    onDone: "creatingRequest",
-                    onError: {
-                        target: "failed",
-                        actions: "setLastError",
-                    },
-                },
-            },
-
-            resolveResponseError: {
-                invoke: {
-                    src: "resolveResponseError",
-                    onDone: [
-                        {
-                            target: "waitingToRetry",
-                            cond: "isResolvedErrorRetryable",
-                            actions: "setLastErrorFromResolvedError",
-                        },
-                        {
-                            target: "failed",
-                            actions: "setLastErrorFromResolvedError",
-                        },
-                    ],
-                    onError: {
-                        target: "failed",
-                        actions: "setLastError",
-                    },
-                },
-            },
-
-            creatingRequest: {
-                invoke: {
-                    src: "createRequest",
-
-                    onDone: {
-                        target: "fetching",
-                        actions: "setRequest",
-                    },
-                },
-
-                entry: "incrementAttempts",
-            },
+        isResolvedErrorRetryable: ({ context }, response: Response) => {
+            return context.retryOptions.statusCodes.includes(response.status);
+        },
+        isRetryableError: ({ context }, error: unknown) => {
+            return context.retryOptions.isErrorRetryable(error);
         },
     },
-    {
-        actions: {
-            setRequest: assign({
-                request: (context, event) => event.data,
-            }),
 
-            setRequestCreator: assign({
-                requestInitializer: (context, event) => event.requestInitializer,
-            }),
+    actors: {
+        createRequest: fromPromise(async ({ input }: { input: { requestInitializer: RequestInitializer } }) => {
+            return await input.requestInitializer();
+        }),
 
-            setRetryOptions: assign({
-                retryOptions: (context, event) => ({
-                    ...DEFAULT_RETRY_OPTIONS,
-                    ...event.retryOptions,
-                }),
-            }),
-
-            incrementAttempts: assign({
-                attempts: (context) => context.attempts + 1,
-            }),
-
-            setLastError: assign({
-                lastError: (context, event) => event.data,
-            }),
-
-            setLastErrorFromResolvedError: assign({
-                lastError: (context, event) => event.data.error,
-            }),
-        },
-
-        guards: {
-            isResponseOk: (context, event) => event.data.ok,
-
-            isResolvedErrorRetryable: (context, event) => {
-                return context.retryOptions.statusCodes.includes(event.data.response.status);
-            },
-
-            isRetryableError: (context, event) => context.retryOptions.isErrorRetryable(event.data),
-        },
-
-        services: {
-            createRequest: async (context) => {
-                if (!context.requestInitializer) {
-                    throw new Error("TODO");
-                }
-
-                return await context.requestInitializer();
-            },
-
-            delayRetry: async (context, event) => {
-                let retryAfter: number | undefined;
-
-                if (event.type === "done.invoke.apiRequestMachine.resolveResponseError:invocation[0]") {
-                    retryAfter = getRetryAfterDelay(event.data.response);
-                }
-
-                const calculatedDelayOptions: CalculateDelayOptions = {
-                    retryOptions: context.retryOptions,
-                    retryAfter,
-                    attempts: context.attempts,
-                    computedDelay: 0,
-                    error: context.lastError,
-                };
-
-                calculatedDelayOptions.computedDelay = await defaultCalculateDelay(calculatedDelayOptions);
-
-                const resolvedDelay =
-                    (await context.retryOptions.calculateDelay?.(calculatedDelayOptions)) ??
-                    calculatedDelayOptions.computedDelay;
-
-                logSendApiRequest(
-                    `[${getRequestLabel(context.request)}] Delaying attempt #${context.attempts + 1} for ${resolvedDelay}ms`,
-                );
-
-                await abortableDelay(resolvedDelay, context.request?.signal);
-
-                return;
-            },
-
-            fetch: async (context, event) => {
-                const request = event.data;
+        fetch: fromPromise(
+            async ({ input }: { input: { request: Request; attempts: number; maxAttempts: number } }) => {
+                const { request, attempts, maxAttempts } = input;
                 const requestLabel = getRequestLabel(request);
-                logSendApiRequest(
-                    `[${requestLabel}] Attempt: ${context.attempts}/${context.retryOptions.maxAttempts + 1}`,
-                );
+                logSendApiRequest(`[${requestLabel}] Attempt: ${attempts}/${maxAttempts + 1}`);
 
                 if (logSendApiRequest.enabled) {
                     logSendApiRequest(
@@ -281,24 +143,295 @@ export const apiRequestMachine = createMachine(
 
                 return response;
             },
+        ),
 
-            resolveResponseError: async (context, event) => {
-                let resolvedError: Error;
-                try {
-                    resolvedError = new DigiMeSdkApiError(
-                        ApiErrorFromHeaders.parse(Object.fromEntries(event.data.headers)),
-                    );
-                } catch (error) {
-                    resolvedError = new DigiMeSdkTypeError(`Received unexpected error response from the Digi.me API`, {
-                        cause: error,
-                    });
+        delayRetry: fromPromise(
+            async ({
+                input,
+            }: {
+                input: {
+                    request?: Request;
+                    response?: Response;
+                    retryOptions: RetryOptions;
+                    attempts: number;
+                    lastError: unknown;
+                };
+            }) => {
+                const { request, response, retryOptions, attempts, lastError } = input;
+                let retryAfter: number | undefined;
+
+                if (response) {
+                    retryAfter = getRetryAfterDelay(response);
                 }
 
-                return {
-                    response: event.data,
-                    error: resolvedError,
+                const calculatedDelayOptions: CalculateDelayOptions = {
+                    retryOptions,
+                    retryAfter,
+                    attempts,
+                    computedDelay: 0,
+                    error: lastError,
                 };
+
+                calculatedDelayOptions.computedDelay = await defaultCalculateDelay(calculatedDelayOptions);
+
+                const resolvedDelay =
+                    (await retryOptions.calculateDelay?.(calculatedDelayOptions)) ??
+                    calculatedDelayOptions.computedDelay;
+
+                logSendApiRequest(
+                    `[${getRequestLabel(request)}] Delaying attempt #${attempts + 1} for ${resolvedDelay}ms`,
+                );
+
+                await abortableDelay(resolvedDelay, request?.signal);
+
+                return;
+            },
+        ),
+
+        resolveResponseError: fromPromise(async ({ input }: { input: { response: Response } }) => {
+            const { response } = input;
+            let resolvedError: DigiMeSdkError;
+            try {
+                resolvedError = new DigiMeSdkApiError(ApiErrorFromHeaders.parse(Object.fromEntries(response.headers)));
+            } catch (error) {
+                resolvedError = new DigiMeSdkTypeError(`Received unexpected error response from the Digi.me API`, {
+                    cause: error,
+                });
+            }
+
+            return {
+                response,
+                error: resolvedError,
+            };
+        }),
+        // resolveResponseError: () => {},
+        // createRequest: () => {},
+    },
+}).createMachine({
+    /** @xstate-layout N4IgpgJg5mDOIC5QEMAOBLASmAjgVzgBcBZZAYwAt0A7MAOnQgBswBiAZQBUBBTTgbQAMAXUShUAe1jpC6CdTEgAHogC0AJk10A7AEYAbABZdggKz6AHOtO7dAGhABPRBd10L209cGX1gwYZWAL5BDmhYuASwJORUtHRkAE5gyLLUUNj4RKwQ8vQ0AG4SANb04ZlRMZQ09EkpaRmRRAiFEmSpctRCwt2KktKy8ooqCBp67qYAnKaC6rqT2pOaFg7OCADMhtp0gtqG+uuT6+oWk5O2IWEYFUSk1fEAZmCE91A5eQzURaV05U3Rdzi9CeLziUBaXzaHXk3V6SBA-RknWGanWtjo+kWFlmi1M6wCpm0q0Q+nU6x0pxMRish3OlxAfyyANiNToINe73irR+jMqgNZ7LBEKK7UGXRE-F0onhiLFKNG6jO7j0ZKm+kmmN0FnWxIQlm2hlMhlm+MNmgW9N5txZj2eHLAiUSEkSdFQTFSD2dAFtftd-lUgWy7ULWqLOrCRH0pEihvCRqptOT9F5dKYLISAvpbLrAuTtAF9oELFZLKZLX6mQGBcGaG8HU6XW6Pd7fRFK-zbaDa8KoWLYVKowNkXHENZ1DtBBYDhrtHN1sWVk5ELmdAXqcX1KXy22+Tb6MlYBImAUwNhYJJqLAwABRR3Ozn5SE8iu7+77uBHk9ni9X28NnthjCEqRjK0ZyiOCC6NsNj+FB2pznM6i6toRgYtiRgmLo6zYYY6zbjczJvnQB6fqecA-jed6JA+nzfGUL7WkRJHHmR57yL+VEAdC4o9AOoFDrGoAjFmdCGGSZzmNMiyTLMupToYdAnGihqYgWZj4f6HbvoeLHfuxlENqw9bOq67qEJ6iQ+lahGBsxX7kfpf7OlxfbAdK4hgcOQlqIqeb4qYUy6IERwGPouqTFsGKCNMPgyYq6iGhp7Z7nQADuyBIuknASNghCJI4NHcvRO6MYG6WZVA2W5flLnhm5g4xgoEGqOs+gYhJ5g2FmexIUuCBzKYOhatoVgodM6xpklr5lRlDRVc8+VGVRpnNpZrYEVW8TlXNOULY4tVAT0IEeQJTXeQghqDRqSyGMa2EmIqurzOOPXWJiWyLCcIShCA1ASBAcCKNZm1gA14HnS1UwYliOLjQSRJ9Qm5KpihhiTKcPgeMEP3A1pDDMKD-GNfKGjomYZK4UsggTYcOp9UFdCbGSlgavOtOBFNpWsnUHTpBtYNecoPkajoybaKjVhTksT3i0NxbUxF8UGBYnM2dWXbpALglCwq4ybtdKFprMmJhX1gRuNF6yeCcWzFiheE4wxavxHZrEUU5iRa2dOstbsdDnGJ1PpvsU502sKHjmLcxGGiQX6Poqsg2ls21vNeVrCdxMQVhkx0LYeILJuVuaLovVrPMghy-BBjmOTZaOyVzvAhlLAQF78pbIN+x4tT5iFqSckWApMwapi+vHLsid42QEhem6zyE5n4M+yY-v6LsMyY148eErqpIW4cD1mONRjfUEQA */
+    // schema: {
+    //     // context: {} as {
+    //     //     requestInitializer?: RequestInitializer;
+    //     //     request?: Request;
+    //     //     attempts: number;
+    //     //     retryOptions: RetryOptions;
+    //     //     lastError?: unknown;
+    //     // },
+    //     // events: {} as {
+    //     //     type: "START";
+    //     //     requestInitializer: RequestInitializer;
+    //     //     retryOptions?: Partial<RetryOptions>;
+    //     // },
+    //     // services: {} as {
+    //     //     delayRetry: { data: void };
+    //     //     fetch: { data: Response };
+    //     //     resolveResponseError: { data: { response: Response; error: DigiMeSdkError } };
+    //     //     createRequest: { data: Request };
+    //     // },
+    // },
+
+    // tsTypes: {} as import("./api-request-machine.typegen").Typegen0,
+    // predictableActionArguments: true,
+    id: "apiRequestMachine",
+
+    context: ({ input }) => ({
+        attempts: 0,
+        lastError: new Error("TEMP: Default lastError"),
+        // TODO: Fix deep merging
+        retryOptions: { ...DEFAULT_RETRY_OPTIONS, ...input.retryOptions },
+        requestInitializer: input.requestInitializer,
+    }),
+
+    initial: "idle",
+
+    output: ({ event }) => {
+        return event.output;
+    },
+
+    states: {
+        idle: {
+            on: {
+                START: {
+                    target: "creatingRequest",
+                },
+            },
+        },
+
+        creatingRequest: {
+            invoke: {
+                src: "createRequest",
+                input: ({ context }) => ({ requestInitializer: context.requestInitializer }),
+
+                onDone: {
+                    target: "fetching",
+                    actions: [{ type: "setRequest", params: ({ event }) => event.output }],
+                },
+            },
+
+            entry: "incrementAttempts",
+        },
+
+        fetching: {
+            invoke: {
+                src: "fetch",
+                input: ({ context }) => {
+                    if (!context.request) {
+                        throw new Error("TEMP: No request");
+                    }
+
+                    return {
+                        request: context.request,
+                        attempts: context.attempts,
+                        maxAttempts: context.retryOptions.maxAttempts,
+                    };
+                },
+
+                onError: [
+                    {
+                        target: "waitingToRetry",
+
+                        guard: {
+                            type: "isRetryableError",
+                            params: (params: unknown) => {
+                                return EventWithErrorSchema.parse(params).event.error;
+                            },
+                        },
+                        actions: [
+                            {
+                                type: "setLastError",
+                                params: (params: unknown) => {
+                                    const result = EventWithErrorSchema.parse(params);
+                                    return result.event.error;
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        target: "failed",
+                        actions: [
+                            {
+                                type: "setLastError",
+                                params: (params: unknown) => {
+                                    const result = EventWithErrorSchema.parse(params);
+                                    return result.event.error;
+                                },
+                            },
+                        ],
+                    },
+                ],
+
+                onDone: [
+                    {
+                        target: "complete",
+                        guard: { type: "isResponseOk", params: ({ event }) => event.output },
+                    },
+                    {
+                        target: "resolveResponseError",
+                    },
+                ],
+            },
+        },
+
+        resolveResponseError: {
+            invoke: {
+                src: "resolveResponseError",
+                input: ({ event }) => {
+                    return { response: OutputResponseSchema.parse(event).output };
+                },
+                onDone: [
+                    {
+                        target: "waitingToRetry",
+                        guard: {
+                            type: "isResolvedErrorRetryable",
+                            params: ({ event }) => event.output.response,
+                        },
+
+                        actions: [
+                            {
+                                type: "setLastError",
+                                params: (params: unknown) => {
+                                    const result = EventOutputWithErrorSchema.parse(params);
+                                    return result.event.output.error;
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        target: "failed",
+                        actions: [
+                            {
+                                type: "setLastError",
+                                params: (params: unknown) => {
+                                    const result = EventOutputWithErrorSchema.parse(params);
+                                    return result.event.output.error;
+                                },
+                            },
+                        ],
+                    },
+                ],
+                onError: {
+                    target: "failed",
+                    actions: [
+                        {
+                            type: "setLastError",
+                            params: (params: unknown) => {
+                                const result = EventWithErrorSchema.parse(params);
+                                return result.event.error;
+                            },
+                        },
+                    ],
+                },
+            },
+        },
+
+        waitingToRetry: {
+            invoke: {
+                src: "delayRetry",
+                input: ({ context, event }) => {
+                    let response;
+                    const parsedEvent = OutputWithResponseAndErrorSchema.safeParse(event);
+                    if (parsedEvent.success) {
+                        response = parsedEvent.data.output.response;
+                    }
+
+                    return {
+                        request: context.request,
+                        response: response,
+                        retryOptions: context.retryOptions,
+                        attempts: context.attempts,
+                        lastError: context.lastError,
+                    };
+                },
+
+                onDone: "creatingRequest",
+                onError: {
+                    target: "failed",
+                    actions: [
+                        {
+                            type: "setLastError",
+                            params: (params: unknown) => {
+                                const result = EventWithErrorSchema.parse(params);
+                                return result.event.error;
+                            },
+                        },
+                    ],
+                },
+            },
+        },
+
+        failed: {
+            type: "final",
+            output: ({ context }) => {
+                return context.lastError;
+            },
+        },
+
+        complete: {
+            type: "final",
+            output: ({ event }) => {
+                const result = OutputResponseSchema.parse(event);
+                return result.output;
             },
         },
     },
-);
+});

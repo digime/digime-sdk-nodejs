@@ -109,11 +109,9 @@ export class DigiMeSessionFile {
         }
     }
 
+    // TODO: Type correctly
     async asJsonStream() {
-        const { parser } = (await import("stream-json")).default;
-        const { streamArray } = (await import("stream-json/streamers/StreamArray")).default;
-        return (await this.textStream())
-            .pipeThrough(nodeDuplexToWeb(parser()))
-            .pipeThrough(nodeDuplexToWeb(streamArray()));
+        const { withParser } = await import("stream-json/streamers/StreamArray");
+        return (await this.textStream()).pipeThrough(nodeDuplexToWeb(withParser()));
     }
 }
