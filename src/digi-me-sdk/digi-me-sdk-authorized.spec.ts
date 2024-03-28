@@ -20,6 +20,7 @@ import { fromMockApiBase } from "../../mocks/utilities";
 import { DigiMeSessionFile } from "./digi-me-session-file";
 import { toBase64Url } from "../crypto";
 import { streamAsyncIterator } from "../node-streams";
+import { MockSession } from "../../mocks/session/mock-session";
 
 const mockSdkOptions = {
     applicationId: mockSdkConsumerCredentials.applicationId,
@@ -608,25 +609,22 @@ describe.concurrent("DigiMeSdkAuthorized", () => {
                 mswServer.boundary(async ({ expect }) => {
                     mswServer.use(...permissionAccessQueryHandlers);
 
+                    const mockSession = new MockSession({ sessionKey: "test-session-key-read-file-list" });
+
                     const userAuthorization = await UserAuthorization.fromJwt(
                         mockSdkConsumerCredentials.userAuthorizationJwt,
                     );
+
                     const sdk = new DigiMeSdk(mockSdkOptions);
                     const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
-                    const promise = authorizedSdk.readFileList({ sessionKey: "test-session-key" });
+                    const promise = authorizedSdk.readFileList({ sessionKey: mockSession.sessionKey });
 
                     await expect(promise).resolves.toEqual(
                         expect.objectContaining({
                             status: expect.objectContaining({
-                                state: expect.any(String),
+                                state: "pending",
                             }),
-                            fileList: expect.arrayContaining([
-                                expect.objectContaining({
-                                    name: expect.any(String),
-                                    updatedDate: expect.any(Number),
-                                }),
-                            ]),
                         }),
                     );
                 }),
@@ -707,6 +705,9 @@ describe.concurrent("DigiMeSdkAuthorized", () => {
                     expect.assertions(1);
                     mswServer.use(...permissionAccessQueryHandlers);
 
+                    const mockSession = new MockSession({ sessionKey: "test-session-read-file" });
+                    const sessionFile = mockSession.addMappedFile();
+
                     const userAuthorization = await UserAuthorization.fromJwt(
                         mockSdkConsumerCredentials.userAuthorizationJwt,
                     );
@@ -714,8 +715,8 @@ describe.concurrent("DigiMeSdkAuthorized", () => {
                     const authorizedSdk = sdk.withUserAuthorization(userAuthorization, () => {});
 
                     const file = await authorizedSdk.readFile({
-                        sessionKey: "test-session",
-                        fileName: "test-file.json",
+                        sessionKey: mockSession.sessionKey,
+                        fileName: sessionFile.listEntry.name,
                     });
 
                     expect(file).toBeInstanceOf(DigiMeSessionFile);

@@ -6,8 +6,7 @@ import { HttpResponse, http } from "msw";
 import { assertAcceptsJson, assertContentTypeJson, assertBearerToken } from "../../../handler-utilities";
 import { fromMockApiBase } from "../../../utilities";
 import { randomUUID } from "node:crypto";
-
-const HOUR_IN_MS = 3600000;
+import { MockSession } from "../../../session/mock-session";
 
 export const makeHandlers = (baseUrl?: string) => [
     http.post(fromMockApiBase("permission-access/trigger", baseUrl), async ({ request }) => {
@@ -15,10 +14,14 @@ export const makeHandlers = (baseUrl?: string) => [
         assertContentTypeJson(request);
         await assertBearerToken(request);
 
+        const session = new MockSession({
+            sessionKey: randomUUID(),
+        }).advance();
+
         return HttpResponse.json({
             session: {
-                expiry: Date.now() + HOUR_IN_MS,
-                key: randomUUID(),
+                expiry: session.expiry,
+                key: session.sessionKey,
             },
         });
     }),

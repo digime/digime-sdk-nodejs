@@ -132,10 +132,7 @@ describe("DigiMeSessionFile", () => {
             test("Handles uncompressed files", async () => {
                 expect.assertions(3);
 
-                const targetFile = new URL(
-                    "../../mocks/api/permission-access/query/test-mapped-file.json",
-                    import.meta.url,
-                );
+                const targetFile = new URL("../../mocks/session/content/test-mapped-file.json", import.meta.url);
 
                 let dataStream = createReadableStream(targetFile, {
                     highWaterMark: randomInt(1, 101),
@@ -160,10 +157,7 @@ describe("DigiMeSessionFile", () => {
             test("Handles `gzip` compression", async () => {
                 expect.assertions(3);
 
-                const targetFile = new URL(
-                    "../../mocks/api/permission-access/query/test-mapped-file.json",
-                    import.meta.url,
-                );
+                const targetFile = new URL("../../mocks/session/content/test-mapped-file.json", import.meta.url);
 
                 let dataStream = createReadableStream(targetFile, {
                     highWaterMark: randomInt(1, 101),
@@ -189,10 +183,7 @@ describe("DigiMeSessionFile", () => {
             test("Handles `brotli` compression", async () => {
                 expect.assertions(3);
 
-                const targetFile = new URL(
-                    "../../mocks/api/permission-access/query/test-mapped-file.json",
-                    import.meta.url,
-                );
+                const targetFile = new URL("../../mocks/session/content/test-mapped-file.json", import.meta.url);
 
                 let dataStream = createReadableStream(targetFile, {
                     highWaterMark: randomInt(1, 101),
@@ -220,10 +211,7 @@ describe("DigiMeSessionFile", () => {
             test("Produces a stream of UTF-8 text", async () => {
                 expect.assertions(2);
 
-                const targetFile = new URL(
-                    "../../mocks/api/permission-access/query/test-mapped-file.json",
-                    import.meta.url,
-                );
+                const targetFile = new URL("../../mocks/session/content/test-mapped-file.json", import.meta.url);
 
                 let dataStream = createReadableStream(targetFile, {
                     highWaterMark: randomInt(1, 101),
@@ -249,10 +237,7 @@ describe("DigiMeSessionFile", () => {
             test("Produces a UTF-8 string", async () => {
                 expect.assertions(1);
 
-                const targetFile = new URL(
-                    "../../mocks/api/permission-access/query/test-mapped-file.json",
-                    import.meta.url,
-                );
+                const targetFile = new URL("../../mocks/session/content/test-mapped-file.json", import.meta.url);
 
                 let dataStream = createReadableStream(targetFile, {
                     highWaterMark: randomInt(1, 101),
@@ -269,6 +254,39 @@ describe("DigiMeSessionFile", () => {
                 const expected = (await readFile(targetFile)).toString("utf-8");
 
                 expect(result).toBe(expected);
+            });
+        });
+
+        describe(".asJsonStream()", () => {
+            test.todo("Produces something", async () => {
+                expect.assertions(1);
+
+                const targetFile = new URL(
+                    "../../mocks/api/permission-access/query/test-mapped-file.json",
+                    import.meta.url,
+                );
+
+                let dataStream = createReadableStream(targetFile, {
+                    highWaterMark: randomInt(1, 101),
+                });
+
+                dataStream = createFileEncryptPipeline(mockSdkConsumerCredentials.publicKey, dataStream);
+
+                const sessionFile = new DigiMeSessionFile({
+                    input: dataStream,
+                    privateKey: mockSdkConsumerCredentials.privateKeyPkcs1PemString,
+                });
+
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const result = await sessionFile.asJsonStream();
+
+                // for await (const x of result) {
+                //     console.log(x);
+                // }
+
+                // const expected = (await readFile(targetFile)).toString("utf-8");
+
+                // expect(result).toBe(expected);
             });
         });
     });
