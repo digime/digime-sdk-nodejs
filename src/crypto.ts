@@ -6,6 +6,7 @@ import nodeCrypto from "node:crypto";
 import { DigiMeSdkError } from "./errors/errors";
 import { nodeDuplexToWeb } from "./node-streams";
 import { concatUint8Array } from "./concat-uint8array";
+import type { ReadableStream } from "node:stream/web";
 
 const ALPHA_LOWER = "abcdefghijklmnopqrstuvwxyz";
 const ALPHA_UPPER = ALPHA_LOWER.toUpperCase();

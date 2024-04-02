@@ -6,6 +6,7 @@ import nodeCrypto from "node:crypto";
 import fs from "node:fs";
 import { promisify } from "node:util";
 import { nodeDuplexToWeb, nodeReadableToWeb } from "../src/node-streams";
+import { TransformStream, type ReadableStream } from "node:stream/web";
 
 const DEFAULT_MOCK_API_BASE_URL = "https://api.digi.me/v1.7/";
 
@@ -45,8 +46,8 @@ export const formatHeadersError = ({
 export const getTestUrl = (...parts: string[]): string =>
     `https://${[...parts, nodeCrypto.randomUUID()].join(".")}.test/`;
 
-export const createReadableStream = (...args: Parameters<typeof fs.createReadStream>) => {
-    return nodeReadableToWeb(fs.createReadStream(...args));
+export const createReadStreamWeb = (...args: Parameters<typeof fs.createReadStream>) => {
+    return nodeReadableToWeb<Uint8Array>(fs.createReadStream(...args));
 };
 
 export const generateKeyPair = async () => await promisify(nodeCrypto.generateKeyPair)("rsa", { modulusLength: 2048 });

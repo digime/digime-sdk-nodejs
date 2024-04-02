@@ -1,16 +1,17 @@
 {
     "$schema": "https://json.schemastore.org/tsconfig",
     "compilerOptions": {
-        "module": "esnext",
-        "target": "ES2022",
-        "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "moduleResolution": "bundler",
-        "noImplicitAny": true,
+        "target": "ES2022",
+        "isolatedModules": true,
+        "moduleDetection": "force",
+        "strict": true,
         "noUncheckedIndexedAccess": true,
-        "noEmit": true
+        "moduleResolution": "Bundler",
+        "module": "Preserve",
+        "noEmit": true,
+        "lib": ["ES2022"]
     },
     "exclude": ["dist/**", "node_modules/**","fixtures/**","utils/**"],
 

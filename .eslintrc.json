@@ -1,4 +1,4 @@
 {
     "root": true,
-    "extends": "./build-utils/eslint/index"
+    "extends": "./build-utils/eslint/index.cjs"
 }

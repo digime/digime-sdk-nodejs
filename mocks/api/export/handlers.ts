@@ -3,7 +3,7 @@
  */
 
 import { HttpResponse, http } from "msw";
-import { createReadableStream, fromMockApiBase } from "../../utilities";
+import { createReadStreamWeb, fromMockApiBase } from "../../utilities";
 import { assertAcceptsOctetStream } from "../../handler-utilities";
 
 export const makeHandlers = (baseUrl?: string) => [
@@ -24,7 +24,7 @@ export const makeHandlers = (baseUrl?: string) => [
         // }
         // // TODO: Handle `from` and `to` parameters;
 
-        return new HttpResponse(createReadableStream(new URL("./medmij-portability-report.xml", import.meta.url)));
+        return new HttpResponse(createReadStreamWeb(new URL("./medmij-portability-report.xml", import.meta.url)));
     }),
 ];
 

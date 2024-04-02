@@ -21,6 +21,7 @@ import { DigiMeSessionFile } from "./digi-me-session-file";
 import { toBase64Url } from "../crypto";
 import { streamAsyncIterator } from "../node-streams";
 import { MockSession } from "../../mocks/session/mock-session";
+import { ReadableStream } from "node:stream/web";
 
 const mockSdkOptions = {
     applicationId: mockSdkConsumerCredentials.applicationId,

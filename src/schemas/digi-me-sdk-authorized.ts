@@ -5,6 +5,7 @@
 import { z } from "zod";
 import { SessionTriggerConfiguration } from "./api/session/session-trigger";
 import { FileDescriptor } from "./api/import";
+import { ReadableStream } from "node:stream/web";
 
 /**
  * `<instance>.readAccounts()`
@@ -133,7 +134,7 @@ export type ReadFileOptions = z.infer<typeof ReadFileOptions>;
 const PushDataOptionsToLibrary = z.object({
     type: z.literal("library"),
     fileDescriptor: FileDescriptor,
-    data: z.instanceof(ReadableStream),
+    data: z.instanceof(ReadableStream<Uint8Array>),
     signal: z.instanceof(AbortSignal).optional(),
 });
 

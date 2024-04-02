@@ -5,12 +5,13 @@
 import { describe, test, expect } from "vitest";
 import { DigiMeSessionFile } from "./digi-me-session-file";
 import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
-import { createFileEncryptPipeline, createReadableStream } from "../../mocks/utilities";
+import { createFileEncryptPipeline, createReadStreamWeb } from "../../mocks/utilities";
 import { randomInt } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { mockSdkConsumerCredentials } from "../../mocks/sdk-consumer-credentials";
 import { nodeDuplexToWeb, streamToText, streamToUint8Array } from "../node-streams";
 import { createBrotliCompress } from "node:zlib";
+import { CompressionStream, ReadableStream } from "node:stream/web";
 
 describe("DigiMeSessionFile", () => {
     describe("Constructor", () => {
@@ -134,7 +135,7 @@ describe("DigiMeSessionFile", () => {
 
                 const targetFile = new URL("../../mocks/session/content/test-mapped-file.json", import.meta.url);
 
-                let dataStream = createReadableStream(targetFile, {
+                let dataStream = createReadStreamWeb(targetFile, {
                     highWaterMark: randomInt(1, 101),
                 });
 
@@ -159,7 +160,7 @@ describe("DigiMeSessionFile", () => {
 
                 const targetFile = new URL("../../mocks/session/content/test-mapped-file.json", import.meta.url);
 
-                let dataStream = createReadableStream(targetFile, {
+                let dataStream = createReadStreamWeb(targetFile, {
                     highWaterMark: randomInt(1, 101),
                 }).pipeThrough(new CompressionStream("gzip"));
 
@@ -185,7 +186,7 @@ describe("DigiMeSessionFile", () => {
 
                 const targetFile = new URL("../../mocks/session/content/test-mapped-file.json", import.meta.url);
 
-                let dataStream = createReadableStream(targetFile, {
+                let dataStream = createReadStreamWeb(targetFile, {
                     highWaterMark: randomInt(1, 101),
                 }).pipeThrough(nodeDuplexToWeb(createBrotliCompress()));
 
@@ -213,7 +214,7 @@ describe("DigiMeSessionFile", () => {
 
                 const targetFile = new URL("../../mocks/session/content/test-mapped-file.json", import.meta.url);
 
-                let dataStream = createReadableStream(targetFile, {
+                let dataStream = createReadStreamWeb(targetFile, {
                     highWaterMark: randomInt(1, 101),
                 });
 
@@ -239,7 +240,7 @@ describe("DigiMeSessionFile", () => {
 
                 const targetFile = new URL("../../mocks/session/content/test-mapped-file.json", import.meta.url);
 
-                let dataStream = createReadableStream(targetFile, {
+                let dataStream = createReadStreamWeb(targetFile, {
                     highWaterMark: randomInt(1, 101),
                 });
 
@@ -266,7 +267,7 @@ describe("DigiMeSessionFile", () => {
                     import.meta.url,
                 );
 
-                let dataStream = createReadableStream(targetFile, {
+                let dataStream = createReadStreamWeb(targetFile, {
                     highWaterMark: randomInt(1, 101),
                 });
 

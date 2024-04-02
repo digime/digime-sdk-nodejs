@@ -18,7 +18,7 @@ import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
 import { errorMessages } from "../errors/messages";
 import { z } from "zod";
 import { DEFAULT_BASE_URL, DEFAULT_ONBOARD_URL } from "../constants";
-import { nodeReadableFromWeb, streamAsyncIterator } from "../node-streams";
+import { streamAsyncIterator } from "../node-streams";
 import { DigiMeSessionFile } from "./digi-me-session-file";
 import { SessionFileHeaderMetadata } from "../schemas/api/session/session-file-header-metadata";
 import { SessionFileList } from "../schemas/api/session/session-file-list";
@@ -46,10 +46,13 @@ import {
     ReadFileOptions,
     PushDataOptions,
 } from "../schemas/digi-me-sdk-authorized";
-import type { Readable } from "node:stream";
+import { Readable } from "node:stream";
 import { SessionTriggerResponse } from "../schemas/api/session/session-trigger";
 import { sessionDataFetcherMachine } from "./session/session-data-fetcher-machine";
 import { createActor } from "xstate";
+import { BaseObject } from "../schemas/api/objects/base-object";
+import type { ReadableStream } from "node:stream/web";
+import { TransformStream } from "node:stream/web";
 
 // Transform and casting to have a more specific type for typechecking
 const UrlWithTrailingSlash = z
@@ -178,7 +181,7 @@ export class DigiMeSdk {
             "`getAvailableServices` options",
         );
 
-        const headers: HeadersInit = {
+        const headers: RequestInit["headers"] = {
             Accept: "application/json",
         };
 
@@ -639,7 +642,7 @@ export class DigiMeSdkAuthorized {
         }
 
         if (as === "NodeReadable") {
-            return nodeReadableFromWeb(response.body);
+            return Readable.fromWeb(response.body);
         }
 
         return response.body;
@@ -673,7 +676,7 @@ export class DigiMeSdkAuthorized {
 
                 return new Request(new URL("permission-access/import", this.#config.digiMeSdkInstance.baseUrl), {
                     method: "POST",
-                    // @ts-expect-error Undici requires duplex option
+                    // // @ts-expect-error Undici requires duplex option
                     duplex: "half",
                     signal,
                     headers: {
@@ -783,9 +786,10 @@ export class DigiMeSdkAuthorized {
         });
     }
 
-    getVaultData() {
-        const { readable, writable } = new TransformStream<Record<string, unknown>, Record<string, unknown>>();
+    getVaultData(): ReadableStream<BaseObject> {
+        const { readable, writable } = new TransformStream<BaseObject, BaseObject>();
         const writer = writable.getWriter();
+
         const actor = createActor(sessionDataFetcherMachine, {
             input: {
                 sessionKey: undefined,
@@ -793,7 +797,6 @@ export class DigiMeSdkAuthorized {
                     return (await this.readSession()).key;
                 },
                 fetchFileList: async (sessionKey) => {
-                    console.log(`SessionKey: ${typeof sessionKey} - ${sessionKey}`);
                     return this.readFileList({ sessionKey });
                 },
                 processFile: async ({ sessionKey, fileName }) => {
@@ -805,8 +808,9 @@ export class DigiMeSdkAuthorized {
                     const stream = await file.asJsonStream();
 
                     for await (const object of streamAsyncIterator(stream)) {
-                        // @ts-expect-error TODO TODO TODO
-                        writer.write(object.value);
+                        const parsedObject = parseWithSchema(object.value, BaseObject);
+
+                        writer.write(parsedObject);
                     }
                 },
             },

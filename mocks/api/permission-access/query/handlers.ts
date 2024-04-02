@@ -7,13 +7,14 @@
  */
 
 import { http, HttpResponse } from "msw";
-import { createFileEncryptPipeline, createReadableStream, fromMockApiBase } from "../../../utilities";
+import { createFileEncryptPipeline, createReadStreamWeb, fromMockApiBase } from "../../../utilities";
 import { assertAcceptsJson, assertBearerToken, assertAcceptsOctetStream } from "../../../handler-utilities";
 import { randomInt } from "node:crypto";
 import { mockSdkConsumerCredentials } from "../../../sdk-consumer-credentials";
 import { nodeDuplexToWeb } from "../../../../src/node-streams";
 import { createBrotliCompress } from "node:zlib";
 import { MOCK_SESSION_CACHE, MOCK_SESSION_CONTENT_PATH } from "../../../session/mock-session";
+import { CompressionStream } from "node:stream/web";
 
 export const makeHandlers = (baseUrl?: string) => [
     // File handler
@@ -44,9 +45,7 @@ export const makeHandlers = (baseUrl?: string) => [
             throw new TypeError("TODO: No file");
         }
 
-        file.contentPath;
-
-        let dataStream = createReadableStream(new URL(file.contentPath, MOCK_SESSION_CONTENT_PATH), {
+        let dataStream = createReadStreamWeb(new URL(file.contentPath, MOCK_SESSION_CONTENT_PATH), {
             highWaterMark: randomInt(1, 101),
         });
 
@@ -81,6 +80,9 @@ export const makeHandlers = (baseUrl?: string) => [
         if (!session) {
             throw new TypeError("TODO: No session");
         }
+
+        // Always advance the sequence
+        session.advance();
 
         return HttpResponse.json(session.fileList());
     }),

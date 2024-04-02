@@ -3,28 +3,27 @@
  */
 
 import { Duplex, Readable } from "node:stream";
-import type { ReadableStream as NodeReadableStream } from "node:stream/web";
+import type { ReadableStream } from "node:stream/web";
+import type { TransformStream } from "node:stream/web";
 import { concatUint8Array } from "./concat-uint8array";
 
-// This exists solely because Node Web ReadableStream types do not match global DOM ReadableStream types
-export const nodeReadableFromWeb = (readableStream: ReadableStream): Readable =>
-    Readable.fromWeb(readableStream as NodeReadableStream);
-
-// This exists solely because Node Web ReadableStream types do not match global DOM ReadableStream types
-export const nodeReadableToWeb = <T = Uint8Array>(nodeReadable: Readable): ReadableStream<T> =>
-    Readable.toWeb(nodeReadable) as ReadableStream;
+/**
+ * This exists solely so the toWeb conversion can be given a type.
+ * Default conversion from Node Stream converts to `ReadableStream<any>` and accepts no type parameters
+ */
+export const nodeReadableToWeb = <T = unknown>(nodeReadable: Readable): ReadableStream<T> =>
+    Readable.toWeb(nodeReadable);
 
 /**
  * Convert Node.js Duplex to web TransformStream.
  *
- * NOTE: This exists solely because currently Node.js are wrong.
- * Duplex.toWeb results in a TransformStream, not a ReadableStream that the types annotate it as.
+ * NOTE: This exists solely because the Node.js types are currently wrong.
+ * `Duplex` types inherit from `Readable` and `Duplex.toWeb()` claims to return a `ReadableStream`.
+ * `Duplex.toWeb()` actually results in a TransformStream, as the @types/node claim.
  */
-export const nodeDuplexToWeb = <TInput = Uint8Array, TOutput = Uint8Array>(
+export const nodeDuplexToWeb = <TOutput = Uint8Array, TInput = Uint8Array>(
     duplex: Duplex,
-): TransformStream<TInput, TOutput> => {
-    return Duplex.toWeb(duplex) as unknown as TransformStream<TInput, TOutput>;
-};
+): TransformStream<TInput, TOutput> => Duplex.toWeb(duplex) as unknown as TransformStream<TInput, TOutput>;
 
 /**
  * Consume a string stream and return a textual representation

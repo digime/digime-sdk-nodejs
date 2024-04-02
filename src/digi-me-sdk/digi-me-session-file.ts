@@ -9,6 +9,7 @@ import { SessionFileHeaderMetadata } from "../schemas/api/session/session-file-h
 import { createBrotliDecompress } from "node:zlib";
 import { nodeDuplexToWeb, streamToText } from "../node-streams";
 import { DigiMeSdkError, DigiMeSdkTypeError } from "../errors/errors";
+import { DecompressionStream, ReadableStream, TextDecoderStream } from "node:stream/web";
 
 const DigiMeSessionFileHandlerOptions = z.object({
     input: z.instanceof(ReadableStream<Uint8Array>),
@@ -109,9 +110,13 @@ export class DigiMeSessionFile {
         }
     }
 
-    // TODO: Type correctly
-    async asJsonStream() {
+    /**
+     * Returns a stream of parsed JSON objects
+     */
+    async asJsonStream(): Promise<ReadableStream<{ key: number; value: unknown }>> {
         const { withParser } = await import("stream-json/streamers/StreamArray");
-        return (await this.textStream()).pipeThrough(nodeDuplexToWeb(withParser()));
+        return (await this.textStream()).pipeThrough(
+            nodeDuplexToWeb<{ key: number; value: unknown }, string>(withParser()),
+        );
     }
 }

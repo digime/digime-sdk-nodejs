@@ -12,7 +12,7 @@ export const MOCK_SESSION_CACHE = new LRUCache<string, MockSession>({
     max: 1000,
 });
 
-export const MOCK_SESSION_CONTENT_PATH = new URL("./content", import.meta.url);
+export const MOCK_SESSION_CONTENT_PATH = new URL("content/", import.meta.url).toString();
 
 type SessionUpdater = (mockSession: MockSession) => void;
 
@@ -40,6 +40,7 @@ export class MockSession {
     #state: SessionFileList["status"]["state"] = "pending";
     #files: MockSessionFile[] = [];
     #updateSequence: NonNullable<MockSessionConstructorOptions["updateSequence"]> = [
+        () => {}, // No change on the first step
         (mockSession) => {
             mockSession.addMappedFile();
         },
@@ -103,10 +104,15 @@ export class MockSession {
                 },
                 size: 25565,
             },
-            contentPath: "./test-mapped-file.json",
+            contentPath: "test-mapped-file.json",
         };
 
         this.#files.push(entry);
+
+        if (this.#state === "pending") {
+            this.#state = "running";
+        }
+
         return entry;
     }
 
@@ -132,10 +138,14 @@ export class MockSession {
                 name: `test-image.png`,
                 updatedDate: Math.round(Date.now() / 1000),
             },
-            contentPath: "./test-image.png",
+            contentPath: "test-image.png",
         };
 
         this.#files.push(entry);
+
+        if (this.#state === "pending") {
+            this.#state = "running";
+        }
 
         return entry;
     }

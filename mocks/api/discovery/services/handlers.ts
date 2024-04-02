@@ -3,7 +3,7 @@
  */
 
 import { http, HttpResponse } from "msw";
-import { createReadableStream, fromMockApiBase } from "../../../utilities";
+import { createReadStreamWeb, fromMockApiBase } from "../../../utilities";
 import { assertAcceptsJson } from "../../../handler-utilities";
 
 export const makeHandlers = (baseUrl?: string) => [
@@ -13,11 +13,11 @@ export const makeHandlers = (baseUrl?: string) => [
 
         if (request.headers.has("contractId")) {
             return new HttpResponse(
-                createReadableStream(new URL("./response-valid-with-contract-id.json", import.meta.url)),
+                createReadStreamWeb(new URL("./response-valid-with-contract-id.json", import.meta.url)),
             );
         }
 
-        return new HttpResponse(createReadableStream(new URL("./response-valid-default.json", import.meta.url)));
+        return new HttpResponse(createReadStreamWeb(new URL("./response-valid-default.json", import.meta.url)));
     }),
 ];
 

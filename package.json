@@ -5,6 +5,7 @@
   "main": "dist/main/index.js",
   "types": "dist/main/index.d.ts",
   "module": "dist/module/index.js",
+  "type": "module",
   "scripts": {
     "#build": "npm run clear-dist && npm run compile",
     "build": "tsup-node",
@@ -34,7 +35,7 @@
   "homepage": "https://github.com/digime/digime-sdk-nodejs#readme",
   "devDependencies": {
     "@types/debug": "~4.1.12",
-    "@types/node": "~18.18.8",
+    "@types/node": "~18.19.28",
     "@typescript-eslint/eslint-plugin": "~7.4.0",
     "@typescript-eslint/parser": "~7.4.0",
     "@vitest/coverage-v8": "~1.4.0",
