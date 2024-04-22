@@ -9,8 +9,9 @@ import { UserAccessToken, UserAccessTokenCodec } from "./types/user-access-token
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { ContractDetails, ContractDetailsCodec } from "./types/common";
 import * as t from "io-ts";
-import { DigiMeSDKError, TypeValidationError } from "./errors";
+import { TypeValidationError } from "./errors";
 import { codecAssertion, CodecAssertion } from "./utils/codec-assertion";
+import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
 
 export interface ReadAccountsOptions {
     contractDetails: ContractDetails;
@@ -61,6 +62,7 @@ export interface AccountsResponse {
 
 export type ReadAccountsResponse = {
     accounts: AccountsResponse[];
+    userAccessToken?: UserAccessToken;
 };
 
 const AccessTokenStatusCodec: t.Type<AccessTokenStatus> = t.intersection([
@@ -126,7 +128,7 @@ export const ReadAccountsOptionsCodec: t.Type<ReadAccountsOptions> = t.type({
     userAccessToken: UserAccessTokenCodec,
 });
 
-const readAccounts = async (
+const _readAccounts = async (
     options: ReadAccountsOptions,
     sdkConfig: SDKConfiguration
 ): Promise<ReadAccountsResponse> => {
@@ -139,39 +141,45 @@ const readAccounts = async (
     const { contractDetails, userAccessToken } = options;
     const { contractId, privateKey } = contractDetails;
 
-    try {
-        const jwt: string = sign(
-            {
-                access_token: userAccessToken.accessToken.value,
-                client_id: `${sdkConfig.applicationId}_${contractId}`,
-                nonce: getRandomAlphaNumeric(32),
-                timestamp: Date.now(),
-            },
-            privateKey.toString(),
-            {
-                algorithm: "PS512",
-                noTimestamp: true,
-            }
-        );
+    const jwt: string = sign(
+        {
+            access_token: userAccessToken.accessToken.value,
+            client_id: `${sdkConfig.applicationId}_${contractId}`,
+            nonce: getRandomAlphaNumeric(32),
+            timestamp: Date.now(),
+        },
+        privateKey.toString(),
+        {
+            algorithm: "PS512",
+            noTimestamp: true,
+        }
+    );
 
-        const url = `${sdkConfig.baseUrl}permission-access/accounts`;
+    const url = `${sdkConfig.baseUrl}permission-access/accounts`;
 
-        const response = await net.get(url, {
-            headers: {
-                Authorization: `Bearer ${jwt}`,
-            },
-            responseType: "json",
-            retry: sdkConfig.retryOptions,
-        });
+    const response = await net.get(url, {
+        headers: {
+            Authorization: `Bearer ${jwt}`,
+        },
+        responseType: "json",
+        retry: sdkConfig.retryOptions,
+    });
 
-        const formatedAccounts = { accounts: response.body };
+    const formatedAccounts = {
+        accounts: response.body,
+        userAccessToken,
+    };
 
-        assertIsReadAccountsResponse(formatedAccounts);
+    assertIsReadAccountsResponse(formatedAccounts);
 
-        return formatedAccounts;
-    } catch (error) {
-        throw new DigiMeSDKError("Problem with getting user account list");
-    }
+    return formatedAccounts;
+};
+
+const readAccounts = async (
+    props: ReadAccountsOptions,
+    sdkConfiguration: SDKConfiguration
+): Promise<ReadAccountsResponse> => {
+    return refreshTokenWrapper(_readAccounts, props, sdkConfiguration);
 };
 
 export { readAccounts };
