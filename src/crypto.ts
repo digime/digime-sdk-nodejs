@@ -5,6 +5,9 @@
 import crypto from "crypto";
 import NodeRSA from "node-rsa";
 import { FileDecryptionError } from "./errors";
+import stream from "stream";
+import { CipherTransform } from "./cipher-transform";
+import { DecipherTransform } from "./decipher-transform";
 
 const BYTES = {
     DSK: [0, 256],
@@ -39,21 +42,13 @@ const decryptData = (key: NodeRSA, file: Buffer): Buffer => {
     return data;
 };
 
-const encryptBuffer = (iv: Buffer, key: Buffer, input: Buffer): Buffer => {
-    const cipher: crypto.Cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
-    return Buffer.concat([cipher.update(input), cipher.final()]);
+const createEncryptStream = (privateKey: string): stream.Transform => {
+    return new CipherTransform(privateKey);
 };
 
-const encryptStream = (iv: Buffer, key: Buffer, input: NodeJS.ReadableStream): NodeJS.WritableStream => {
-    const cipher: crypto.Cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
-    return input.pipe(cipher);
+const createDecryptStream = (privateKey: string): stream.Transform => {
+    return new DecipherTransform(privateKey);
 };
-
-const getRandomHex = (size: number): string =>
-    crypto
-        .randomBytes(Math.ceil(size / 2))
-        .toString("hex")
-        .slice(0, size);
 
 const getRandomAlphaNumeric = (size: number): string => {
     const charsLength: number = ALPHA_NUMERIC.length;
@@ -70,4 +65,4 @@ const getRandomAlphaNumeric = (size: number): string => {
 
 const hashSha256 = (data: string | Buffer): Buffer => crypto.createHash("sha256").update(data).digest();
 
-export { encryptBuffer, encryptStream, decryptData, getRandomHex, getRandomAlphaNumeric, hashSha256 };
+export { decryptData, getRandomAlphaNumeric, hashSha256, createEncryptStream, createDecryptStream };
