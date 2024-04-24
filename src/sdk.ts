@@ -31,6 +31,20 @@ import { QuerySourcesOptions, QuerySourcesResponse } from "./query-sources";
 import { QueryCountriesOptions, QueryCountriesResponse } from "./query-countries";
 import { QueryPlatformsOptions, QueryPlatformsResponse } from "./query-platforms";
 import { QueryCategoriesOptions, QueryCategoriesResponse } from "./query-categories";
+import {
+    CreateProvisionalStorageOptions,
+    CreateProvisionalStorageResponse,
+    ListStorageFilesOptions,
+    ListStorageFilesResponse,
+    DownloadStorageFileOptions,
+    DownloadStorageFileResponse,
+    DeleteStorageFilesOptions,
+    DeleteStorageFilesResponse,
+    UploadFileToStorageOptions,
+    UploadFileToStorageResponse,
+    GetUserStorageResponse,
+    GetUserStorageOptions,
+} from "./storage";
 
 export interface DigimeSDK {
     /**
@@ -181,4 +195,40 @@ export interface DigimeSDK {
      * @category Read
      */
     getServiceSampleDataSets: (props: GetServiceSampleDataSetsOptions) => Promise<GetServiceSampleDataSetsResponse>;
+
+    /** Create provisional storage
+     *
+     * @category Storage
+     */
+    createProvisionalStorage: (props: CreateProvisionalStorageOptions) => Promise<CreateProvisionalStorageResponse>;
+
+    /** List storage files
+     *
+     * @category Storage
+     */
+    listStorageFiles: (props: ListStorageFilesOptions) => Promise<ListStorageFilesResponse>;
+
+    /** Download file from storage by path
+     *
+     * @category Storage
+     */
+    downloadStorageFile: (props: DownloadStorageFileOptions) => Promise<DownloadStorageFileResponse>;
+
+    /** Download file from storage by path
+     *
+     * @category Storage
+     */
+    deleteStorageFiles: (props: DeleteStorageFilesOptions) => Promise<DeleteStorageFilesResponse>;
+
+    /** Upload file to storage by path
+     *
+     * @category Storage
+     */
+    uploadFileToStorage: (props: UploadFileToStorageOptions) => Promise<UploadFileToStorageResponse>;
+
+    /** Get storage for existing user
+     *
+     * @category Storage
+     */
+    getUserStorage: (props: GetUserStorageOptions) => Promise<GetUserStorageResponse>;
 }

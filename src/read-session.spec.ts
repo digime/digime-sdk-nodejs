@@ -358,6 +358,9 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             expect(error.error).toEqual({
                 code: "InvalidToken",
                 message: "The token (${tokenType}) is invalid",
+                reference: "Unknown reference",
+                statusCode: 401,
+                statusMessage: "Unauthorized",
             });
         });
     });

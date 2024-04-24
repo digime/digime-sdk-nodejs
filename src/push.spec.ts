@@ -301,6 +301,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     code: "InvalidRedirectUri",
                     message: "The redirect_uri (${redirectUri}) is invalid",
                     reference: "3Wb9vDEsv4ODYKaoP6lQKCbZu9rnJ6UH",
+                    statusCode: 404,
+                    statusMessage: "Not Found",
                 });
             });
         });
