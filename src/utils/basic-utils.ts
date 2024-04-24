@@ -15,7 +15,21 @@ export const isPlainObject = (o: unknown): o is { [key: string]: unknown } => is
 
 export const addTrailingSlash = (url: unknown): string | undefined => {
     if (isNonEmptyString(url)) {
-        return url.slice(-1) !== "/" ? `${url}/` : url;
+        return !url.endsWith("/") ? `${url}/` : url;
     }
     return undefined;
+};
+
+export const addLeadingSlash = (url: unknown): string | undefined => {
+    if (isNonEmptyString(url)) {
+        return !url.startsWith("/") ? `/${url}` : url;
+    }
+    return undefined;
+};
+
+export const addLeadingAndTrailingSlash = (url: unknown): string | undefined => {
+    if (isNonEmptyString(url)) {
+        return url.replace(/^\/?([^/]+(?:\/[^/]+)*)\/?$/, "/$1/");
+    }
+    return "/";
 };

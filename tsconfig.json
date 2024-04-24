@@ -140,6 +140,30 @@
                             "source": "access-token.md"
                         },
                         {
+                            "name": "Storage",
+                            "source": "storage-create.md",
+                            "childrenSourceDir": "../guides",
+                            "children": [
+                                {
+                                    "name": "Upload files to storage",
+                                    "source": "storage-upload.md"
+                                },
+                                {
+                                    "name": "List storage files",
+                                    "source": "storage-list.md"
+                                },
+                                {
+                                    "name": "Download storage files",
+                                    "source": "storage-download.md"
+                                },
+                                {
+                                    "name": "Delete storage files",
+                                    "source": "storage-delete.md"
+                                }
+                            ]
+                        }
+                        ,
+                        {
                             "name": "Handling Errors",
                             "source": "handling-errors.md"
                         },
