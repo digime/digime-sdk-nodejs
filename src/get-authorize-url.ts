@@ -81,6 +81,11 @@ export interface GetAuthorizeUrlOptions {
      * Flag to indicate if we should include sample data only sources. Default is false.
      */
     includeSampleDataOnlySources?: boolean;
+
+    /**
+     * Provide storage.id returned createProvisionalStorage to connect this storage to created user
+     */
+    storageId?: string;
 }
 
 export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.intersection([
@@ -99,6 +104,7 @@ export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.int
         sampleData: SampleDataOptionsCodec,
         locale: t.string,
         includeSampleDataOnlySources: t.boolean,
+        storageId: t.string,
     }),
 ]);
 
@@ -137,6 +143,11 @@ const getAuthorizeUrl = async (
     const { code, codeVerifier, session } = await _authorize(props, sdkConfig);
     const { serviceId, sourceType, sampleData, locale, includeSampleDataOnlySources } = props;
 
+    let storageRef = undefined;
+    if (props.storageId) {
+        storageRef = await _storageReference(props, sdkConfig);
+    }
+
     const result: URL = new URL(`${sdkConfig.onboardUrl}authorize`);
     result.search = new URLSearchParams({
         code,
@@ -148,6 +159,7 @@ const getAuthorizeUrl = async (
         ...(includeSampleDataOnlySources !== undefined && {
             includeSampleDataOnlySources: includeSampleDataOnlySources.toString(),
         }),
+        ...(storageRef && { storageRef: storageRef }),
     }).toString();
 
     return {
@@ -223,6 +235,44 @@ const _authorize = async (
             code: `${get(payload, ["preauthorization_code"])}`,
             session,
         };
+    } catch (error) {
+        handleServerResponse(error);
+        throw error;
+    }
+};
+
+const _storageReference = async (
+    { storageId, contractDetails }: GetAuthorizeUrlOptions,
+    sdkConfig: SDKConfiguration
+): Promise<string> => {
+    const { contractId, privateKey } = contractDetails;
+    const jwt: string = sign(
+        {
+            client_id: `${sdkConfig.applicationId}_${contractId}`,
+            nonce: getRandomAlphaNumeric(32),
+            timestamp: Date.now(),
+        },
+        privateKey.toString(),
+        {
+            algorithm: "PS512",
+            noTimestamp: true,
+        }
+    );
+    try {
+        const { body } = await net.post(`${sdkConfig.baseUrl}reference`, {
+            headers: {
+                Authorization: `Bearer ${jwt}`,
+            },
+            json: {
+                type: "cloudId",
+                value: storageId,
+            },
+            responseType: "json",
+        });
+
+        const ref = get(body, "id", {} as string);
+
+        return ref;
     } catch (error) {
         handleServerResponse(error);
         throw error;

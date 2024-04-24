@@ -33,5 +33,17 @@ export { QuerySourcesOptions, QuerySourcesResponse } from "./query-sources";
 export { QueryCountriesOptions, QueryCountriesResponse } from "./query-countries";
 export { QueryPlatformsOptions, QueryPlatformsResponse } from "./query-platforms";
 export { QueryCategoriesOptions, QueryCategoriesResponse } from "./query-categories";
+export {
+    CreateProvisionalStorageOptions,
+    CreateProvisionalStorageResponse,
+    ListStorageFilesOptions,
+    ListStorageFilesResponse,
+    DownloadStorageFileOptions,
+    DownloadStorageFileResponse,
+    DeleteStorageFilesOptions,
+    DeleteStorageFilesResponse,
+    UploadFileToStorageOptions,
+    UploadFileToStorageResponse,
+} from "./storage";
 
 export * from "./codecs";

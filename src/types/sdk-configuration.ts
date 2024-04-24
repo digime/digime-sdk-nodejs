@@ -27,6 +27,11 @@ export interface SDKConfiguration {
      * See {@link https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/got/index.d.ts#L267 | here} for all possible options
      */
     retryOptions?: RetryOptions;
+
+    /**
+     * Cloud URL for the digi.me API. Default is https://cloud.digi.me/v1/
+     */
+    cloudBaseUrl?: string;
 }
 
 export const SDKConfigurationCodec: t.Type<SDKConfiguration> = t.intersection([

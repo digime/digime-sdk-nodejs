@@ -5,7 +5,7 @@
 import got, { HTTPError } from "got";
 import type { Got } from "got";
 import { ServerError, SDKInvalidError } from "./errors";
-import { isApiErrorResponse } from "./types/api/api-error-response";
+import { isApiErrorResponse, isStorageApiErrorCodec } from "./types/api/api-error-response";
 import isString from "lodash.isstring";
 
 export const net: Got = got;
@@ -30,17 +30,43 @@ export const handleServerResponse = (error: Error | unknown): void => {
         }
     }
 
-    if (!isApiErrorResponse(body)) {
+    if (!isApiErrorResponse(body) && !isStorageApiErrorCodec(body)) {
         return;
     }
 
-    const { code, message } = body.error;
+    let code: string | undefined = undefined;
+    let message: string | undefined = undefined;
+    let statusCode: number | undefined = undefined;
+    let statusMessage: string | undefined = undefined;
 
-    if (code === "SDKInvalid" || code === "SDKVersionInvalid") {
-        throw new SDKInvalidError(message, body.error);
+    if (isString(body.error) || isString(body.message)) {
+        code = body.error?.toString();
+        message = body.message?.toString();
+    } else {
+        code = body?.error?.code;
+        message = body?.error?.message;
     }
 
-    throw new ServerError(message, body.error);
+    if (error?.response?.statusCode && error?.response?.statusMessage) {
+        statusCode = error?.response?.statusCode;
+        statusMessage = error?.response?.statusMessage.toString();
+    }
+
+    if (code === "SDKInvalid" || code === "SDKVersionInvalid") {
+        throw new SDKInvalidError(message || "Invalid SDK version", {
+            code,
+            message: message || "Invalid SDK version",
+            statusCode,
+            statusMessage,
+        });
+    }
+
+    throw new ServerError(message || "Server error", {
+        code: code || "DigiMeServerError",
+        message: message || "Server error",
+        statusCode,
+        statusMessage,
+    });
 };
 
 export const shouldThrowError = (error: Error | unknown): void => {
@@ -55,7 +81,7 @@ export const shouldThrowError = (error: Error | unknown): void => {
 
     const body: unknown = error.response.body;
 
-    if (isApiErrorResponse(body) && body.error.code !== "InvalidToken") {
+    if (isApiErrorResponse(body) && body?.error?.code !== "InvalidToken") {
         handleServerResponse(error);
         throw error;
     }

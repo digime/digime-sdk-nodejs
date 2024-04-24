@@ -29,7 +29,20 @@ import { querySources, QuerySourcesOptions } from "./query-sources";
 import { queryCountries, QueryCountriesOptions } from "./query-countries";
 import { queryPlatforms, QueryPlatformsOptions } from "./query-platforms";
 import { queryCategories, QueryCategoriesOptions } from "./query-categories";
+import {
+    createProvisionalStorage,
+    CreateProvisionalStorageOptions,
+    listStorageFiles,
+    ListStorageFilesOptions,
+    downloadStorageFile,
+    DownloadStorageFileOptions,
+    deleteStorageFiles,
+    DeleteStorageFilesOptions,
+    UploadFileToStorageOptions,
+    uploadFileToStorage,
+} from "./storage";
 
+const CLOUD_BASE_URL = "https://cloud.digi.me/v1/";
 const DEFAULT_BASE_URL = "https://api.digi.me/v1.7/";
 const DEFAULT_ONBOARD_URL = "https://api.digi.me/apps/saas/";
 const DEFAULT_RETRIES_OPTIONS = {
@@ -44,6 +57,7 @@ const init = (config: SDKConfiguration): DigimeSDK => {
     const sdkConfig: SDKConfiguration = {
         ...config,
         baseUrl: addTrailingSlash(config.baseUrl) || DEFAULT_BASE_URL,
+        cloudBaseUrl: addTrailingSlash(config.cloudBaseUrl) || CLOUD_BASE_URL,
         onboardUrl: addTrailingSlash(config.onboardUrl) || DEFAULT_ONBOARD_URL,
         retryOptions: config.retryOptions || DEFAULT_RETRIES_OPTIONS,
     };
@@ -78,6 +92,12 @@ const init = (config: SDKConfiguration): DigimeSDK => {
         queryCountries: (props: QueryCountriesOptions) => queryCountries(props, sdkConfig),
         queryPlatforms: (props: QueryPlatformsOptions) => queryPlatforms(props, sdkConfig),
         queryCategories: (props: QueryCategoriesOptions) => queryCategories(props, sdkConfig),
+        createProvisionalStorage: (props: CreateProvisionalStorageOptions) =>
+            createProvisionalStorage(props, sdkConfig),
+        listStorageFiles: (props: ListStorageFilesOptions) => listStorageFiles(props, sdkConfig),
+        downloadStorageFile: (props: DownloadStorageFileOptions) => downloadStorageFile(props, sdkConfig),
+        deleteStorageFiles: (props: DeleteStorageFilesOptions) => deleteStorageFiles(props, sdkConfig),
+        uploadFileToStorage: (props: UploadFileToStorageOptions) => uploadFileToStorage(props, sdkConfig),
     };
 };
 
