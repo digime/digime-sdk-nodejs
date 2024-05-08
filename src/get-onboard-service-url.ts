@@ -116,24 +116,8 @@ const _getOnboardServiceUrl = async (
     } = props;
     const { contractId, privateKey } = contractDetails;
 
-    const jwt: string = sign(
-        {
-            access_token: userAccessToken.accessToken.value,
-            client_id: `${sdkConfig.applicationId}_${contractId}`,
-            nonce: getRandomAlphaNumeric(32),
-            redirect_uri: callback,
-            timestamp: Date.now(),
-        },
-        privateKey.toString(),
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        }
-    );
-
     const response = await net.post(`${sdkConfig.baseUrl}oauth/token/reference`, {
         headers: {
-            Authorization: `Bearer ${jwt}`,
             "Content-Type": "application/json",
         },
         json: {
@@ -149,6 +133,27 @@ const _getOnboardServiceUrl = async (
             actions: sessionOptions,
         },
         responseType: "json",
+        hooks: {
+            beforeRequest: [
+                (options) => {
+                    const jwt: string = sign(
+                        {
+                            access_token: userAccessToken.accessToken.value,
+                            client_id: `${sdkConfig.applicationId}_${contractId}`,
+                            nonce: getRandomAlphaNumeric(32),
+                            redirect_uri: callback,
+                            timestamp: Date.now(),
+                        },
+                        privateKey.toString(),
+                        {
+                            algorithm: "PS512",
+                            noTimestamp: true,
+                        }
+                    );
+                    options.headers["Authorization"] = `Bearer ${jwt}`;
+                },
+            ],
+        },
     });
 
     const payload = await getPayloadFromToken(get(response.body, "token"), sdkConfig);

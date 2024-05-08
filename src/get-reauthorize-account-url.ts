@@ -72,28 +72,33 @@ const _accountReference = async (
     sdkConfig: SDKConfiguration
 ): Promise<string> => {
     const { contractId, privateKey } = contractDetails;
-    const jwt: string = sign(
-        {
-            client_id: `${sdkConfig.applicationId}_${contractId}`,
-            nonce: getRandomAlphaNumeric(32),
-            timestamp: Date.now(),
-        },
-        privateKey.toString(),
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        }
-    );
+
     try {
         const { body } = await net.post(`${sdkConfig.baseUrl}reference`, {
-            headers: {
-                Authorization: `Bearer ${jwt}`,
-            },
             json: {
                 type: "accountId",
                 value: accountId,
             },
             responseType: "json",
+            hooks: {
+                beforeRequest: [
+                    (options) => {
+                        const jwt: string = sign(
+                            {
+                                client_id: `${sdkConfig.applicationId}_${contractId}`,
+                                nonce: getRandomAlphaNumeric(32),
+                                timestamp: Date.now(),
+                            },
+                            privateKey.toString(),
+                            {
+                                algorithm: "PS512",
+                                noTimestamp: true,
+                            }
+                        );
+                        options.headers["Authorization"] = `Bearer ${jwt}`;
+                    },
+                ],
+            },
         });
 
         const ref = get(body, "id", {} as string);
@@ -120,24 +125,8 @@ const _getReauthorizeAccountUrl = async (
     const { userAccessToken, contractDetails, callback, locale } = props;
     const { contractId, privateKey } = contractDetails;
 
-    const jwt: string = sign(
-        {
-            access_token: userAccessToken.accessToken.value,
-            client_id: `${sdkConfig.applicationId}_${contractId}`,
-            nonce: getRandomAlphaNumeric(32),
-            redirect_uri: callback,
-            timestamp: Date.now(),
-        },
-        privateKey.toString(),
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        }
-    );
-
     const response = await net.post(`${sdkConfig.baseUrl}oauth/token/reference`, {
         headers: {
-            Authorization: `Bearer ${jwt}`,
             "Content-Type": "application/json",
         },
         json: {
@@ -152,6 +141,27 @@ const _getReauthorizeAccountUrl = async (
             },
         },
         responseType: "json",
+        hooks: {
+            beforeRequest: [
+                (options) => {
+                    const jwt: string = sign(
+                        {
+                            access_token: userAccessToken.accessToken.value,
+                            client_id: `${sdkConfig.applicationId}_${contractId}`,
+                            nonce: getRandomAlphaNumeric(32),
+                            redirect_uri: callback,
+                            timestamp: Date.now(),
+                        },
+                        privateKey.toString(),
+                        {
+                            algorithm: "PS512",
+                            noTimestamp: true,
+                        }
+                    );
+                    options.headers["Authorization"] = `Bearer ${jwt}`;
+                },
+            ],
+        },
     });
 
     const payload = await getPayloadFromToken(get(response.body, "token"), sdkConfig);

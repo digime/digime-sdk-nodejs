@@ -139,26 +139,32 @@ const queryCategories = async (
         },
     };
 
-    const jwt: string = sign(
-        {
-            client_id: `${sdkConfig.applicationId}_${contractId}`,
-            nonce: getRandomAlphaNumeric(32),
-            timestamp: Date.now(),
-        },
-        privateKey.toString(),
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        }
-    );
-
     const response = await net.post(`${sdkConfig.baseUrl}discovery/categories`, {
         headers: {
-            Authorization: `Bearer ${jwt}`,
             "Content-Type": "application/json",
         },
         json: bodyParams,
         responseType: "json",
+        retry: { ...sdkConfig.retryOptions, methods: ["POST"] },
+        hooks: {
+            beforeRequest: [
+                (options) => {
+                    const jwt: string = sign(
+                        {
+                            client_id: `${sdkConfig.applicationId}_${contractId}`,
+                            nonce: getRandomAlphaNumeric(32),
+                            timestamp: Date.now(),
+                        },
+                        privateKey.toString(),
+                        {
+                            algorithm: "PS512",
+                            noTimestamp: true,
+                        }
+                    );
+                    options.headers["Authorization"] = `Bearer ${jwt}`;
+                },
+            ],
+        },
     });
 
     assertIsCategoriesApiData(response.body);

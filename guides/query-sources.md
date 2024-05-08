@@ -76,6 +76,9 @@ const sourcesBodyParams = {
             platform: {
                 <filter by array of platforms IDs>,
             },
+            /**
+             * Currently 2 possible types. Pull (1) or push (2). Default type is pull (1)
+             */
             type: {
                 id: <filter by array of type IDs>,
             },

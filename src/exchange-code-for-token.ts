@@ -44,29 +44,32 @@ const exchangeCodeForToken = async (
     const { authorizationCode, codeVerifier, contractDetails } = options;
     const { contractId, privateKey } = contractDetails;
 
-    const jwt: string = sign(
-        {
-            client_id: `${sdkConfig.applicationId}_${contractId}`,
-            code: authorizationCode,
-            code_verifier: codeVerifier,
-            grant_type: "authorization_code",
-            nonce: getRandomAlphaNumeric(32),
-            timestamp: Date.now(),
-        },
-        privateKey,
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        }
-    );
-
     try {
         const response = await net.post(`${sdkConfig.baseUrl}oauth/token`, {
-            headers: {
-                Authorization: `Bearer ${jwt}`,
-            },
             responseType: "json",
             retry: sdkConfig.retryOptions,
+            hooks: {
+                beforeRequest: [
+                    (options) => {
+                        const jwt: string = sign(
+                            {
+                                client_id: `${sdkConfig.applicationId}_${contractId}`,
+                                code: authorizationCode,
+                                code_verifier: codeVerifier,
+                                grant_type: "authorization_code",
+                                nonce: getRandomAlphaNumeric(32),
+                                timestamp: Date.now(),
+                            },
+                            privateKey,
+                            {
+                                algorithm: "PS512",
+                                noTimestamp: true,
+                            }
+                        );
+                        options.headers["Authorization"] = `Bearer ${jwt}`;
+                    },
+                ],
+            },
         });
 
         const payload = await getPayloadFromToken(get(response.body, "token"), sdkConfig);
