@@ -47,26 +47,12 @@ const _readSession = async (options: ReadSessionOptions, sdkConfig: SDKConfigura
     const { contractDetails, userAccessToken, sessionOptions } = options;
 
     const { contractId, privateKey } = contractDetails;
-    const jwt: string = sign(
-        {
-            access_token: userAccessToken.accessToken.value,
-            client_id: `${sdkConfig.applicationId}_${contractId}`,
-            nonce: getRandomAlphaNumeric(32),
-            timestamp: Date.now(),
-        },
-        privateKey.toString(),
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        }
-    );
 
     const url = `${sdkConfig.baseUrl}permission-access/trigger`;
 
     const response = await net.post(url, {
         headers: {
-            Authorization: `Bearer ${jwt}`,
-            "Content-Type": "application/json", // NOTE: we might not need this
+            "Content-Type": "application/json",
         },
         json: {
             ...sessionOptions,
@@ -81,6 +67,26 @@ const _readSession = async (options: ReadSessionOptions, sdkConfig: SDKConfigura
             },
         },
         responseType: "json",
+        hooks: {
+            beforeRequest: [
+                (options) => {
+                    const jwt: string = sign(
+                        {
+                            access_token: userAccessToken.accessToken.value,
+                            client_id: `${sdkConfig.applicationId}_${contractId}`,
+                            nonce: getRandomAlphaNumeric(32),
+                            timestamp: Date.now(),
+                        },
+                        privateKey.toString(),
+                        {
+                            algorithm: "PS512",
+                            noTimestamp: true,
+                        }
+                    );
+                    options.headers["Authorization"] = `Bearer ${jwt}`;
+                },
+            ],
+        },
     });
 
     const session: unknown = get(response, "body.session");

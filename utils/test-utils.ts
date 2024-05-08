@@ -12,6 +12,7 @@ import NodeRSA from "node-rsa";
 import { gzipSync, brotliCompressSync } from "zlib";
 import type { ClientRequest } from "http";
 import base64url from "base64url";
+import { verify } from "jsonwebtoken";
 
 interface CreateCADataOptions {
     compression?: "no-compression" | "brotli" | "gzip";
@@ -146,6 +147,96 @@ const parseMetaToHeader = (meta: Record<string, unknown>): string => {
     return base64url.encode(JSON.stringify(meta));
 };
 
+export const formatBodyError = ({
+    code,
+    message,
+    reference = "--MOCKED ERROR--",
+}: {
+    code: string;
+    message: string;
+    reference?: string | undefined;
+}) => ({
+    error: {
+        code,
+        message,
+        reference,
+    },
+});
+
+export const formatHeadersError = ({
+    code,
+    message,
+    reference = "--MOCKED ERROR--",
+}: {
+    code: string;
+    message: string;
+    reference?: string | undefined;
+}) => ({
+    "X-Error-Code": code,
+    "X-Error-Message": message,
+    "X-Error-Reference": reference,
+});
+
+/**
+ * Cache for nonces within the bearer tokens
+ */
+const seenNonces = new Set();
+
+/**
+ * Mimics the way Digi.me API handles the request with an invalid Authorization header
+ */
+const getBearerTokenErrorResponse = (
+    request: nock.ReplyFnContext["req"],
+    publicKey: string
+): undefined | nock.ReplyFnResult => {
+    const authorization = request.headers["authorization"] as unknown;
+    const error = { code: "ValidationErrors", message: "Parameter validation errors" };
+    const bodyError = formatBodyError(error);
+    const headersError = formatHeadersError(error);
+
+    if (!authorization || typeof authorization !== "string") {
+        //ReplyFnResult
+        return [406, bodyError, headersError];
+    }
+
+    const [type, token] = authorization.split(" ");
+
+    if (!type || !token) {
+        return [406, bodyError, headersError];
+    }
+
+    // Verify signature
+    let payload;
+    try {
+        payload = verify(token, publicKey);
+    } catch (error) {
+        return [406, bodyError, headersError];
+    }
+
+    if (typeof payload === "string") {
+        return [400]; //TODO
+    }
+
+    const nonce: unknown = payload.nonce;
+
+    if (typeof nonce !== "string") {
+        return [400]; //TODO
+    }
+
+    if (nonce) {
+        if (seenNonces.has(nonce)) {
+            const nonceError = {
+                code: "InvalidRequest",
+                message: `The nonce provided in JWT payload (${nonce}) has already been used`,
+            };
+            return [406, formatBodyError(nonceError), formatHeadersError(nonceError)];
+        } else {
+            seenNonces.add(nonce);
+        }
+    }
+    return undefined;
+};
+
 export {
     loadDefinitions,
     loadScopeDefinitions,
@@ -153,4 +244,5 @@ export {
     fileContentToCAFormat,
     spyOnScopeRequests,
     parseMetaToHeader,
+    getBearerTokenErrorResponse,
 };
