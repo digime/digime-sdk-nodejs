@@ -20,30 +20,36 @@ export interface RefreshTokenOptions {
 const refreshToken = async (options: RefreshTokenOptions, sdkConfig: SDKConfiguration): Promise<UserAccessToken> => {
     const { contractDetails, userAccessToken } = options;
     const { contractId, privateKey } = contractDetails;
-    const jwt: string = sign(
-        {
-            client_id: `${sdkConfig.applicationId}_${contractId}`,
-            grant_type: "refresh_token",
-            nonce: getRandomAlphaNumeric(32),
-            refresh_token: userAccessToken.refreshToken.value,
-            timestamp: Date.now(),
-        },
-        privateKey.toString(),
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        }
-    );
 
     const url = `${sdkConfig.baseUrl}oauth/token`;
 
     try {
         const response = await net.post(url, {
             headers: {
-                Authorization: `Bearer ${jwt}`,
-                "Content-Type": "application/json", // NOTE: we might not need this
+                "Content-Type": "application/json",
             },
             responseType: "json",
+            hooks: {
+                beforeRequest: [
+                    (options) => {
+                        const jwt: string = sign(
+                            {
+                                client_id: `${sdkConfig.applicationId}_${contractId}`,
+                                grant_type: "refresh_token",
+                                nonce: getRandomAlphaNumeric(32),
+                                refresh_token: userAccessToken.refreshToken.value,
+                                timestamp: Date.now(),
+                            },
+                            privateKey.toString(),
+                            {
+                                algorithm: "PS512",
+                                noTimestamp: true,
+                            }
+                        );
+                        options.headers["Authorization"] = `Bearer ${jwt}`;
+                    },
+                ],
+            },
         });
 
         const payload = await getPayloadFromToken(get(response.body, "token"), sdkConfig);

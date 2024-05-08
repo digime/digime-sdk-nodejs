@@ -78,26 +78,31 @@ const fetchFile = async (options: ReadFileOptionsFormated, sdkConfig: SDKConfigu
     const { sessionKey, fileName, userAccessToken } = options;
     const { privateKey, contractId } = options.contractDetails;
 
-    const jwt: string = sign(
-        {
-            access_token: userAccessToken.accessToken.value,
-            client_id: `${sdkConfig.applicationId}_${contractId}`,
-            nonce: getRandomAlphaNumeric(32),
-            timestamp: Date.now(),
-        },
-        privateKey.toString(),
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        }
-    );
-
     const response = await net.get(`${sdkConfig.baseUrl}permission-access/query/${sessionKey}/${fileName}`, {
         headers: {
             accept: "application/octet-stream",
-            Authorization: `Bearer ${jwt}`,
         },
         responseType: "buffer",
+        hooks: {
+            beforeRequest: [
+                (options) => {
+                    const jwt: string = sign(
+                        {
+                            access_token: userAccessToken.accessToken.value,
+                            client_id: `${sdkConfig.applicationId}_${contractId}`,
+                            nonce: getRandomAlphaNumeric(32),
+                            timestamp: Date.now(),
+                        },
+                        privateKey.toString(),
+                        {
+                            algorithm: "PS512",
+                            noTimestamp: true,
+                        }
+                    );
+                    options.headers["Authorization"] = `Bearer ${jwt}`;
+                },
+            ],
+        },
     });
 
     const fileContent: Buffer = response.body as Buffer;

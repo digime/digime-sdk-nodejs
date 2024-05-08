@@ -227,6 +227,9 @@ export interface SourcesBodyParams {
             platform?: {
                 id: number[];
             };
+            /**
+             * Possible types are pull (1) and push (2). Default is pull - [1].
+             */
             type?: {
                 id: number[];
             };
@@ -327,26 +330,32 @@ const querySources = async (
         },
     };
 
-    const jwt: string = sign(
-        {
-            client_id: `${sdkConfig.applicationId}_${contractId}`,
-            nonce: getRandomAlphaNumeric(32),
-            timestamp: Date.now(),
-        },
-        privateKey.toString(),
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        }
-    );
-
     const response = await net.post(`${sdkConfig.baseUrl}discovery/sources`, {
         headers: {
-            Authorization: `Bearer ${jwt}`,
             "Content-Type": "application/json",
         },
         json: bodyParams,
         responseType: "json",
+        retry: { ...sdkConfig.retryOptions, methods: ["POST"] },
+        hooks: {
+            beforeRequest: [
+                (options) => {
+                    const jwt: string = sign(
+                        {
+                            client_id: `${sdkConfig.applicationId}_${contractId}`,
+                            nonce: getRandomAlphaNumeric(32),
+                            timestamp: Date.now(),
+                        },
+                        privateKey.toString(),
+                        {
+                            algorithm: "PS512",
+                            noTimestamp: true,
+                        }
+                    );
+                    options.headers["Authorization"] = `Bearer ${jwt}`;
+                },
+            ],
+        },
     });
 
     assertIsSourcesApiData(response.body);

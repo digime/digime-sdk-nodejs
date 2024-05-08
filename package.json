@@ -1,6 +1,6 @@
 {
   "name": "@digime/digime-sdk-nodejs",
-  "version": "13.0.1",
+  "version": "13.1.0-rc.1",
   "description": "Node.JS SDK for digi.me",
   "main": "dist/main/index.js",
   "types": "dist/main/index.d.ts",
@@ -13,7 +13,7 @@
     "clear-dist": "rimraf ./dist",
     "lint": "eslint . --max-warnings=0",
     "lint-fix": "eslint --fix . --ext .js,.ts",
-    "test": "./node_modules/.bin/jest --coverage --config=jest-config.json",
+    "test": "./node_modules/.bin/jest --coverage --silent=false --config=jest-config.json",
     "version": "ts-node ./tools/update-sdk-version.ts",
     "generate-docs": "./node_modules/.bin/typedoc",
     "preversion": "npm run test"

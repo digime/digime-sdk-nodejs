@@ -168,33 +168,9 @@ const _authorize = async (
     sdkConfig: SDKConfiguration
 ): Promise<AuthorizeResponse> => {
     const { contractId, privateKey } = contractDetails;
-
-    const codeVerifier: string = base64url(getRandomAlphaNumeric(32));
-    const jwt: string = sign(
-        {
-            access_token: userAccessToken?.accessToken.value,
-            client_id: `${sdkConfig.applicationId}_${contractId}`,
-            code_challenge: base64url(hashSha256(codeVerifier)),
-            code_challenge_method: "S256",
-            nonce: getRandomAlphaNumeric(32),
-            redirect_uri: callback,
-            response_mode: "query",
-            response_type: "code",
-            state,
-            timestamp: Date.now(),
-        },
-        privateKey.toString(),
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        }
-    );
-
+    let codeVerifier: string = "";
     try {
         const { body } = await net.post(`${sdkConfig.baseUrl}oauth/authorize`, {
-            headers: {
-                Authorization: `Bearer ${jwt}`,
-            },
             json: {
                 agent: {
                     sdk: {
@@ -209,6 +185,33 @@ const _authorize = async (
             },
             responseType: "json",
             retry: sdkConfig.retryOptions,
+            hooks: {
+                beforeRequest: [
+                    (options) => {
+                        codeVerifier = base64url(getRandomAlphaNumeric(32));
+                        const jwt: string = sign(
+                            {
+                                access_token: userAccessToken?.accessToken.value,
+                                client_id: `${sdkConfig.applicationId}_${contractId}`,
+                                code_challenge: base64url(hashSha256(codeVerifier)),
+                                code_challenge_method: "S256",
+                                nonce: getRandomAlphaNumeric(32),
+                                redirect_uri: callback,
+                                response_mode: "query",
+                                response_type: "code",
+                                state,
+                                timestamp: Date.now(),
+                            },
+                            privateKey.toString(),
+                            {
+                                algorithm: "PS512",
+                                noTimestamp: true,
+                            }
+                        );
+                        options.headers["Authorization"] = `Bearer ${jwt}`;
+                    },
+                ],
+            },
         });
 
         const payload = await getPayloadFromToken(get(body, "token"), sdkConfig);

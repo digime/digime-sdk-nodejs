@@ -25,7 +25,7 @@ const isValidSize = (data: Buffer): boolean => {
 const decryptData = (key: NodeRSA, file: Buffer): Buffer => {
     // Verify file data is of correct length
     if (!isValidSize(file)) {
-        throw new FileDecryptionError("File size not valid");
+        throw new FileDecryptionError(`File size not valid: ${file.length}`);
     }
 
     // Recover DSK and DIV

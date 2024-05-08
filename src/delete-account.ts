@@ -30,28 +30,33 @@ const deleteAccount = async (
 
     const url = `${sdkConfig.baseUrl}permission-access/service/h:accountId`;
 
-    const jwt: string = sign(
-        {
-            access_token: userAccessToken.accessToken.value,
-            client_id: `${sdkConfig.applicationId}_${contractId}`,
-            nonce: getRandomAlphaNumeric(32),
-            timestamp: Date.now(),
-        },
-        privateKey.toString(),
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        }
-    );
-
     try {
         const response = await net.delete(url, {
             headers: {
-                Authorization: `Bearer ${jwt}`,
                 contentType: "application/json",
                 accountId,
             },
             retry: sdkConfig.retryOptions,
+            hooks: {
+                beforeRequest: [
+                    (options) => {
+                        const jwt: string = sign(
+                            {
+                                access_token: userAccessToken.accessToken.value,
+                                client_id: `${sdkConfig.applicationId}_${contractId}`,
+                                nonce: getRandomAlphaNumeric(32),
+                                timestamp: Date.now(),
+                            },
+                            privateKey.toString(),
+                            {
+                                algorithm: "PS512",
+                                noTimestamp: true,
+                            }
+                        );
+                        options.headers["Authorization"] = `Bearer ${jwt}`;
+                    },
+                ],
+            },
             responseType: "json",
         });
 

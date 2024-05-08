@@ -38,30 +38,35 @@ const getRevokeAccountPermissionUrl = async (
 
     const url = `${sdkConfig.baseUrl}permission-access/revoke/h:accountId`;
 
-    const jwt: string = sign(
-        {
-            access_token: userAccessToken.accessToken.value,
-            client_id: `${sdkConfig.applicationId}_${contractId}`,
-            nonce: getRandomAlphaNumeric(32),
-            timestamp: Date.now(),
-        },
-        privateKey.toString(),
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        }
-    );
-
     try {
         const response = await net.get(url, {
             headers: {
-                Authorization: `Bearer ${jwt}`,
                 accept: "application/json",
                 accountId,
                 redirectUri,
             },
             retry: sdkConfig.retryOptions,
             responseType: "json",
+            hooks: {
+                beforeRequest: [
+                    (options) => {
+                        const jwt: string = sign(
+                            {
+                                access_token: userAccessToken.accessToken.value,
+                                client_id: `${sdkConfig.applicationId}_${contractId}`,
+                                nonce: getRandomAlphaNumeric(32),
+                                timestamp: Date.now(),
+                            },
+                            privateKey.toString(),
+                            {
+                                algorithm: "PS512",
+                                noTimestamp: true,
+                            }
+                        );
+                        options.headers["Authorization"] = `Bearer ${jwt}`;
+                    },
+                ],
+            },
         });
 
         assertIsGetRevokeAccountPermissionUrlResponse(response.body);

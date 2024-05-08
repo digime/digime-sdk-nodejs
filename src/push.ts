@@ -107,20 +107,6 @@ const _pushToLibrary = async (
 
     const requestPath = urijs(`${sdkConfig.baseUrl}permission-access/import`);
 
-    const bearerToken: string = sign(
-        {
-            access_token: userAccessToken.accessToken.value,
-            client_id: `${sdkConfig.applicationId}_${contractId}`,
-            nonce: getRandomAlphaNumeric(32),
-            timestamp: Date.now(),
-        },
-        privateKey.toString(),
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        }
-    );
-
     const fileDescriptor = sign(
         {
             metadata: data.fileDescriptor,
@@ -134,11 +120,30 @@ const _pushToLibrary = async (
 
     await net.post(requestPath.toString(), {
         headers: {
-            Authorization: `Bearer ${bearerToken}`,
             contentType: "application/octet-stream",
             FileDescriptor: fileDescriptor,
         },
         body: fileData,
+        hooks: {
+            beforeRequest: [
+                (options) => {
+                    const bearerToken: string = sign(
+                        {
+                            access_token: userAccessToken.accessToken.value,
+                            client_id: `${sdkConfig.applicationId}_${contractId}`,
+                            nonce: getRandomAlphaNumeric(32),
+                            timestamp: Date.now(),
+                        },
+                        privateKey.toString(),
+                        {
+                            algorithm: "PS512",
+                            noTimestamp: true,
+                        }
+                    );
+                    options.headers["Authorization"] = `Bearer ${bearerToken}`;
+                },
+            ],
+        },
     });
 
     return {
@@ -173,28 +178,33 @@ const _pushToProvider = async (
 
     const requestPath = urijs(`${sdkConfig.baseUrl}permission-access/import/h:accountId/${standard}/${version}`);
 
-    const bearerToken: string = sign(
-        {
-            access_token: userAccessToken.accessToken.value,
-            client_id: `${sdkConfig.applicationId}_${contractId}`,
-            nonce: getRandomAlphaNumeric(32),
-            timestamp: Date.now(),
-        },
-        privateKey.toString(),
-        {
-            algorithm: "PS512",
-            noTimestamp: true,
-        }
-    );
-
     await net.post(requestPath.toString(), {
         headers: {
-            Authorization: `Bearer ${bearerToken}`,
             contentType: "application/json",
             accountId,
         },
         json: data,
         responseType: "json",
+        hooks: {
+            beforeRequest: [
+                (options) => {
+                    const bearerToken: string = sign(
+                        {
+                            access_token: userAccessToken.accessToken.value,
+                            client_id: `${sdkConfig.applicationId}_${contractId}`,
+                            nonce: getRandomAlphaNumeric(32),
+                            timestamp: Date.now(),
+                        },
+                        privateKey.toString(),
+                        {
+                            algorithm: "PS512",
+                            noTimestamp: true,
+                        }
+                    );
+                    options.headers["Authorization"] = `Bearer ${bearerToken}`;
+                },
+            ],
+        },
     });
 
     return {
