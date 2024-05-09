@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
+ * Copyright (c) 2009-2024 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
 /* eslint-disable @typescript-eslint/no-var-requires */

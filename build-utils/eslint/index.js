@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
+ * Copyright (c) 2009-2024 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
 /**
@@ -14,7 +14,7 @@
  *
  * Therefore I believe updating both in sync when appropriate is the most reasonable option.
  */
-const copyrightYearTo = "2023";
+const copyrightYearTo = "2024";
 
 module.exports = {
     env: {
