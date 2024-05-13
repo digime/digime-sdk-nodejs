@@ -11,7 +11,9 @@ import * as t from "io-ts";
 import { DigiMeSDKError, TypeValidationError } from "./errors";
 import { codecAssertion, CodecAssertion } from "./utils/codec-assertion";
 import { addLeadingAndTrailingSlash, addLeadingSlash } from "./utils/basic-utils";
-import { Readable } from "stream";
+import { Duplex, Readable } from "stream";
+import { ReadableStream, TransformStream } from "stream/web";
+import { PlainResponse } from "got";
 
 // begin createProvisionalStorage
 export interface CreateProvisionalStorageOptions {
@@ -210,13 +212,31 @@ export interface DownloadStorageFileOptions {
     path?: string;
 }
 
+const ReadableStreamCodec = new t.Type<ReadableStream, ReadableStream, unknown>(
+    "ReadableStream",
+    (input: unknown): input is ReadableStream => input instanceof ReadableStream,
+    // `t.success` and `t.failure` are helpers used to build `Either` instances
+    (input, context) =>
+        input instanceof ReadableStream
+            ? t.success(input)
+            : t.failure(input, context, "Cannot parse into ReadableStream"),
+    // `A` and `O` are the same, so `encode` is just the identity function
+    t.identity
+);
+
 export interface DownloadStorageFileResponse {
-    file: unknown;
+    body: ReadableStream;
+    contentLength?: number;
 }
 
-export const DownloadStorageFileResponseCodec: t.Type<DownloadStorageFileResponse> = t.type({
-    file: t.unknown,
-});
+export const DownloadStorageFileResponseCodec: t.Type<DownloadStorageFileResponse> = t.intersection([
+    t.type({
+        body: ReadableStreamCodec,
+    }),
+    t.partial({
+        contentLength: t.number,
+    }),
+]);
 
 export const assertIsDownloadStorageFileOptionsResponseCodec: CodecAssertion<DownloadStorageFileResponse> =
     codecAssertion(DownloadStorageFileResponseCodec);
@@ -267,17 +287,33 @@ const downloadStorageFile = async (
             }
         );
 
-        const response = await net.get(
+        const readStream = net.stream(
             `${sdkConfig.cloudBaseUrl}clouds/${storageId}/files/apps/${sdkConfig.applicationId}${formatedPath}`,
             {
                 headers: {
                     Authorization: `Bearer ${jwt}`,
                     accept: "application/octet-stream",
                 },
+                throwHttpErrors: false,
             }
         );
 
-        return { file: response.body };
+        return await new Promise((resolve, reject) => {
+            readStream.once("response", (response: PlainResponse) => {
+                const { readable } = Duplex.toWeb(readStream) as unknown as TransformStream;
+                const result: DownloadStorageFileResponse = {
+                    body: readable,
+                };
+                if (response.headers["content-length"]) {
+                    result.contentLength = Number(response.headers["content-length"]);
+                }
+                resolve(result);
+            });
+
+            readStream.once("error", (error) => {
+                reject(error);
+            });
+        });
     } catch (error) {
         handleServerResponse(error);
         throw new DigiMeSDKError("Problem with file download.");

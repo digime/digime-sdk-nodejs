@@ -38,6 +38,7 @@ export const handleServerResponse = (error: Error | unknown): void => {
     let message: string | undefined = undefined;
     let statusCode: number | undefined = undefined;
     let statusMessage: string | undefined = undefined;
+    let reference: string | undefined = undefined;
 
     if (isString(body.error) || isString(body.message)) {
         code = body.error?.toString();
@@ -45,6 +46,7 @@ export const handleServerResponse = (error: Error | unknown): void => {
     } else {
         code = body?.error?.code;
         message = body?.error?.message;
+        reference = body?.error?.reference;
     }
 
     if (error?.response?.statusCode && error?.response?.statusMessage) {
@@ -56,6 +58,7 @@ export const handleServerResponse = (error: Error | unknown): void => {
         throw new SDKInvalidError(message || "Invalid SDK version", {
             code,
             message: message || "Invalid SDK version",
+            reference: reference || "Unknown reference",
             statusCode,
             statusMessage,
         });
@@ -64,6 +67,7 @@ export const handleServerResponse = (error: Error | unknown): void => {
     throw new ServerError(message || "Server error", {
         code: code || "DigiMeServerError",
         message: message || "Server error",
+        reference: reference || "Unknown reference",
         statusCode,
         statusMessage,
     });

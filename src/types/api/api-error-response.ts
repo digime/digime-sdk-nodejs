@@ -11,13 +11,14 @@ interface StorageApiError {
 }
 
 export interface ApiErrorResponse {
-    error?: ApiError;
+    error: ApiError;
     message?: string;
 }
 
 export interface ApiError {
     code: string;
     message: string;
+    reference?: string;
     statusMessage?: string;
     statusCode?: number;
 }
@@ -32,10 +33,14 @@ export const StorageApiErrorCodec: t.Type<StorageApiError> = t.partial({
     message: t.string,
 });
 
-const ApiErrorResponseCodec: t.Type<ApiErrorResponse> = t.partial({
-    error: ApiErrorCodec,
-    message: t.string,
-});
+export const ApiErrorResponseCodec: t.Type<ApiErrorResponse> = t.intersection([
+    t.type({
+        error: ApiErrorCodec,
+    }),
+    t.partial({
+        message: t.string,
+    }),
+]);
 
 export const isStorageApiErrorCodec = StorageApiErrorCodec.is;
 
