@@ -42,6 +42,8 @@ import {
     DeleteStorageFilesResponse,
     UploadFileToStorageOptions,
     UploadFileToStorageResponse,
+    GetUserStorageResponse,
+    GetUserStorageOptions,
 } from "./storage";
 
 export interface DigimeSDK {
@@ -223,4 +225,10 @@ export interface DigimeSDK {
      * @category Storage
      */
     uploadFileToStorage: (props: UploadFileToStorageOptions) => Promise<UploadFileToStorageResponse>;
+
+    /** Get storage for existing user
+     *
+     * @category Storage
+     */
+    getUserStorage: (props: GetUserStorageOptions) => Promise<GetUserStorageResponse>;
 }

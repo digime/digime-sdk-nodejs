@@ -40,6 +40,8 @@ import {
     DeleteStorageFilesOptions,
     UploadFileToStorageOptions,
     uploadFileToStorage,
+    GetUserStorageOptions,
+    getUserStorage,
 } from "./storage";
 
 const CLOUD_BASE_URL = "https://cloud.digi.me/v1/";
@@ -98,6 +100,7 @@ const init = (config: SDKConfiguration): DigimeSDK => {
         downloadStorageFile: (props: DownloadStorageFileOptions) => downloadStorageFile(props, sdkConfig),
         deleteStorageFiles: (props: DeleteStorageFilesOptions) => deleteStorageFiles(props, sdkConfig),
         uploadFileToStorage: (props: UploadFileToStorageOptions) => uploadFileToStorage(props, sdkConfig),
+        getUserStorage: (props: GetUserStorageOptions) => getUserStorage(props, sdkConfig),
     };
 };
 

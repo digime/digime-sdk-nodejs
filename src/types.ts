@@ -44,6 +44,8 @@ export {
     DeleteStorageFilesResponse,
     UploadFileToStorageOptions,
     UploadFileToStorageResponse,
+    GetUserStorageOptions,
+    GetUserStorageResponse,
 } from "./storage";
 
 export * from "./codecs";

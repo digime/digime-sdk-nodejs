@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2023 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
+ * Copyright (c) 2009-2024 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
 import { handleServerResponse, net } from "./net";
@@ -14,6 +14,8 @@ import { addLeadingAndTrailingSlash, addLeadingSlash } from "./utils/basic-utils
 import { Duplex, Readable } from "stream";
 import { ReadableStream, TransformStream } from "stream/web";
 import { PlainResponse } from "got";
+import { UserAccessToken, UserAccessTokenCodec } from "./types/user-access-token";
+import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
 
 // begin createProvisionalStorage
 export interface CreateProvisionalStorageOptions {
@@ -55,25 +57,30 @@ const createProvisionalStorage = async (
     const { contractId, privateKey } = contractDetails;
 
     try {
-        const jwt: string = sign(
-            {
-                client_id: `${sdkConfig.applicationId}_${contractId}`,
-                nonce: getRandomAlphaNumeric(32),
-                timestamp: Date.now(),
-            },
-            privateKey.toString(),
-            {
-                algorithm: "PS512",
-                noTimestamp: true,
-            }
-        );
-
         const response = await net.post(`${sdkConfig.baseUrl}storage`, {
             headers: {
-                Authorization: `Bearer ${jwt}`,
                 "Content-Type": "application/json",
             },
             responseType: "json",
+            hooks: {
+                beforeRequest: [
+                    (options) => {
+                        const jwt: string = sign(
+                            {
+                                client_id: `${sdkConfig.applicationId}_${contractId}`,
+                                nonce: getRandomAlphaNumeric(32),
+                                timestamp: Date.now(),
+                            },
+                            privateKey.toString(),
+                            {
+                                algorithm: "PS512",
+                                noTimestamp: true,
+                            }
+                        );
+                        options.headers["Authorization"] = `Bearer ${jwt}`;
+                    },
+                ],
+            },
         });
 
         const formatedStorage = { storage: response.body };
@@ -88,6 +95,91 @@ const createProvisionalStorage = async (
 };
 
 // end createProvisionalStorage
+
+// begin getUserStorage
+export interface GetUserStorageOptions {
+    contractDetails: ContractDetails;
+    userAccessToken: UserAccessToken;
+}
+
+export interface GetUserStorageResponse {
+    storage: {
+        id: string;
+        kid: string;
+    };
+    userAccessToken?: UserAccessToken;
+}
+
+export const GetUserStorageResponseCodec: t.Type<GetUserStorageResponse> = t.type({
+    storage: t.type({
+        id: t.string,
+        kid: t.string,
+    }),
+});
+
+export const assertIsGetUserStorageResponse: CodecAssertion<GetUserStorageResponse> =
+    codecAssertion(GetUserStorageResponseCodec);
+
+export const GetUserStorageOptionsCodec: t.Type<GetUserStorageOptions> = t.type({
+    contractDetails: ContractDetailsCodec,
+    userAccessToken: UserAccessTokenCodec,
+});
+
+const _getUserStorage = async (
+    options: GetUserStorageOptions,
+    sdkConfig: SDKConfiguration
+): Promise<GetUserStorageResponse> => {
+    if (!GetUserStorageOptionsCodec.is(options)) {
+        throw new TypeValidationError(
+            "Parameters failed validation. props should be a plain object that contains contractDetails"
+        );
+    }
+
+    const { contractDetails, userAccessToken } = options;
+    const { contractId, privateKey } = contractDetails;
+
+    const response = await net.get(`${sdkConfig.baseUrl}storage`, {
+        headers: {
+            "Content-Type": "application/json",
+        },
+        responseType: "json",
+        hooks: {
+            beforeRequest: [
+                (options) => {
+                    const jwt: string = sign(
+                        {
+                            access_token: userAccessToken.accessToken.value,
+                            client_id: `${sdkConfig.applicationId}_${contractId}`,
+                            nonce: getRandomAlphaNumeric(32),
+                            timestamp: Date.now(),
+                        },
+                        privateKey.toString(),
+                        {
+                            algorithm: "PS512",
+                            noTimestamp: true,
+                        }
+                    );
+                    options.headers["Authorization"] = `Bearer ${jwt}`;
+                },
+            ],
+        },
+    });
+
+    const formatedStorage = { storage: response.body };
+
+    assertIsCreateProvisionalStorageResponse(formatedStorage);
+
+    return formatedStorage;
+};
+
+const getUserStorage = async (
+    props: GetUserStorageOptions,
+    sdkConfiguration: SDKConfiguration
+): Promise<GetUserStorageResponse> => {
+    return refreshTokenWrapper(_getUserStorage, props, sdkConfiguration);
+};
+
+// end getUserStorage
 
 // begin listStorageFiles
 export interface ListStorageFilesOptions {
@@ -154,35 +246,38 @@ const listStorageFiles = async (
     const formatedPath = addLeadingAndTrailingSlash(path);
 
     try {
-        const jwt: string = sign(
-            {
-                sub: sdkConfig.applicationId,
-                iss: contractId,
-                aud: "cloud",
-                iat: Math.floor(Date.now() / 1000),
-                exp: Math.floor(Date.now() / 1000 + 60),
-            },
-            privateKey.toString(),
-            {
-                algorithm: "PS512",
-                keyid: `${contractId}_${sdkConfig.applicationId}_0`,
-                header: {
-                    typ: "at+jwt",
-                    alg: "PS512",
-                    kid: `${contractId}_${sdkConfig.applicationId}_0`,
-                },
-            }
-        );
-
         const response = await net.get(
             `${sdkConfig.cloudBaseUrl}clouds/${storageId}/files/apps/${
                 sdkConfig.applicationId
             }${formatedPath}?recursive=${recursive ? "true" : "false"}`,
             {
-                headers: {
-                    Authorization: `Bearer ${jwt}`,
-                },
                 responseType: "json",
+                hooks: {
+                    beforeRequest: [
+                        (options) => {
+                            const jwt: string = sign(
+                                {
+                                    sub: sdkConfig.applicationId,
+                                    iss: contractId,
+                                    aud: "cloud",
+                                    iat: Math.floor(Date.now() / 1000),
+                                    exp: Math.floor(Date.now() / 1000 + 60),
+                                },
+                                privateKey.toString(),
+                                {
+                                    algorithm: "PS512",
+                                    keyid: `${contractId}_${sdkConfig.applicationId}_0`,
+                                    header: {
+                                        typ: "at+jwt",
+                                        alg: "PS512",
+                                        kid: `${contractId}_${sdkConfig.applicationId}_0`,
+                                    },
+                                }
+                            );
+                            options.headers["Authorization"] = `Bearer ${jwt}`;
+                        },
+                    ],
+                },
             }
         );
 
@@ -267,32 +362,37 @@ const downloadStorageFile = async (
     const formatedPath = addLeadingSlash(path);
 
     try {
-        const jwt: string = sign(
-            {
-                sub: sdkConfig.applicationId,
-                iss: contractId,
-                aud: "cloud",
-                iat: Math.floor(Date.now() / 1000),
-                exp: Math.floor(Date.now() / 1000 + 60),
-            },
-            privateKey.toString(),
-            {
-                algorithm: "PS512",
-                keyid: `${contractId}_${sdkConfig.applicationId}_0`,
-                header: {
-                    typ: "at+jwt",
-                    alg: "PS512",
-                    kid: `${contractId}_${sdkConfig.applicationId}_0`,
-                },
-            }
-        );
-
         const readStream = net.stream(
             `${sdkConfig.cloudBaseUrl}clouds/${storageId}/files/apps/${sdkConfig.applicationId}${formatedPath}`,
             {
                 headers: {
-                    Authorization: `Bearer ${jwt}`,
                     accept: "application/octet-stream",
+                },
+                hooks: {
+                    beforeRequest: [
+                        (options) => {
+                            const jwt: string = sign(
+                                {
+                                    sub: sdkConfig.applicationId,
+                                    iss: contractId,
+                                    aud: "cloud",
+                                    iat: Math.floor(Date.now() / 1000),
+                                    exp: Math.floor(Date.now() / 1000 + 60),
+                                },
+                                privateKey.toString(),
+                                {
+                                    algorithm: "PS512",
+                                    keyid: `${contractId}_${sdkConfig.applicationId}_0`,
+                                    header: {
+                                        typ: "at+jwt",
+                                        alg: "PS512",
+                                        kid: `${contractId}_${sdkConfig.applicationId}_0`,
+                                    },
+                                }
+                            );
+                            options.headers["Authorization"] = `Bearer ${jwt}`;
+                        },
+                    ],
                 },
                 throwHttpErrors: false,
             }
@@ -358,33 +458,36 @@ const deleteStorageFiles = async (
         const { contractDetails, storageId, path } = options;
         const { contractId, privateKey } = contractDetails;
 
-        const jwt: string = sign(
-            {
-                sub: sdkConfig.applicationId,
-                iss: contractId,
-                aud: "cloud",
-                iat: Math.floor(Date.now() / 1000),
-                exp: Math.floor(Date.now() / 1000 + 60),
-            },
-            privateKey.toString(),
-            {
-                algorithm: "PS512",
-                keyid: `${contractId}_${sdkConfig.applicationId}_0`,
-                header: {
-                    typ: "at+jwt",
-                    alg: "PS512",
-                    kid: `${contractId}_${sdkConfig.applicationId}_0`,
-                },
-            }
-        );
-
         const response = await net.delete(
             `${sdkConfig.cloudBaseUrl}clouds/${storageId}/files/apps/${sdkConfig.applicationId}${path}`,
             {
-                headers: {
-                    Authorization: `Bearer ${jwt}`,
-                },
                 retry: sdkConfig.retryOptions,
+                hooks: {
+                    beforeRequest: [
+                        (options) => {
+                            const jwt: string = sign(
+                                {
+                                    sub: sdkConfig.applicationId,
+                                    iss: contractId,
+                                    aud: "cloud",
+                                    iat: Math.floor(Date.now() / 1000),
+                                    exp: Math.floor(Date.now() / 1000 + 60),
+                                },
+                                privateKey.toString(),
+                                {
+                                    algorithm: "PS512",
+                                    keyid: `${contractId}_${sdkConfig.applicationId}_0`,
+                                    header: {
+                                        typ: "at+jwt",
+                                        alg: "PS512",
+                                        kid: `${contractId}_${sdkConfig.applicationId}_0`,
+                                    },
+                                }
+                            );
+                            options.headers["Authorization"] = `Bearer ${jwt}`;
+                        },
+                    ],
+                },
             }
         );
 
@@ -466,37 +569,42 @@ const uploadFileToStorage = async (
 
         const file = Buffer.isBuffer(fileData) ? Readable.from(fileData) : fileData;
 
-        const jwt: string = sign(
-            {
-                sub: sdkConfig.applicationId,
-                iss: contractId,
-                aud: "cloud",
-                iat: Math.floor(Date.now() / 1000),
-                exp: Math.floor(Date.now() / 1000 + 60),
-            },
-            privateKey.toString(),
-            {
-                algorithm: "PS512",
-                keyid: `${contractId}_${sdkConfig.applicationId}_0`,
-                header: {
-                    typ: "at+jwt",
-                    alg: "PS512",
-                    kid: `${contractId}_${sdkConfig.applicationId}_0`,
-                },
-            }
-        );
-
         const fullPath = `${formatedPath}${fileName}`;
 
         const response = await net.post(
             `${sdkConfig.cloudBaseUrl}clouds/${storageId}/files/apps/${sdkConfig.applicationId}${fullPath}`,
             {
                 headers: {
-                    Authorization: `Bearer ${jwt}`,
                     contentType: "application/octet-stream",
                 },
                 responseType: "json",
                 body: file,
+                hooks: {
+                    beforeRequest: [
+                        (options) => {
+                            const jwt: string = sign(
+                                {
+                                    sub: sdkConfig.applicationId,
+                                    iss: contractId,
+                                    aud: "cloud",
+                                    iat: Math.floor(Date.now() / 1000),
+                                    exp: Math.floor(Date.now() / 1000 + 60),
+                                },
+                                privateKey.toString(),
+                                {
+                                    algorithm: "PS512",
+                                    keyid: `${contractId}_${sdkConfig.applicationId}_0`,
+                                    header: {
+                                        typ: "at+jwt",
+                                        alg: "PS512",
+                                        kid: `${contractId}_${sdkConfig.applicationId}_0`,
+                                    },
+                                }
+                            );
+                            options.headers["Authorization"] = `Bearer ${jwt}`;
+                        },
+                    ],
+                },
             }
         );
 
@@ -513,4 +621,11 @@ const uploadFileToStorage = async (
 
 // end uploadFileToStorage
 
-export { createProvisionalStorage, listStorageFiles, downloadStorageFile, deleteStorageFiles, uploadFileToStorage };
+export {
+    createProvisionalStorage,
+    listStorageFiles,
+    downloadStorageFile,
+    deleteStorageFiles,
+    uploadFileToStorage,
+    getUserStorage,
+};
