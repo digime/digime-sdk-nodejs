@@ -4,16 +4,15 @@
 
 import { handleServerResponse, net } from "./net";
 import { sign } from "jsonwebtoken";
-import { getRandomAlphaNumeric } from "./crypto";
+import { createDecryptStream, createEncryptStream, getRandomAlphaNumeric } from "./crypto";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { ContractDetails, ContractDetailsCodec } from "./types/common";
 import * as t from "io-ts";
 import { DigiMeSDKError, TypeValidationError } from "./errors";
 import { codecAssertion, CodecAssertion } from "./utils/codec-assertion";
 import { addLeadingAndTrailingSlash, addLeadingSlash } from "./utils/basic-utils";
-import { Duplex, Readable } from "stream";
-import { ReadableStream, TransformStream } from "stream/web";
-import { PlainResponse } from "got";
+import { Readable } from "stream";
+import { ReadableStream } from "stream/web";
 import { UserAccessToken, UserAccessTokenCodec } from "./types/user-access-token";
 import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
 
@@ -324,14 +323,9 @@ export interface DownloadStorageFileResponse {
     contentLength?: number;
 }
 
-export const DownloadStorageFileResponseCodec: t.Type<DownloadStorageFileResponse> = t.intersection([
-    t.type({
-        body: ReadableStreamCodec,
-    }),
-    t.partial({
-        contentLength: t.number,
-    }),
-]);
+export const DownloadStorageFileResponseCodec: t.Type<DownloadStorageFileResponse> = t.type({
+    body: ReadableStreamCodec,
+});
 
 export const assertIsDownloadStorageFileOptionsResponseCodec: CodecAssertion<DownloadStorageFileResponse> =
     codecAssertion(DownloadStorageFileResponseCodec);
@@ -399,14 +393,11 @@ const downloadStorageFile = async (
         );
 
         return await new Promise((resolve, reject) => {
-            readStream.once("response", (response: PlainResponse) => {
-                const { readable } = Duplex.toWeb(readStream) as unknown as TransformStream;
+            readStream.once("response", () => {
+                const responsePipeline = readStream.pipe(createDecryptStream(privateKey));
                 const result: DownloadStorageFileResponse = {
-                    body: readable,
+                    body: Readable.toWeb(responsePipeline),
                 };
-                if (response.headers["content-length"]) {
-                    result.contentLength = Number(response.headers["content-length"]);
-                }
                 resolve(result);
             });
 
@@ -569,6 +560,8 @@ const uploadFileToStorage = async (
 
         const file = Buffer.isBuffer(fileData) ? Readable.from(fileData) : fileData;
 
+        const encryptStream = createEncryptStream(privateKey);
+
         const fullPath = `${formatedPath}${fileName}`;
 
         const response = await net.post(
@@ -578,7 +571,7 @@ const uploadFileToStorage = async (
                     contentType: "application/octet-stream",
                 },
                 responseType: "json",
-                body: file,
+                body: encryptStream(file),
                 hooks: {
                     beforeRequest: [
                         (options) => {
