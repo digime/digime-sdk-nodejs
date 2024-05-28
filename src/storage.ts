@@ -303,7 +303,7 @@ const listStorageFiles = async (
 export interface DownloadStorageFileOptions {
     contractDetails: ContractDetails;
     storageId: string;
-    path?: string;
+    path: string;
 }
 
 const ReadableStreamCodec = new t.Type<ReadableStream, ReadableStream, unknown>(
@@ -330,15 +330,11 @@ export const DownloadStorageFileResponseCodec: t.Type<DownloadStorageFileRespons
 export const assertIsDownloadStorageFileOptionsResponseCodec: CodecAssertion<DownloadStorageFileResponse> =
     codecAssertion(DownloadStorageFileResponseCodec);
 
-export const DownloadStorageFileOptionsCodec: t.Type<DownloadStorageFileOptions> = t.intersection([
-    t.type({
-        contractDetails: ContractDetailsCodec,
-        storageId: t.string,
-    }),
-    t.partial({
-        path: t.string,
-    }),
-]);
+export const DownloadStorageFileOptionsCodec: t.Type<DownloadStorageFileOptions> = t.type({
+    contractDetails: ContractDetailsCodec,
+    storageId: t.string,
+    path: t.string,
+});
 
 const downloadStorageFile = async (
     options: DownloadStorageFileOptions,
@@ -346,7 +342,7 @@ const downloadStorageFile = async (
 ): Promise<DownloadStorageFileResponse> => {
     if (!DownloadStorageFileOptionsCodec.is(options)) {
         throw new TypeValidationError(
-            "Parameters failed validation. Props should be a plain object that contains contractDetails and storageId"
+            "Parameters failed validation. Props should be a plain object that contains contractDetails, storageId and file path"
         );
     }
 
@@ -417,7 +413,7 @@ const downloadStorageFile = async (
 export interface DeleteStorageFilesOptions {
     contractDetails: ContractDetails;
     storageId: string;
-    path?: string;
+    path: string;
 }
 
 export interface DeleteStorageFilesResponse {
@@ -426,15 +422,11 @@ export interface DeleteStorageFilesResponse {
     statusMessage?: string;
 }
 
-export const DeleteStorageFilesOptionsCodec: t.Type<DeleteStorageFilesOptions> = t.intersection([
-    t.type({
-        contractDetails: ContractDetailsCodec,
-        storageId: t.string,
-    }),
-    t.partial({
-        path: t.string,
-    }),
-]);
+export const DeleteStorageFilesOptionsCodec: t.Type<DeleteStorageFilesOptions> = t.type({
+    contractDetails: ContractDetailsCodec,
+    storageId: t.string,
+    path: t.string,
+});
 
 const deleteStorageFiles = async (
     options: DeleteStorageFilesOptions,
@@ -442,7 +434,7 @@ const deleteStorageFiles = async (
 ): Promise<DeleteStorageFilesResponse> => {
     if (!DeleteStorageFilesOptionsCodec.is(options)) {
         throw new TypeValidationError(
-            "Parameters failed validation. Props should be a plain object that contains contractDetails and contractDetails"
+            "Parameters failed validation. Props should be a plain object that contains contractDetails, storageId and file path to delete"
         );
     }
     try {

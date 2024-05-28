@@ -145,12 +145,16 @@
                             "childrenSourceDir": "../guides",
                             "children": [
                                 {
-                                    "name": "List storage files",
+                                    "name": "Upload files",
+                                    "source": "storage-upload.md"
+                                },
+                                {
+                                    "name": "List files",
                                     "source": "storage-list.md"
                                 },
                                 {
-                                    "name": "Upload files",
-                                    "source": "storage-upload.md"
+                                    "name": "Download file",
+                                    "source": "storage-download.md"
                                 },
                                 {
                                     "name": "Delete files",

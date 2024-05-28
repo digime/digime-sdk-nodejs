@@ -19,14 +19,10 @@
 
 <br>
 
-The SDK Provides a function which you can use to determine what sources can be onboarded for your contract.
-The Contract you pass in must be a READ contract, which means it's a contract that asks for user's data.
-
-#### Configuration Options
-See all possible [configurations](../../../interfaces/Types.SDKConfiguration.html) when initializing the SDK.
+The SDK Provides a functions that you can use to create cloud storage. Storage can be used as an independed storage not related to user. For creation of provisional storage you should use SDK method createProvisionalStorage.
 
 #### Returns
-The [available sources](../../../interfaces/Types.QuerySourcesResponse.html).
+The createProvisionalStorage [returns](../../../interfaces/Types.QuerySourcesResponse.html).
 
 #### Examples
 The most basic initialization:
@@ -38,60 +34,52 @@ const sdk = init({ applicationId: <you-application-id> });
 
 
 // contractDetails - The same one passed into getAuthorizeUrl().
-// sourcesBodyParams - Params for searching, paging, filtering, sorting and other options.
 
 const contractDetails = {
     contractId: <your-contract-id>,
     privateKey: <private-key-for-contract-id>,
 }
 
-const sourcesBodyParams = {
-    limit: <number of items returned per page, default is 10>,
-    offset: <page offset, default is 0>,
-    sort: <sort options>,
-    query: {
-        search: <search options>,
-        include: <controle what fileds will be included in response>,
-        filter: {
-            id: <filter response by ID>,
-            publishedStatus: <filter by published status  "approved" | "pending" | "deprecated" | "blocked" | "sampledataonly", approved is default>;
-            service: {
-                id: <filter by array of service IDs>,
-            },
-            /**
-             * Available countries with IDs can be fetched with queryCountries.
-             */
-            country: {
-                id: <filter by array of country IDs>,
-            },
-            /**
-             * Available categories with IDs can be fetched with queryCategories.
-             */
-            category: {
-                id: <filter by array of category IDs>,
-            },
-            /**
-             * Available platforms with IDs can be fetched with queryPlatforms.
-             */
-            platform: {
-                <filter by array of platforms IDs>,
-            },
-            /**
-             * Currently 2 possible types. Pull (1) or push (2). Default type is pull (1)
-             */
-            type: {
-                id: <filter by array of type IDs>,
-            },
-            sourceId: <filter by source IDs>,
-        };
-    };
-}
-
-const sources = await sdk.querySources({
+const storage = await sdk.createProvisionalStorage({
     contractDetails,
-    sourcesBodyParams,
 });
 
 ```
 
-More on `sourcesBodyParams` can be checked [here](../../../interfaces/Types.Internal.SourcesBodyParams.html).
+This method creates provisional storage and returns:
+
+```
+storage: {
+    id: string;
+    kid: string;
+};
+
+```
+
+Storage id returned in above response will be used for uploading items to storage as well as for geting them from storage.
+
+Provisional storage can be connected later with user when calling getAuthorizeUrl method by passing in storageId.
+
+SDK also supports getting storage id for existing user. This can be done by calling:
+
+```
+// contractDetails - The same one used in getAuthorizeUrl().
+// userAccessToken - The user access token from the authorization step.
+
+const storage = await sdk.getUserStorage({
+    contractDetails,
+    userAccessToken,
+});
+```
+
+This method will return:
+
+```
+    storage: {
+        id: string;
+        kid: string;
+    };
+    userAccessToken?: UserAccessToken;
+```
+
+Please note that method will do auto refresh of userAccessToken so it is needed to add logic to save new userAccessToken.

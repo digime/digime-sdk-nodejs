@@ -19,7 +19,7 @@
 
 <br>
 
-Upload files to storage can be done with uploadFileToStorage SDK method.
+File download can be done with downloadStorageFile SDK method.
 
 #### Examples
 The most basic initialization:
@@ -32,36 +32,21 @@ const sdk = init({ applicationId: <you-application-id> });
 
 // contractDetails - The same one passed into getAuthorizeUrl().
 // storageId - Storage id returned by method createProvisionalStorage or getUserStorage during storage creation process.
-// fileData - File data to be uploaded (Readable or Buffer)
-// fileName - File name that will be used for file saving (e.g. test.json)
-// path - (Optional) Upload path where file will be saved (e.g. /folder-name/sub-folder)
+// path - (Optional) Pass file path that can be made for each file based on listStorageFiles response (e.g file.path + file.name)
 
 const contractDetails = {
     contractId: <your-contract-id>,
     privateKey: <private-key-for-contract-id>,
 }
 
-const storage = await sdk.uploadFileToStorage({
+const storage = await sdk.downloadStorageFile({
     contractDetails,
     storageId: "some-storage-id",
-    fileData,
-    fileName: "test.json",
-    path?: "/folder-name/sub-folder",
+    path: "/folder-name/test.jpg",
 });
 
 ```
 
-For more details on what options can be passed please check type [UploadFileToStorageOptions](../../../interfaces/Types.UploadFileToStorageOptions.html)
+For more details on what options can be passed please check type [ListStorageFilesOptions](../../../interfaces/Types.ListStorageFilesOptions.html)
 
-This method will upload file to storage and return:
-
-```
-{
-    uploaded: boolean;
-    statusCode: number;
-    statusMessage?: string;
-}
-
-```
-
-Return type can be found [here](../../../interfaces/Types.UploadFileToStorageResponse.html).
+This method will return list of files and total number of files. Please check return type [ListStorageFilesResponse](../../../interfaces/Types.ListStorageFilesResponse.html) for more details on what is returned.
