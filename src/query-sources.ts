@@ -110,11 +110,11 @@ const SourcesSortCodec: t.Type<SourcesSort> = t.type({
 });
 
 export interface SourcesSearch {
-    name: string;
+    name: string[];
 }
 
 const SourcesSearchCodec: t.Type<SourcesSearch> = t.type({
-    name: t.string,
+    name: t.array(t.string),
 });
 
 export type IncludeFieldList =

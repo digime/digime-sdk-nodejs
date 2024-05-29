@@ -21,9 +21,6 @@
 
 The SDK Provides a functions that you can use to create cloud storage. Storage can be used as an independed storage not related to user. For creation of provisional storage you should use SDK method createProvisionalStorage.
 
-#### Returns
-The createProvisionalStorage [returns](../../../interfaces/Types.QuerySourcesResponse.html).
-
 #### Examples
 The most basic initialization:
 
@@ -58,7 +55,7 @@ storage: {
 
 Storage id returned in above response will be used for uploading items to storage as well as for geting them from storage.
 
-Provisional storage can be connected later with user when calling getAuthorizeUrl method by passing in storageId.
+Provisional storage can be connected later with user when calling [getAuthorizeUrl()](../fundamentals/authorize.html) method by passing in storageId.
 
 SDK also supports getting storage id for existing user. This can be done by calling:
 
@@ -82,4 +79,4 @@ This method will return:
     userAccessToken?: UserAccessToken;
 ```
 
-Please note that method will do auto refresh of userAccessToken so it is needed to add logic to save new userAccessToken.
+Please note that above method will do auto refresh of userAccessToken so it is needed to add logic to save new userAccessToken.
