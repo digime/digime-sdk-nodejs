@@ -33,8 +33,8 @@ const sdk = init({ applicationId: <you-application-id> });
 // contractDetails - The same one passed into getAuthorizeUrl().
 // storageId - Storage id returned by method createProvisionalStorage or getUserStorage during storage creation process.
 // fileData - File data to be uploaded (Readable or Buffer)
-// fileName - File name that will be used for file saving (e.g. test.json)
-// path - (Optional) Upload path where file will be saved (e.g. /folder-name/sub-folder)
+// fileName - File name that will be used for file saving (e.g. test.json). Spaces in file name are NOT allowed.
+// path - (Optional) Upload path where file will be saved (e.g. /folder-name/sub-folder). Spaces in path are NOT allowed.
 
 const contractDetails = {
     contractId: <your-contract-id>,
