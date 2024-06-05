@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2024 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { net } from "./net";
+import { handleServerResponse, net } from "./net";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { TypeValidationError } from "./errors";
 import * as t from "io-ts";
@@ -11,6 +11,7 @@ import { ContractDetails, ContractDetailsCodec } from "./types/common";
 import { sign } from "jsonwebtoken";
 import { getRandomAlphaNumeric } from "./crypto";
 import { CodecAssertion, codecAssertion } from "./utils/codec-assertion";
+import { LiteralUnion } from "type-fest";
 
 export interface CountryResource {
     mimetype?: string;
@@ -26,7 +27,7 @@ const ResourceCodec: t.Type<CountryResource> = t.partial({
     url: t.string,
 });
 
-export interface Country {
+export interface Country extends Record<string, unknown> {
     id: number;
     code?: string;
     name?: string;
@@ -51,31 +52,14 @@ export interface QueryCountriesResponse {
     data: Country[];
 }
 
-export type CountriesIncludeFieldList =
-    | "id"
-    | "name"
-    | "code"
-    | "resource.url"
-    | "resource.mimetype"
-    | "resource.resize"
-    | "resource.type";
+export type CountriesIncludeFieldList = "id" | "name" | "code" | "resource.url" | "resource.mimetype" | "json";
 
-const CountriesIncludeFieldListCodec: t.Type<CountriesIncludeFieldList> = t.union([
-    t.literal("id"),
-    t.literal("name"),
-    t.literal("code"),
-    t.literal("resource.url"),
-    t.literal("resource.mimetype"),
-    t.literal("resource.resize"),
-    t.literal("resource.type"),
-]);
-
-export interface CountriesBodyParams {
+export interface CountriesBodyParams extends Record<string, unknown> {
     query?: {
         /**
          * Posible fields to include are defined in type CountriesIncludeFieldList .
          */
-        include?: CountriesIncludeFieldList[];
+        include?: LiteralUnion<CountriesIncludeFieldList, string>[];
         filter?: {
             id?: number[];
         };
@@ -84,7 +68,7 @@ export interface CountriesBodyParams {
 
 export const CountriesBodyParamsCodec: t.Type<CountriesBodyParams> = t.partial({
     query: t.partial({
-        include: t.array(CountriesIncludeFieldListCodec),
+        include: t.array(t.string),
     }),
 });
 
@@ -128,49 +112,44 @@ const queryCountries = async (
     const { contractDetails, countriesBodyParams } = options;
     const { contractId, privateKey } = contractDetails;
 
-    // set body params
-    const bodyParams: CountriesBodyParams = {
-        query: {
-            include: countriesBodyParams?.query?.include || ["id", "name"],
-            filter: {
-                ...(countriesBodyParams?.query?.filter?.id && { id: countriesBodyParams?.query?.filter?.id }),
+    try {
+        const response = await net.post(`${sdkConfig.baseUrl}discovery/countries`, {
+            headers: {
+                "Content-Type": "application/json",
             },
-        },
-    };
+            json: countriesBodyParams,
+            responseType: "json",
+            retry: { ...sdkConfig.retryOptions, methods: ["POST"] },
+            hooks: {
+                beforeRequest: [
+                    (options) => {
+                        const jwt: string = sign(
+                            {
+                                client_id: `${sdkConfig.applicationId}_${contractId}`,
+                                nonce: getRandomAlphaNumeric(32),
+                                timestamp: Date.now(),
+                            },
+                            privateKey.toString(),
+                            {
+                                algorithm: "PS512",
+                                noTimestamp: true,
+                            }
+                        );
+                        options.headers["Authorization"] = `Bearer ${jwt}`;
+                    },
+                ],
+            },
+        });
 
-    const response = await net.post(`${sdkConfig.baseUrl}discovery/countries`, {
-        headers: {
-            "Content-Type": "application/json",
-        },
-        json: bodyParams,
-        responseType: "json",
-        retry: { ...sdkConfig.retryOptions, methods: ["POST"] },
-        hooks: {
-            beforeRequest: [
-                (options) => {
-                    const jwt: string = sign(
-                        {
-                            client_id: `${sdkConfig.applicationId}_${contractId}`,
-                            nonce: getRandomAlphaNumeric(32),
-                            timestamp: Date.now(),
-                        },
-                        privateKey.toString(),
-                        {
-                            algorithm: "PS512",
-                            noTimestamp: true,
-                        }
-                    );
-                    options.headers["Authorization"] = `Bearer ${jwt}`;
-                },
-            ],
-        },
-    });
+        assertIsCountriesApiData(response.body);
 
-    assertIsCountriesApiData(response.body);
-
-    return {
-        ...response.body,
-    };
+        return {
+            ...response.body,
+        };
+    } catch (error) {
+        handleServerResponse(error);
+        throw error;
+    }
 };
 
 export { queryCountries };
