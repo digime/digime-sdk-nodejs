@@ -62,4 +62,4 @@ const countries = await sdk.queryCountries({
 
 ```
 
-More on `countriesBodyParams` can be checked [here](../../../interfaces/Types.QueryCountriesOptions.html)
+More details on `countriesBodyParams` can be checked [here](../../../interfaces/Types.QueryCountriesOptions.html)
