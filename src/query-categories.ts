@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2024 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { net } from "./net";
+import { handleServerResponse, net } from "./net";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { TypeValidationError } from "./errors";
 import * as t from "io-ts";
@@ -11,6 +11,7 @@ import { ContractDetails, ContractDetailsCodec } from "./types/common";
 import { sign } from "jsonwebtoken";
 import { getRandomAlphaNumeric } from "./crypto";
 import { CodecAssertion, codecAssertion } from "./utils/codec-assertion";
+import { LiteralUnion } from "type-fest";
 
 export interface CategoryResource {
     mimetype?: string;
@@ -26,7 +27,7 @@ const ResourceCodec: t.Type<CategoryResource> = t.partial({
     url: t.string,
 });
 
-export interface Category {
+export interface Category extends Record<string, unknown> {
     id: number;
     categoryTypeId?: number;
     name?: string;
@@ -63,21 +64,12 @@ export interface QueryCategoriesResponse {
 
 export type CategoriesIncludeFieldList = "id" | "name" | "reference" | "json" | "resource.mimetype" | "resource.url";
 
-const CategoriesIncludeFieldListCodec: t.Type<CategoriesIncludeFieldList> = t.union([
-    t.literal("id"),
-    t.literal("name"),
-    t.literal("reference"),
-    t.literal("json"),
-    t.literal("resource.mimetype"),
-    t.literal("resource.url"),
-]);
-
-export interface CategoriesBodyParams {
+export interface CategoriesBodyParams extends Record<string, unknown> {
     query?: {
         /**
          * Posible fields to include are defined in type CategoriesIncludeFieldList .
          */
-        include?: CategoriesIncludeFieldList[];
+        include?: LiteralUnion<CategoriesIncludeFieldList, string>[];
         filter?: {
             id?: number[];
         };
@@ -86,7 +78,7 @@ export interface CategoriesBodyParams {
 
 const CategoriesBodyParamsCodec: t.Type<CategoriesBodyParams> = t.partial({
     query: t.partial({
-        include: t.array(CategoriesIncludeFieldListCodec),
+        include: t.array(t.string),
     }),
 });
 
@@ -129,49 +121,44 @@ const queryCategories = async (
     const { contractDetails, categoriesBodyParams } = options;
     const { contractId, privateKey } = contractDetails;
 
-    // set body params
-    const bodyParams: CategoriesBodyParams = {
-        query: {
-            include: categoriesBodyParams?.query?.include || ["id", "name", "reference"],
-            filter: {
-                ...(categoriesBodyParams?.query?.filter?.id && { id: categoriesBodyParams?.query?.filter?.id }),
+    try {
+        const response = await net.post(`${sdkConfig.baseUrl}discovery/categories`, {
+            headers: {
+                "Content-Type": "application/json",
             },
-        },
-    };
+            json: categoriesBodyParams,
+            responseType: "json",
+            retry: { ...sdkConfig.retryOptions, methods: ["POST"] },
+            hooks: {
+                beforeRequest: [
+                    (options) => {
+                        const jwt: string = sign(
+                            {
+                                client_id: `${sdkConfig.applicationId}_${contractId}`,
+                                nonce: getRandomAlphaNumeric(32),
+                                timestamp: Date.now(),
+                            },
+                            privateKey.toString(),
+                            {
+                                algorithm: "PS512",
+                                noTimestamp: true,
+                            }
+                        );
+                        options.headers["Authorization"] = `Bearer ${jwt}`;
+                    },
+                ],
+            },
+        });
 
-    const response = await net.post(`${sdkConfig.baseUrl}discovery/categories`, {
-        headers: {
-            "Content-Type": "application/json",
-        },
-        json: bodyParams,
-        responseType: "json",
-        retry: { ...sdkConfig.retryOptions, methods: ["POST"] },
-        hooks: {
-            beforeRequest: [
-                (options) => {
-                    const jwt: string = sign(
-                        {
-                            client_id: `${sdkConfig.applicationId}_${contractId}`,
-                            nonce: getRandomAlphaNumeric(32),
-                            timestamp: Date.now(),
-                        },
-                        privateKey.toString(),
-                        {
-                            algorithm: "PS512",
-                            noTimestamp: true,
-                        }
-                    );
-                    options.headers["Authorization"] = `Bearer ${jwt}`;
-                },
-            ],
-        },
-    });
+        assertIsCategoriesApiData(response.body);
 
-    assertIsCategoriesApiData(response.body);
-
-    return {
-        ...response.body,
-    };
+        return {
+            ...response.body,
+        };
+    } catch (error) {
+        handleServerResponse(error);
+        throw error;
+    }
 };
 
 export { queryCategories };

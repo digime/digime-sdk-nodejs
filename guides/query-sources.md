@@ -46,8 +46,8 @@ const contractDetails = {
 }
 
 const sourcesBodyParams = {
-    limit: <number of items returned per page, default is 10>,
-    offset: <page offset, default is 0>,
+    limit: <number of items returned per page>,
+    offset: <page offset>,
     sort: <sort options>,
     query: {
         search: <search options>,
