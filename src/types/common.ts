@@ -93,7 +93,7 @@ export const SourceFetchFilterCodec: t.Type<SourceFetchFilter> = t.type({
 
 export interface ServiceGroup {
     id: number;
-    serviceTypes?: Service[];
+    serviceTypes: Service[];
 }
 
 export interface Criteria {
@@ -118,7 +118,7 @@ export interface Metadata {
 
 export interface Service {
     id: number;
-    serviceObjectTypes?: ServiceObject[];
+    serviceObjectTypes: ServiceObject[];
 }
 
 export interface ServiceObject {
@@ -159,27 +159,19 @@ export const TimeRangeCodec: t.Type<TimeRange> = t.partial({
     to: t.number,
 });
 
-export const ServiceCodec: t.Type<Service> = t.intersection([
-    t.type({
-        id: t.number,
-    }),
-    t.partial({
-        serviceObjectTypes: t.array(
-            t.type({
-                id: t.number,
-            })
-        ),
-    }),
-]);
+export const ServiceCodec: t.Type<Service> = t.type({
+    id: t.number,
+    serviceObjectTypes: t.array(
+        t.type({
+            id: t.number,
+        })
+    ),
+});
 
-export const ServiceGroupCodec: t.Type<ServiceGroup> = t.intersection([
-    t.type({
-        id: t.number,
-    }),
-    t.partial({
-        serviceTypes: t.array(ServiceCodec),
-    }),
-]);
+export const ServiceGroupCodec: t.Type<ServiceGroup> = t.type({
+    id: t.number,
+    serviceTypes: t.array(ServiceCodec),
+});
 
 export const CAScopeCodec: t.Type<CAScope> = t.partial({
     timeRanges: t.array(TimeRangeCodec),

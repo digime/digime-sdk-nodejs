@@ -46,12 +46,15 @@ const contractDetails = {
 }
 
 const sourcesBodyParams = {
-    limit: <number of items returned per page, default is 10>,
-    offset: <page offset, default is 0>,
+    limit: <number of items returned per page>,
+    offset: <page offset>,
     sort: <sort options>,
     query: {
         search: <search options>,
-        include: <controle what fileds will be included in response>,
+        /**
+         * Posible fields to include are defined in type IncludeFieldList. Please check details for sourcesBodyParams below.
+         */
+        include: <array of fileds to include>,
         filter: {
             id: <filter response by ID>,
             publishedStatus: <filter by published status  "approved" | "pending" | "deprecated" | "blocked" | "sampledataonly", approved is default>;
