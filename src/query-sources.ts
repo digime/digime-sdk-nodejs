@@ -14,45 +14,49 @@ import { CodecAssertion, codecAssertion } from "./utils/codec-assertion";
 import { LiteralUnion } from "type-fest";
 
 export interface SourceResource {
-    url: string;
-    mimetype: string;
+    url?: string;
+    mimetype?: string;
 }
 
-export interface SourceService {
+export interface SourceService extends Record<string, unknown> {
     id: number;
-    name: string;
-    reference: string;
+    name?: string;
+    reference?: string;
 }
 
-const SourceServiceCodec: t.Type<SourceService> = t.type({
-    id: t.number,
-    name: t.string,
-    reference: t.string,
-});
+const SourceServiceCodec: t.Type<SourceService> = t.intersection([
+    t.type({
+        id: t.number,
+    }),
+    t.partial({
+        name: t.string,
+        reference: t.string,
+    }),
+]);
 
 export type AuthorisationType = "saas" | "sdk" | "none";
 
 export interface SourceAuthorisation {
-    type: AuthorisationType;
+    type?: AuthorisationType;
 }
 
-const SourceResourceCodec: t.Type<SourceResource> = t.type({
+const SourceResourceCodec: t.Type<SourceResource> = t.partial({
     url: t.string,
     mimetype: t.string,
 });
 
-const SourceAuthorisationCodec: t.Type<SourceAuthorisation> = t.type({
+const SourceAuthorisationCodec: t.Type<SourceAuthorisation> = t.partial({
     type: t.union([t.literal("saas"), t.literal("sdk"), t.literal("none")]),
 });
 
-const SourcesJSONCodec: t.Type<SourcesJSON> = t.type({
+const SourcesJSONCodec: t.Type<SourcesJSON> = t.partial({
     authorisation: SourceAuthorisationCodec,
 });
 
 export type PublishedStatus = "approved" | "pending" | "deprecated" | "blocked" | "sampledataonly";
 
-export interface SourcesJSON {
-    authorisation: SourceAuthorisation;
+export interface SourcesJSON extends Record<string, unknown> {
+    authorisation?: SourceAuthorisation;
 }
 
 export interface Source extends Record<string, unknown> {
