@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "target": "es2017",
+        "target": "ESNext",
         "moduleResolution": "node",
         "module": "commonjs",
         "declaration": true,
@@ -20,8 +20,8 @@
         "listEmittedFiles": false,
         "listFiles": false,
         "pretty": true,
-
-        "lib": ["es2017"]
+        
+        "lib": ["ESNext"]
     },
     "include": ["src/**/*", "utils/**/*", "tools/**/*"],
     "exclude": ["dist/**", "node_modules/**", "**/*.spec.ts"],

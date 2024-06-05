@@ -62,4 +62,4 @@ const categories = await sdk.queryCategories({
 
 ```
 
-More on `categoriesBodyParams` can be checked [here](../../../interfaces/Types.QueryCategoriesOptions.html#categoriesBodyParams)
+More details on `categoriesBodyParams` can be checked [here](../../../interfaces/Types.QueryCategoriesOptions.html#categoriesBodyParams)
