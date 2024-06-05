@@ -62,4 +62,4 @@ const platforms = await sdk.queryPlatforms({
 
 ```
 
-More on `platformsBodyParams` can be checked [here](../../../interfaces/Types.QueryPlatformsOptions.html)
+More details on `platformsBodyParams` can be checked [here](../../../interfaces/Types.QueryPlatformsOptions.html)

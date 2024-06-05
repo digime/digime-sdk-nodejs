@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2024 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { net } from "./net";
+import { handleServerResponse, net } from "./net";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { TypeValidationError } from "./errors";
 import * as t from "io-ts";
@@ -11,50 +11,55 @@ import { ContractDetails, ContractDetailsCodec } from "./types/common";
 import { sign } from "jsonwebtoken";
 import { getRandomAlphaNumeric } from "./crypto";
 import { CodecAssertion, codecAssertion } from "./utils/codec-assertion";
+import { LiteralUnion } from "type-fest";
 
 export interface SourceResource {
-    url: string;
-    mimetype: string;
+    url?: string;
+    mimetype?: string;
 }
 
-export interface SourceService {
+export interface SourceService extends Record<string, unknown> {
     id: number;
-    name: string;
-    reference: string;
+    name?: string;
+    reference?: string;
 }
 
-const SourceServiceCodec: t.Type<SourceService> = t.type({
-    id: t.number,
-    name: t.string,
-    reference: t.string,
-});
+const SourceServiceCodec: t.Type<SourceService> = t.intersection([
+    t.type({
+        id: t.number,
+    }),
+    t.partial({
+        name: t.string,
+        reference: t.string,
+    }),
+]);
 
 export type AuthorisationType = "saas" | "sdk" | "none";
 
 export interface SourceAuthorisation {
-    type: AuthorisationType;
+    type?: AuthorisationType;
 }
 
-const SourceResourceCodec: t.Type<SourceResource> = t.type({
+const SourceResourceCodec: t.Type<SourceResource> = t.partial({
     url: t.string,
     mimetype: t.string,
 });
 
-const SourceAuthorisationCodec: t.Type<SourceAuthorisation> = t.type({
+const SourceAuthorisationCodec: t.Type<SourceAuthorisation> = t.partial({
     type: t.union([t.literal("saas"), t.literal("sdk"), t.literal("none")]),
 });
 
-const SourcesJSONCodec: t.Type<SourcesJSON> = t.type({
+const SourcesJSONCodec: t.Type<SourcesJSON> = t.partial({
     authorisation: SourceAuthorisationCodec,
 });
 
 export type PublishedStatus = "approved" | "pending" | "deprecated" | "blocked" | "sampledataonly";
 
-export interface SourcesJSON {
-    authorisation: SourceAuthorisation;
+export interface SourcesJSON extends Record<string, unknown> {
+    authorisation?: SourceAuthorisation;
 }
 
-export interface Source {
+export interface Source extends Record<string, unknown> {
     id: number;
     name?: string;
     resource?: SourceResource;
@@ -155,54 +160,13 @@ export type IncludeFieldList =
     | "type.reference"
     | "json";
 
-const IncludeCodec: t.Type<IncludeFieldList> = t.union([
-    t.literal("category"),
-    t.literal("category.id"),
-    t.literal("category"),
-    t.literal("category.id"),
-    t.literal("category.json"),
-    t.literal("category.name"),
-    t.literal("category.reference"),
-    t.literal("country"),
-    t.literal("country.id"),
-    t.literal("country.json"),
-    t.literal("country.code"),
-    t.literal("country.name"),
-    t.literal("dynamic"),
-    t.literal("id"),
-    t.literal("onboardable"),
-    t.literal("name"),
-    t.literal("platform"),
-    t.literal("platform.id"),
-    t.literal("platform.json"),
-    t.literal("platform.name"),
-    t.literal("platform.reference"),
-    t.literal("publishedDate"),
-    t.literal("publishedStatus"),
-    t.literal("reference"),
-    t.literal("resource.url"),
-    t.literal("resource.mimetype"),
-    t.literal("service"),
-    t.literal("service.id"),
-    t.literal("service.json"),
-    t.literal("service.name"),
-    t.literal("service.publishedDate"),
-    t.literal("service.publishedStatus"),
-    t.literal("service.reference"),
-    t.literal("type"),
-    t.literal("type.id"),
-    t.literal("type.name"),
-    t.literal("type.reference"),
-    t.literal("json"),
-]);
-
-export interface SourcesBodyParams {
+export interface SourcesBodyParams extends Record<string, unknown> {
     limit?: number;
     offset?: number;
     sort?: SourcesSort;
     query?: {
         search?: SourcesSearch;
-        include?: IncludeFieldList[];
+        include?: LiteralUnion<IncludeFieldList, string>[];
         filter?: {
             id?: number[];
             publishedStatus?: PublishedStatus[];
@@ -244,7 +208,7 @@ const SourcesBodyParamsCodec: t.Type<SourcesBodyParams> = t.partial({
     sort: SourcesSortCodec,
     query: t.partial({
         search: SourcesSearchCodec,
-        include: t.array(IncludeCodec),
+        include: t.array(t.string),
     }),
 });
 
@@ -287,82 +251,60 @@ const querySources = async (
         );
     }
 
-    const { contractDetails, sourcesBodyParams } = options;
-    const { contractId, privateKey } = contractDetails;
+    try {
+        const { contractDetails, sourcesBodyParams } = options;
+        const { contractId, privateKey } = contractDetails;
 
-    // set body params
-    const bodyParams: SourcesBodyParams = {
-        limit: sourcesBodyParams?.limit || 10,
-        offset: sourcesBodyParams?.offset || 0,
-        sort: sourcesBodyParams?.sort || {
-            name: "asc",
-        },
-        query: {
-            include: sourcesBodyParams?.query?.include || [
-                "id",
-                "name",
-                "resource.mimetype",
-                "resource.url",
-                "service.id",
-                "service.name",
-                "service.reference",
-                "country.id",
-                "country.name",
-                "platform.id",
-                "platform.name",
-                "platform.reference",
-                "publishedStatus",
-                "json",
-            ],
-            filter: {
-                // default type is pull
-                type: sourcesBodyParams?.query?.filter?.type || { id: [1] },
-                publishedStatus: sourcesBodyParams?.query?.filter?.publishedStatus || ["approved"],
-                ...(sourcesBodyParams?.query?.filter?.service && {
-                    service: sourcesBodyParams?.query?.filter?.service,
-                }),
-                ...(sourcesBodyParams?.query?.filter?.id && { id: sourcesBodyParams?.query?.filter?.id }),
-                ...(sourcesBodyParams?.query?.filter?.country && {
-                    country: sourcesBodyParams?.query?.filter?.country,
-                }),
+        // Apply defaults
+        const bodyParams: SourcesBodyParams = structuredClone(sourcesBodyParams) ?? {};
+        bodyParams.query ??= {};
+        bodyParams.query.filter ??= {};
+
+        if (!Object.hasOwn(bodyParams.query.filter, "type")) {
+            bodyParams.query.filter.type = { id: [1] }; // default pull type
+        }
+
+        if (!Object.hasOwn(bodyParams.query.filter, "publishedStatus")) {
+            bodyParams.query.filter.publishedStatus = ["approved"];
+        }
+
+        const response = await net.post(`${sdkConfig.baseUrl}discovery/sources`, {
+            headers: {
+                "Content-Type": "application/json",
             },
-            ...(sourcesBodyParams?.query?.search && { search: sourcesBodyParams?.query?.search }),
-        },
-    };
+            json: bodyParams,
+            responseType: "json",
+            retry: { ...sdkConfig.retryOptions, methods: ["POST"] },
+            hooks: {
+                beforeRequest: [
+                    (options) => {
+                        const jwt: string = sign(
+                            {
+                                client_id: `${sdkConfig.applicationId}_${contractId}`,
+                                nonce: getRandomAlphaNumeric(32),
+                                timestamp: Date.now(),
+                            },
+                            privateKey.toString(),
+                            {
+                                algorithm: "PS512",
+                                noTimestamp: true,
+                            }
+                        );
+                        options.headers["Authorization"] = `Bearer ${jwt}`;
+                    },
+                ],
+            },
+        });
 
-    const response = await net.post(`${sdkConfig.baseUrl}discovery/sources`, {
-        headers: {
-            "Content-Type": "application/json",
-        },
-        json: bodyParams,
-        responseType: "json",
-        retry: { ...sdkConfig.retryOptions, methods: ["POST"] },
-        hooks: {
-            beforeRequest: [
-                (options) => {
-                    const jwt: string = sign(
-                        {
-                            client_id: `${sdkConfig.applicationId}_${contractId}`,
-                            nonce: getRandomAlphaNumeric(32),
-                            timestamp: Date.now(),
-                        },
-                        privateKey.toString(),
-                        {
-                            algorithm: "PS512",
-                            noTimestamp: true,
-                        }
-                    );
-                    options.headers["Authorization"] = `Bearer ${jwt}`;
-                },
-            ],
-        },
-    });
+        assertIsSourcesApiData(response.body);
 
-    assertIsSourcesApiData(response.body);
-
-    return {
-        ...response.body,
-    };
+        return {
+            ...response.body,
+        };
+    } catch (error) {
+        handleServerResponse(error);
+        throw error;
+    }
 };
 
 export { querySources };

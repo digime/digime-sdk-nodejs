@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2024 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { net } from "./net";
+import { handleServerResponse, net } from "./net";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { TypeValidationError } from "./errors";
 import * as t from "io-ts";
@@ -11,8 +11,9 @@ import { ContractDetails, ContractDetailsCodec } from "./types/common";
 import { sign } from "jsonwebtoken";
 import { getRandomAlphaNumeric } from "./crypto";
 import { CodecAssertion, codecAssertion } from "./utils/codec-assertion";
+import { LiteralUnion } from "type-fest";
 
-export interface Platform {
+export interface Platform extends Record<string, unknown> {
     id: number;
     name?: string;
     reference?: string;
@@ -37,18 +38,12 @@ export interface QueryPlatformsResponse {
 
 export type PlatformsIncludeFieldList = "id" | "name" | "reference";
 
-const PlatformsIncludeFieldListCodec: t.Type<PlatformsIncludeFieldList> = t.union([
-    t.literal("id"),
-    t.literal("name"),
-    t.literal("reference"),
-]);
-
-export interface PlatformsBodyParams {
+export interface PlatformsBodyParams extends Record<string, unknown> {
     query?: {
         /**
          * Posible fields to include are defined in type PlatformsIncludeFieldList .
          */
-        include?: PlatformsIncludeFieldList[];
+        include?: LiteralUnion<PlatformsIncludeFieldList, string>[];
         filter?: {
             id?: number[];
         };
@@ -57,7 +52,7 @@ export interface PlatformsBodyParams {
 
 const PlatformsBodyParamsCodec: t.Type<PlatformsBodyParams> = t.partial({
     query: t.partial({
-        include: t.array(PlatformsIncludeFieldListCodec),
+        include: t.array(t.string),
     }),
 });
 
@@ -100,49 +95,44 @@ const queryPlatforms = async (
     const { contractDetails, platformsBodyParams } = options;
     const { contractId, privateKey } = contractDetails;
 
-    // set body params
-    const bodyParams: PlatformsBodyParams = {
-        query: {
-            include: platformsBodyParams?.query?.include || ["id", "name", "reference"],
-            filter: {
-                ...(platformsBodyParams?.query?.filter?.id && { id: platformsBodyParams?.query?.filter?.id }),
+    try {
+        const response = await net.post(`${sdkConfig.baseUrl}discovery/platforms`, {
+            headers: {
+                "Content-Type": "application/json",
             },
-        },
-    };
+            json: platformsBodyParams,
+            responseType: "json",
+            retry: { ...sdkConfig.retryOptions, methods: ["POST"] },
+            hooks: {
+                beforeRequest: [
+                    (options) => {
+                        const jwt: string = sign(
+                            {
+                                client_id: `${sdkConfig.applicationId}_${contractId}`,
+                                nonce: getRandomAlphaNumeric(32),
+                                timestamp: Date.now(),
+                            },
+                            privateKey.toString(),
+                            {
+                                algorithm: "PS512",
+                                noTimestamp: true,
+                            }
+                        );
+                        options.headers["Authorization"] = `Bearer ${jwt}`;
+                    },
+                ],
+            },
+        });
 
-    const response = await net.post(`${sdkConfig.baseUrl}discovery/platforms`, {
-        headers: {
-            "Content-Type": "application/json",
-        },
-        json: bodyParams,
-        responseType: "json",
-        retry: { ...sdkConfig.retryOptions, methods: ["POST"] },
-        hooks: {
-            beforeRequest: [
-                (options) => {
-                    const jwt: string = sign(
-                        {
-                            client_id: `${sdkConfig.applicationId}_${contractId}`,
-                            nonce: getRandomAlphaNumeric(32),
-                            timestamp: Date.now(),
-                        },
-                        privateKey.toString(),
-                        {
-                            algorithm: "PS512",
-                            noTimestamp: true,
-                        }
-                    );
-                    options.headers["Authorization"] = `Bearer ${jwt}`;
-                },
-            ],
-        },
-    });
+        assertIsPlatformsApiData(response.body);
 
-    assertIsPlatformsApiData(response.body);
-
-    return {
-        ...response.body,
-    };
+        return {
+            ...response.body,
+        };
+    } catch (error) {
+        handleServerResponse(error);
+        throw error;
+    }
 };
 
 export { queryPlatforms };
