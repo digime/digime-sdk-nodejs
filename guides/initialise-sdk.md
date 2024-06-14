@@ -54,7 +54,7 @@ import { init } from "@digime/digime-sdk-nodejs";
 const sdk = init({
     applicationId: <my-unique-application-id>,
     retryOptions: {
-        retries: 10,
+        limit: 10,
     }
 });
 ```
