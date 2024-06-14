@@ -83,6 +83,7 @@ const fetchFile = async (options: ReadFileOptionsFormated, sdkConfig: SDKConfigu
             accept: "application/octet-stream",
         },
         responseType: "buffer",
+        retry: sdkConfig.retryOptions,
         hooks: {
             beforeRequest: [
                 (options) => {

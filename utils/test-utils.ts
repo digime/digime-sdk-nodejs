@@ -13,6 +13,8 @@ import { gzipSync, brotliCompressSync } from "zlib";
 import type { ClientRequest } from "http";
 import base64url from "base64url";
 import { verify } from "jsonwebtoken";
+import http, { RequestListener } from "node:http";
+import { Readable } from "node:stream";
 
 interface CreateCADataOptions {
     compression?: "no-compression" | "brotli" | "gzip";
@@ -237,6 +239,46 @@ const getBearerTokenErrorResponse = (
     return undefined;
 };
 
+const createTestServer = async (port: number, requestListener: RequestListener) => {
+    let resolve: (value?: unknown) => void;
+    const serverListening = new Promise((res) => {
+        resolve = res;
+    });
+    const server = http.createServer(requestListener);
+
+    server.listen(port, "localhost", () => {
+        resolve();
+    });
+
+    await serverListening;
+
+    return server;
+};
+
+class FailableJunkStream extends Readable {
+    private index: number;
+    constructor(
+        private chunks: number,
+        private failAfter: number = -1,
+        options = {}
+    ) {
+        super(options);
+        this.index = 0;
+    }
+
+    _read() {
+        if (this.index === this.failAfter) {
+            this.destroy(new Error(`Something went wrong! ${this.index}`));
+            return;
+        } else if (this.index <= this.chunks) {
+            const chunk = `Junk ${this.index++}\n`;
+            this.push(chunk);
+        } else {
+            this.push(null);
+        }
+    }
+}
+
 export {
     loadDefinitions,
     loadScopeDefinitions,
@@ -245,4 +287,6 @@ export {
     spyOnScopeRequests,
     parseMetaToHeader,
     getBearerTokenErrorResponse,
+    createTestServer,
+    FailableJunkStream,
 };

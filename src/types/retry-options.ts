@@ -6,9 +6,7 @@ import * as t from "io-ts";
 import type { RetryFunction, RequiredRetryOptions } from "got";
 import { codecAssertion, CodecAssertion } from "../utils/codec-assertion";
 
-export interface RetryOptions extends Partial<RequiredRetryOptions> {
-    retries?: number;
-}
+export interface RetryOptions extends Partial<RequiredRetryOptions> {}
 
 const isRetryFunction = (u: unknown): u is RetryFunction => typeof u === "function";
 
@@ -20,7 +18,6 @@ const RetryFunctionCodec = new t.Type<RetryFunction>(
 );
 
 export const RetryOptionsCodec: t.Type<RetryOptions> = t.partial({
-    retries: t.number,
     limit: t.number,
     methods: t.array(
         t.keyof({
