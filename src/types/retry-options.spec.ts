@@ -27,7 +27,6 @@ const VALID_HTTP_METHODS = [
 describe("isRetryOptions", () => {
     it("Returns true when given all RetryOptions properties", async () => {
         const config = {
-            retries: 2,
             limit: 4,
             methods: ["GET"],
             statusCodes: [200],
@@ -63,15 +62,6 @@ describe("isRetryOptions", () => {
     describe("Returns false when given a non-object", () => {
         it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = isRetryOptions(value);
-            expect(actual).toBe(false);
-        });
-    });
-
-    describe("Returns false when the retries property of the retryOptions object is not a number", () => {
-        it.each([true, false, null, [], "", {}, () => null, Symbol("test")])("%p", (value) => {
-            const actual = isRetryOptions({
-                retries: value,
-            });
             expect(actual).toBe(false);
         });
     });
@@ -143,7 +133,6 @@ describe("isRetryOptions", () => {
 describe("assertIsRetryOptions", () => {
     it("Does not throw when given all RetryOptions properties", async () => {
         const config = {
-            retries: 2,
             limit: 4,
             methods: ["GET"],
             statusCodes: [200],
@@ -172,16 +161,6 @@ describe("assertIsRetryOptions", () => {
     describe("Throws TypeValidationError when given a non-object", () => {
         it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = () => assertIsRetryOptions(value);
-            expect(actual).toThrow(TypeValidationError);
-        });
-    });
-
-    describe("Throws TypeValidationError when the retries property of the retryOptions object is not a number", () => {
-        it.each([true, false, null, [], {}, "", () => null, Symbol("test")])("%p", (value) => {
-            const actual = () =>
-                assertIsRetryOptions({
-                    retries: value,
-                });
             expect(actual).toThrow(TypeValidationError);
         });
     });

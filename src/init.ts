@@ -43,13 +43,14 @@ import {
     GetUserStorageOptions,
     getUserStorage,
 } from "./storage";
+import type { RetryOptions } from "./types/retry-options";
 
 const CLOUD_BASE_URL = "https://cloud.digi.me/v1/";
 const DEFAULT_BASE_URL = "https://api.digi.me/v1.7/";
 const DEFAULT_ONBOARD_URL = "https://api.digi.me/apps/saas/";
 const DEFAULT_RETRIES_OPTIONS = {
-    retries: 5,
-};
+    limit: 2,
+} satisfies RetryOptions;
 
 const init = (config: SDKConfiguration): DigimeSDK => {
     if (!isPlainObject(config)) {
