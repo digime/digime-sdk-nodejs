@@ -5,10 +5,8 @@
 import { TypeValidationError } from "./errors";
 import { isNonEmptyString } from "./utils/basic-utils";
 import { net } from "./net";
-import { decryptData, getRandomAlphaNumeric } from "./crypto";
-import NodeRSA from "node-rsa";
+import { getRandomAlphaNumeric } from "./crypto";
 import { isDecodedCAFileHeaderResponse, MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
-import * as zlib from "zlib";
 import base64url from "base64url";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { UserAccessToken } from "./types/user-access-token";
@@ -16,15 +14,7 @@ import { sign } from "jsonwebtoken";
 import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
 import { ContractDetails } from "./types/common";
 
-export interface ReadFileOptions {
-    sessionKey: string;
-    privateKey: NodeRSA.Key;
-    fileName: string;
-    contractId: string;
-    userAccessToken: UserAccessToken;
-}
-
-interface ReadFileOptionsFormated {
+export interface ReadFileMetadataOptions {
     sessionKey: string;
     fileName: string;
     userAccessToken: UserAccessToken;
@@ -33,55 +23,51 @@ interface ReadFileOptionsFormated {
 
 export type ReadFileMeta = MappedFileMetadata | RawFileMetadata;
 
-export interface ReadFileResponse {
-    fileData: Buffer;
-    fileName: string;
+export interface ReadFileMetadataResponse {
     fileMetadata: ReadFileMeta;
+    fileName: string;
     userAccessToken?: UserAccessToken;
 }
 
-const _readFile = async (options: ReadFileOptionsFormated, sdkConfig: SDKConfiguration): Promise<ReadFileResponse> => {
+const _readFileMetadata = async (
+    options: ReadFileMetadataOptions,
+    sdkConfig: SDKConfiguration
+): Promise<ReadFileMetadataResponse> => {
     const { sessionKey, fileName, userAccessToken } = options;
-    const { privateKey } = options.contractDetails;
 
     if (!isNonEmptyString(sessionKey)) {
         throw new TypeValidationError("Parameter sessionKey should be a non empty string");
     }
 
-    const response = await fetchFile(options, sdkConfig);
-    const { compression, fileContent, fileMetadata } = response;
-    const key: NodeRSA = new NodeRSA(privateKey, "pkcs1-private-pem");
-    let data: Buffer = decryptData(key, fileContent);
-
-    if (compression === "brotli") {
-        data = zlib.brotliDecompressSync(data);
-    } else if (compression === "gzip") {
-        data = zlib.gunzipSync(data);
+    if (!isNonEmptyString(fileName)) {
+        throw new TypeValidationError("Parameter fileName should be a non empty string");
     }
 
+    const response = await fetchFileMetadata(options, sdkConfig);
+    const { fileMetadata } = response;
+
     return {
-        fileData: data,
         fileMetadata,
         fileName,
         userAccessToken,
     };
 };
 
-interface FetchFileResponse {
-    fileContent: Buffer;
+interface FetchMetadataFileResponse {
     fileMetadata: MappedFileMetadata | RawFileMetadata;
-    compression?: string;
 }
 
-const fetchFile = async (options: ReadFileOptionsFormated, sdkConfig: SDKConfiguration): Promise<FetchFileResponse> => {
+const fetchFileMetadata = async (
+    options: ReadFileMetadataOptions,
+    sdkConfig: SDKConfiguration
+): Promise<FetchMetadataFileResponse> => {
     const { sessionKey, fileName, userAccessToken } = options;
     const { privateKey, contractId } = options.contractDetails;
 
-    const response = await net.get(`${sdkConfig.baseUrl}permission-access/query/${sessionKey}/${fileName}`, {
+    const response = await net.head(`${sdkConfig.baseUrl}permission-access/query/${sessionKey}/${fileName}`, {
         headers: {
-            accept: "application/octet-stream",
+            accept: "application/json",
         },
-        responseType: "buffer",
         retry: sdkConfig.retryOptions,
         hooks: {
             beforeRequest: [
@@ -104,8 +90,6 @@ const fetchFile = async (options: ReadFileOptionsFormated, sdkConfig: SDKConfigu
             ],
         },
     });
-
-    const fileContent: Buffer = response.body as Buffer;
     const base64Meta: string = response.headers["x-metadata"] as string;
     let decodedMeta;
 
@@ -116,23 +100,15 @@ const fetchFile = async (options: ReadFileOptionsFormated, sdkConfig: SDKConfigu
     isDecodedCAFileHeaderResponse(decodedMeta);
 
     return {
-        compression: decodedMeta.compression,
-        fileContent,
         fileMetadata: decodedMeta.metadata,
     };
 };
 
-const readFile = async (options: ReadFileOptions, sdkConfig: SDKConfiguration): Promise<ReadFileResponse> => {
-    const formatedOptions: ReadFileOptionsFormated = {
-        sessionKey: options.sessionKey,
-        fileName: options.fileName,
-        userAccessToken: options.userAccessToken,
-        contractDetails: {
-            contractId: options.contractId,
-            privateKey: options.privateKey.toString(),
-        },
-    };
-    return refreshTokenWrapper(_readFile, formatedOptions, sdkConfig);
+const readFileMetadata = async (
+    options: ReadFileMetadataOptions,
+    sdkConfig: SDKConfiguration
+): Promise<ReadFileMetadataResponse> => {
+    return refreshTokenWrapper(_readFileMetadata, options, sdkConfig);
 };
 
-export { readFile };
+export { readFileMetadata };

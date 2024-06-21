@@ -120,4 +120,6 @@ const data = await sdk.readFile({
 });
 ```
 
+If you want to download just file metadata please use similar approach with method [readFileMetada()](../../interfaces/SDK.DigimeSDK.html#readFileMetadata).
+
 Note that readAllFiles is helper method that uses readFileList and readFile methods to return entire data set and also help user maintain latest access token and file list status. If readFileList and readFile methods are used please add logic to maintain latest access token since both of these method will try to do refresh of token automatically.

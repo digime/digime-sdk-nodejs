@@ -10,6 +10,7 @@ import { addTrailingSlash, isPlainObject } from "./utils/basic-utils";
 import { exchangeCodeForToken, ExchangeCodeForTokenOptions } from "./exchange-code-for-token";
 import { readSession, ReadSessionOptions } from "./read-session";
 import { readFile, ReadFileOptions } from "./read-file";
+import { readFileMetadata, ReadFileMetadataOptions } from "./read-file-metadata";
 import { readFileList, ReadFileListOptions } from "./read-file-list";
 import { readAllFiles, ReadAllFilesOptions } from "./read-all-files";
 import { readAccounts, ReadAccountsOptions } from "./read-accounts";
@@ -84,6 +85,7 @@ const init = (config: SDKConfiguration): DigimeSDK => {
         getRevokeAccountPermissionUrl: (props: GetRevokeAccountPermissionUrlOptions) =>
             getRevokeAccountPermissionUrl(props, sdkConfig),
         readFile: (props: ReadFileOptions) => readFile(props, sdkConfig),
+        readFileMetadata: (props: ReadFileMetadataOptions) => readFileMetadata(props, sdkConfig),
         readFileList: (props: ReadFileListOptions) => readFileList(props, sdkConfig),
         readAllFiles: (props: ReadAllFilesOptions) => readAllFiles(props, sdkConfig),
         readAccounts: (props: ReadAccountsOptions) => readAccounts(props, sdkConfig),
