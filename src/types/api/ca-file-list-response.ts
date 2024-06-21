@@ -28,6 +28,11 @@ export interface CAFileListEntry {
     name: string;
     updatedDate: number;
     schema?: FileDataSchema;
+    serviceGroup?: string;
+    serviceName?: string;
+    objectVersion?: string;
+    objectType?: string;
+    objectCount?: number;
 }
 
 const CAFileListEntryCodec: t.Type<CAFileListEntry> = t.intersection([
@@ -37,6 +42,11 @@ const CAFileListEntryCodec: t.Type<CAFileListEntry> = t.intersection([
     }),
     t.partial({
         schema: FileDataSchemaCodec,
+        serviceGroup: t.string,
+        serviceName: t.string,
+        objectVersion: t.string,
+        objectType: t.string,
+        objectCount: t.number,
     }),
 ]);
 

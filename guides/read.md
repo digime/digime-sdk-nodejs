@@ -99,7 +99,7 @@ If you'd like more control over the downloading of the files, we can call [readF
 const response = await sdk.readFileList({ sessionKey: session.key });
 ```
 
-[Response](../../interfaces/Types.ReadFileListResponse.html) contains a `fileList` and `status` of each user service onboarded.
+[Response](../../interfaces/Types.ReadFileListResponse.html) among other props contains a `fileList` and `status` of each user service onboarded.
 
 You can then download the files manually using [readFile()](../../interfaces/SDK.DigimeSDK.html#readFile).
 
@@ -119,5 +119,7 @@ const data = await sdk.readFile({
     userAccessToken,
 });
 ```
+
+If you want to download just file metadata please use similar approach with method [readFileMetada()](../../interfaces/SDK.DigimeSDK.html#readFileMetadata).
 
 Note that readAllFiles is helper method that uses readFileList and readFile methods to return entire data set and also help user maintain latest access token and file list status. If readFileList and readFile methods are used please add logic to maintain latest access token since both of these method will try to do refresh of token automatically.
