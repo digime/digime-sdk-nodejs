@@ -64,11 +64,16 @@ export interface GetOnboardServiceUrlOptions {
      * If browser locale is not supported we will fallback to default locale (en).
      */
     locale?: string;
-
     /**
      * Flag to indicate if we should include services that are sample data only services. Default is false.
      */
     includeSampleDataOnlySources?: boolean;
+    /**
+     * Flag to indicate if data query will be triggered post service authorisation. Default is true.
+     * If this is set to false data for added service will not be returned.
+     * You may want to set to false when adding multiple services subsequently and only get data for all services when adding last service.
+     */
+    triggerQuery?: boolean;
 }
 
 const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.intersection([
@@ -86,6 +91,7 @@ const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.interse
         }),
         locale: t.string,
         includeSampleDataOnlySources: t.boolean,
+        triggerQuery: t.boolean,
     }),
 ]);
 
@@ -113,6 +119,7 @@ const _getOnboardServiceUrl = async (
         locale,
         includeSampleDataOnlySources,
         serviceId,
+        triggerQuery,
     } = props;
     const { contractId, privateKey } = contractDetails;
 
@@ -171,6 +178,9 @@ const _getOnboardServiceUrl = async (
         ...(locale && { lng: locale }),
         ...(includeSampleDataOnlySources !== undefined && {
             includeSampleDataOnlySources: includeSampleDataOnlySources.toString(),
+        }),
+        ...(triggerQuery !== undefined && {
+            triggerQuery: triggerQuery.toString(),
         }),
     }).toString();
 

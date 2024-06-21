@@ -20,6 +20,7 @@ import { GetReauthorizeAccountUrlOptions, GetReauthorizeAccountUrlResponse } fro
 import { ReadAccountsOptions, ReadAccountsResponse } from "./read-accounts";
 import { ReadAllFilesOptions, ReadAllFilesResponse } from "./read-all-files";
 import { ReadFileOptions, ReadFileResponse } from "./read-file";
+import { ReadFileMetadataOptions, ReadFileMetadataResponse } from "./read-file-metadata";
 import { ReadFileListOptions, ReadFileListResponse } from "./read-file-list";
 import { ReadSessionOptions, ReadSessionResponse } from "./read-session";
 import { UserAccessToken } from "./types/user-access-token";
@@ -110,6 +111,13 @@ export interface DigimeSDK {
      * @category Read
      */
     readFile: (props: ReadFileOptions) => Promise<ReadFileResponse>;
+
+    /**
+     * Download a file metadata.
+     *
+     * @category Read
+     */
+    readFileMetadata: (props: ReadFileMetadataOptions) => Promise<ReadFileMetadataResponse>;
 
     /**
      * Get a list of files that are ready to be downloaded.
