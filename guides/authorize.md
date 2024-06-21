@@ -59,6 +59,7 @@ const contractDetails = {
 // locale - (Optional) Send prefared locale for authorization client to be used. Default is en.
 // includeSampleDataOnlySources - (Optional) Flag to indicate if we should include sample data only sources. Default is false.
 // storageId - (Optional) Provide storage.id returned createProvisionalStorage to connect this storage to created user
+// triggerQuery - (Optional) Flag to indicate if data query will be triggered post service authorisation. Default is true. If this is set to false data for added service will not be returned. You may want to set to false when adding multiple services subsequently and only get data for all services when adding last service.
 
 const result = await sdk.getAuthorizeUrl({
     contractDetails,
@@ -74,6 +75,7 @@ const result = await sdk.getAuthorizeUrl({
     locale: "nl",
     includeSampleDataOnlySources: true,
     storageId: "some-storage-id",
+    triggerQuery: true,
 });
 
 // => result will contain a url and a code verifier which you will need for later.

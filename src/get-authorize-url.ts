@@ -86,6 +86,13 @@ export interface GetAuthorizeUrlOptions {
      * Provide storage.id returned createProvisionalStorage to connect this storage to created user
      */
     storageId?: string;
+
+    /**
+     * Flag to indicate if data query will be triggered post service authorisation. Default is true.
+     * If this is set to false data for added service will not be returned.
+     * You may want to set to false when adding multiple services subsequently and only get data for all services when adding last service.
+     */
+    triggerQuery?: boolean;
 }
 
 export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.intersection([
@@ -105,6 +112,7 @@ export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.int
         locale: t.string,
         includeSampleDataOnlySources: t.boolean,
         storageId: t.string,
+        triggerQuery: t.boolean,
     }),
 ]);
 
@@ -141,7 +149,7 @@ const getAuthorizeUrl = async (
     }
 
     const { code, codeVerifier, session } = await _authorize(props, sdkConfig);
-    const { serviceId, sourceType, sampleData, locale, includeSampleDataOnlySources } = props;
+    const { serviceId, sourceType, sampleData, locale, includeSampleDataOnlySources, triggerQuery } = props;
 
     let storageRef = undefined;
     if (props.storageId) {
@@ -160,6 +168,9 @@ const getAuthorizeUrl = async (
             includeSampleDataOnlySources: includeSampleDataOnlySources.toString(),
         }),
         ...(storageRef && { storageRef: storageRef }),
+        ...(triggerQuery !== undefined && {
+            triggerQuery: triggerQuery.toString(),
+        }),
     }).toString();
 
     return {
