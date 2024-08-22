@@ -46,6 +46,7 @@ import {
     GetUserStorageResponse,
     GetUserStorageOptions,
 } from "./storage";
+import { GetReauthorizeUrlOptions, GetReauthorizeUrlResponse } from "./get-reauthorize-url";
 
 export interface DigimeSDK {
     /**
@@ -62,6 +63,13 @@ export interface DigimeSDK {
      * @category Authorization
      */
     getAuthorizeUrl: (props: GetAuthorizeUrlOptions) => Promise<GetAuthorizeUrlResponse>;
+
+    /**
+     * This is called when user receives InvalidToken error (401 - The token (refresh_token) is invalid). We can use this method to get new AT/RT pair.
+     *
+     * @category Authorization
+     */
+    getReauthorizeUrl: (props: GetReauthorizeUrlOptions) => Promise<GetReauthorizeUrlResponse>;
 
     /**
      * This is called when we already have a valid user access token for this user and we want to add more services to this user’s library.

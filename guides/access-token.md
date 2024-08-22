@@ -37,7 +37,7 @@ Note that methods for reading data will also try to do auto refresh, so please a
 ## Refresh Token
 
 SDK methods have option to do token auto refresh and will do that as explained in respective methods, but
-if token is close to expire there is an option to issue new token manually and be able to control that process internally.
+if token is expired or close to expire there is an option to issue new token manually and be able to control that process internally.
 
 Access token can be issued manually by calling refreshToken method as explained below:
 
@@ -61,3 +61,5 @@ const { newToken } = await sdk.refreshToken({
 });
 
 ```
+
+If refresh token expired you should see error similar to `The token (refresh_token) is invalid`. In this case please check please check [getReauthorizeUrl](./reauthorize.html) method.

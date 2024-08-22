@@ -19,32 +19,19 @@
 
 <br>
 
-Reauthorization is needed if user receives error during reading of data similar to this:
+
+If you are getting error `The token (refresh_token) is invalid` you will need to call getReauthorizeUrl method:
+
+### What are the steps?
+
+* Getting a reauthorization URL and a code verifier from getReauthorizeUrl method.
+* Redirecting the user to this reauthorization URL recived from getReauthorizeUrl method as well.
+* Exchanging the result for fresh user access token.
+
+## Getting a authorization URL and a code verifier
 
 ```typescript
-{
-  "1_1xxxxxxxxx": {
-    "state": "partial",
-    "error": {
-      "code": "ServiceAuthorizationError",
-      "error": {
-        "message": "Service authorization required",
-        "reauth": true
-      },
-      "statusCode": 511
-    }
-  }
-}
-```
-
-This error is shown if account marked with accountId `1_1xxxxxxxxx` in above example lost authorization rights for 3rd party service.
-
-Account ids can also be used from the list of all user accounts that can be fetched using [readAccounts](./read-accounts.html).
-
-To trigger account reauthorization you need to do the following:
-```typescript
-// Initialize the SDK
-import { init } from "@digime/digime-sdk-nodejs";
+import {init} from "@digime/digime-sdk-nodejs";
 
 const sdk = init({ applicationId: <you-application-id> });
 
@@ -53,33 +40,76 @@ const contractDetails = {
     privateKey: <private-key-for-contract-id>,
 }
 
-// callback - The URL to call after reauthorization is done.
-// contractDetails - The same one used in getAuthorizeUrl().
-// accountId - accountId returned in error from above example
-// userAccessToken - The user access token from the authorization step.
-// locale - (Optional) Send prefared locale for authorization client to be used. Default is en.
+// contractDetails - The same one passed into getReauthorizeUrl().
+// callback - URL to be called after authorization is done.
+// state - Put anything here to identify the user when authorization completes. This will be passed back in the callback.
+// userAccessToken - (Optional) User access token you may already have for this user from another contract.
+// sessionOptions - (Optional) An limits or scopes to set for this session.
 
-const { url } = await sdk.getReauthorizeAccountUrl({
-    callback,
+const result = await sdk.getReauthorizeUrl({
     contractDetails,
-    accountId,
-    userAccessToken,
-    locale,
+    callback: <an-url-to-call-when-authorization-is-done>,
+    state: <any-extra-info-to-identify-user>
+    userAccessToken: <access-token>,
+    sessionOptions: <{
+        pull: PullSessionOptions
+    }>,
 });
 
+
+// => result will contain a url, session and a code verifier which you will need for later.
+// Calling the url returned will trigger the reauthorization process.
+```
+More details on types that can be passed into getAuthorizeUrl please check [here](../../interfaces/Types.GetReauthorizeUrlOptions.html).
+
+The [result](../../interfaces/Types.GetReauthorizeUrlResponse.html) returned will include a `url`, `codeVerifier` and `session`.
+Store the `codeVerifier` against this user as this will be required for later.
+
+Store `session` as well for getting data after reauthorization process is done.
+
+## Redirecting the user to this reauthorization URL
+
+The URL returned is the digi.me web onboard client, and will look something like this.
+
+```
+https://api.digi.me/apps/saas/user-reauth?code=<code>
 ```
 
-The `url` returned might look something like this:
+Redirect the user to this URL, and we will attempt to reauthorize user. If user is inactive for too long we might not be able to recover user and you will need to do authorization process from scratch.
 
-```
-https://api.digi.me/apps/saas/reauthorize?code=<code>&accountRef=<accountRef>
-```
+On *success*, the `callback` provided above will be called with the follow extra query parameters:
 
-Redirect the user to this URL and they will be asked to give permissions to 3rd party service.
+| Parameter | Description | Returned Always |
+|-|-|-|
+| `success` | Whether the call was successful. `true` or `false` | Yes |
+| `state` | The same string that was passed in to the `getAuthorizationUrl` call. | Yes |
+| `code` | Authorization Code. Only returned when the authorization successful. | Yes |
 
-At the end of the process, the `callback` provided above will be called with the follow extra query parameters:
+On *failure*, the `callbackUrl` provided will be called with the follow extra query parameters:
 
 | Parameter | Description | Returned Always |
 |-|-|-|
 | `success` | Whether the call was successful. `true` or `false` | Yes |
 | `errorCode` | If there was an error, an error code will be returned. Please see the error code section for a list of possible errors. | Yes |
+
+## Exchanging the result for an user access token.
+
+Once we have the `code` from a successful authorization, we can combine that with the `codeVerifier` to exchange a User Access Token.
+
+```typescript
+// ... initialize the SDK
+
+// authorizationCode - The code returned in the query parameter of the returned URL.
+// codeVerifier - The one returned from the result of getReauthorizeUrl().
+// contractDetails - The same one passed into getReauthorizeUrl().
+
+const userAccessToken = await sdk.exchangeCodeForToken({
+    codeVerifier,
+    authorizationCode,
+    contractDetails,
+});
+
+// Store the userAccessToken against the current user. We can use this for future reads.
+```
+
+Once the above steps are completed, you will have an User Access Token for this user for this contract. You will be able to perform read/write tasks from their digi.me library.

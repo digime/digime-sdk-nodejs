@@ -96,6 +96,10 @@
                             "source": "authorize.md"
                         },
                         {
+                            "name": "Reauthorizing",
+                            "source": "reauthorize.md"
+                        },
+                        {
                             "name": "Onboarding Additional Services",
                             "source": "onboard.md"
                         },
@@ -105,7 +109,7 @@
                         },
                         {
                             "name": "Reauthorizing account",
-                            "source": "reauthorize.md"
+                            "source": "reauthorize-account.md"
                         },
                         {
                             "name": "Read accounts",
