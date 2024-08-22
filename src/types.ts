@@ -14,6 +14,7 @@ export {
 } from "./get-revoke-account-permission-url";
 export { ExchangeCodeForTokenOptions } from "./exchange-code-for-token";
 export { GetAuthorizeUrlResponse, GetAuthorizeUrlOptions } from "./get-authorize-url";
+export { GetReauthorizeUrlResponse, GetReauthorizeUrlOptions } from "./get-reauthorize-url";
 export { GetOnboardServiceUrlOptions, GetOnboardServiceUrlResponse } from "./get-onboard-service-url";
 export { GetReauthorizeAccountUrlOptions, GetReauthorizeAccountUrlResponse } from "./get-reauthorize-account-url";
 export { ReadAccountsOptions, ReadAccountsResponse } from "./read-accounts";

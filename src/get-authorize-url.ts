@@ -21,6 +21,8 @@ import {
     PullSessionOptionsCodec,
     SampleDataOptions,
     SampleDataOptionsCodec,
+    SourcesScope,
+    SourcesScopeCodec,
     SourceType,
     SourceTypeCodec,
 } from "./types/common";
@@ -93,6 +95,12 @@ export interface GetAuthorizeUrlOptions {
      * You may want to set to false when adding multiple services subsequently and only get data for all services when adding last service.
      */
     triggerQuery?: boolean;
+
+    /**
+     * Options that is used to scope list of available sources during process of adding sources.
+     * Currently this is only used for data types but will be used for other params as well.
+     */
+    sourcesScope?: SourcesScope;
 }
 
 export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.intersection([
@@ -113,6 +121,7 @@ export const GetAuthorizeUrlOptionsCodec: t.Type<GetAuthorizeUrlOptions> = t.int
         includeSampleDataOnlySources: t.boolean,
         storageId: t.string,
         triggerQuery: t.boolean,
+        sourcesScope: SourcesScopeCodec,
     }),
 ]);
 
@@ -149,7 +158,8 @@ const getAuthorizeUrl = async (
     }
 
     const { code, codeVerifier, session } = await _authorize(props, sdkConfig);
-    const { serviceId, sourceType, sampleData, locale, includeSampleDataOnlySources, triggerQuery } = props;
+    const { serviceId, sourceType, sampleData, locale, includeSampleDataOnlySources, triggerQuery, sourcesScope } =
+        props;
 
     let storageRef = undefined;
     if (props.storageId) {
@@ -171,6 +181,7 @@ const getAuthorizeUrl = async (
         ...(triggerQuery !== undefined && {
             triggerQuery: triggerQuery.toString(),
         }),
+        ...(sourcesScope && { sourcesScope: encodeURIComponent(JSON.stringify(sourcesScope)) }),
     }).toString();
 
     return {

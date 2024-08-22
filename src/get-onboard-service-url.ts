@@ -20,6 +20,8 @@ import {
     PullSessionOptionsCodec,
     SampleDataOptions,
     SampleDataOptionsCodec,
+    SourcesScope,
+    SourcesScopeCodec,
     SourceType,
     SourceTypeCodec,
 } from "./types/common";
@@ -74,6 +76,15 @@ export interface GetOnboardServiceUrlOptions {
      * You may want to set to false when adding multiple services subsequently and only get data for all services when adding last service.
      */
     triggerQuery?: boolean;
+    /**
+     * Options that is used to scope list of available sources during process of adding sources.
+     * Currently this is only used for data types but will be used for other params as well.
+     */
+    sourcesScope?: SourcesScope;
+    /**
+     * Any extra data you want to be passed back after a authorization flow.
+     */
+    state?: string;
 }
 
 const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.intersection([
@@ -92,6 +103,8 @@ const GetOnboardServiceUrlCodec: t.Type<GetOnboardServiceUrlOptions> = t.interse
         locale: t.string,
         includeSampleDataOnlySources: t.boolean,
         triggerQuery: t.boolean,
+        sourcesScope: SourcesScopeCodec,
+        state: t.string,
     }),
 ]);
 
@@ -120,6 +133,8 @@ const _getOnboardServiceUrl = async (
         includeSampleDataOnlySources,
         serviceId,
         triggerQuery,
+        sourcesScope,
+        state,
     } = props;
     const { contractId, privateKey } = contractDetails;
 
@@ -149,6 +164,7 @@ const _getOnboardServiceUrl = async (
                             client_id: `${sdkConfig.applicationId}_${contractId}`,
                             nonce: getRandomAlphaNumeric(32),
                             redirect_uri: callback,
+                            state,
                             timestamp: Date.now(),
                         },
                         privateKey.toString(),
@@ -182,6 +198,7 @@ const _getOnboardServiceUrl = async (
         ...(triggerQuery !== undefined && {
             triggerQuery: triggerQuery.toString(),
         }),
+        ...(sourcesScope && { sourcesScope: encodeURIComponent(JSON.stringify(sourcesScope)) }),
     }).toString();
 
     return {

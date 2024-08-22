@@ -45,6 +45,7 @@ import {
     getUserStorage,
 } from "./storage";
 import type { RetryOptions } from "./types/retry-options";
+import { getReauthorizeUrl, GetReauthorizeUrlOptions } from "./get-reauthorize-url";
 
 const CLOUD_BASE_URL = "https://cloud.digi.me/v1/";
 const DEFAULT_BASE_URL = "https://api.digi.me/v1.7/";
@@ -74,6 +75,7 @@ const init = (config: SDKConfiguration): DigimeSDK => {
 
     return {
         getAuthorizeUrl: (props: GetAuthorizeUrlOptions) => getAuthorizeUrl(props, sdkConfig),
+        getReauthorizeUrl: (props: GetReauthorizeUrlOptions) => getReauthorizeUrl(props, sdkConfig),
         getOnboardServiceUrl: (props: GetOnboardServiceUrlOptions) => getOnboardServiceUrl(props, sdkConfig),
         getReauthorizeAccountUrl: (props: GetReauthorizeAccountUrlOptions) =>
             getReauthorizeAccountUrl(props, sdkConfig),
