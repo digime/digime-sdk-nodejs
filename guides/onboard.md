@@ -38,8 +38,10 @@ const sdk = init({ applicationId: <you-application-id> });
 // locale - (Optional) Send prefared locale for authorization client to be used. Default is en.
 // includeSampleDataOnlySources - (Optional) Flag to indicate if we should include sample data only sources. Default is false.
 // triggerQuery - (Optional) Flag to indicate if data query will be triggered post service authorisation. Default is true. If this is set to false data for added service will not be returned. You may want to set to false when adding multiple services subsequently and only get data for all services when adding last service.
+// state - (Optional) Put anything here to identify the user when authorization completes. This will be passed back in the callback.
+// sourcesScope - (Optional) scope is currently used only for pasing data type.
 
-const { url } = await sdk.getOnboardServiceUrl({
+const { url, session, userAccessToken } = await sdk.getOnboardServiceUrl({
     callback,
     contractDetails,
     serviceId,
@@ -54,11 +56,16 @@ const { url } = await sdk.getOnboardServiceUrl({
 // Redirect the user to the url returned and this will kick start the onboarding process.
 ```
 
+More details on types that can be passed into getAuthorizeUrl please check [here](../../interfaces/Types.GetOnboardServiceUrlOptions.html).
+
 The `url` returned might look something like this:
 
 ```
 https://api.digi.me/apps/saas/onboard?code=<code>&callback=<callback>&service=<service-id>
 ```
+
+Use `session` for getting data after service onboard is done and also have in mind to keep/update `userAccessToken` returned since SDK will do automatic token refresh in case access token expired and refrash token is still valid.
+
 
 Redirect the user to this URL, and they will be asked to onboard the service and consent to share the requested data.
 

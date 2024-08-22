@@ -29,7 +29,9 @@ Authorization is needed:
 
 * For new users. You have the option to also ask the user to onboard a service during this process.
 * For an existing user working with a different contract. eg, They have shared data but now we would like to push data in their digi.me.
-* For an existing user when their user access token has expired and we need to renew it.
+
+
+If you are getting error `The token (refresh_token) is invalid` please check [getReauthorizeUrl](./reauthorize.html) method.
 
 ### What are the steps?
 
@@ -49,6 +51,7 @@ const contractDetails = {
     privateKey: <private-key-for-contract-id>,
 }
 
+// contractDetails - The same one passed into getAuthorizeUrl().
 // callback - URL to be called after authorization is done.
 // serviceId - (Optional) During authorization, we can also ask user to onboard a service. ID can be found from getAvailableServices()
 // state - Put anything here to identify the user when authorization completes. This will be passed back in the callback.
@@ -60,6 +63,7 @@ const contractDetails = {
 // includeSampleDataOnlySources - (Optional) Flag to indicate if we should include sample data only sources. Default is false.
 // storageId - (Optional) Provide storage.id returned createProvisionalStorage to connect this storage to created user
 // triggerQuery - (Optional) Flag to indicate if data query will be triggered post service authorisation. Default is true. If this is set to false data for added service will not be returned. You may want to set to false when adding multiple services subsequently and only get data for all services when adding last service.
+// sourcesScope - (Optional) scope is currently used only for pasing data type.
 
 const result = await sdk.getAuthorizeUrl({
     contractDetails,
@@ -76,13 +80,18 @@ const result = await sdk.getAuthorizeUrl({
     includeSampleDataOnlySources: true,
     storageId: "some-storage-id",
     triggerQuery: true,
+    sourcesScope: <options-to-scope-soruces-during-authorization-flow>
 });
 
 // => result will contain a url and a code verifier which you will need for later.
 // Calling the url returned will trigger the authorization process.
 ```
-The [result](../../interfaces/Types.GetAuthorizeUrlResponse.html) returned will include a `url` and `codeVerifier`.
+More details on types that can be passed into getAuthorizeUrl please check [here](../../interfaces/Types.GetAuthorizeUrlOptions.html).
+
+The [result](../../interfaces/Types.GetAuthorizeUrlResponse.html) returned will include a `url`, `codeVerifier` and `session`.
 Store the `codeVerifier` against this user as this will be required for later.
+
+Store `session` as well for getting data after authorization process is done.
 
 More on limits and scoping of raw and mapped data interface can be found [here](../../interfaces/Types.PullSessionOptions.html).
 

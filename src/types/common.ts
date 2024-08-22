@@ -188,3 +188,56 @@ export const PullSessionOptionsCodec: t.Type<PullSessionOptions> = t.partial({
     sourceFetch: t.boolean,
     sourceFetchFilter: SourceFetchFilterCodec,
 });
+
+export const availableDataTypes = [
+    "medication-information",
+    "laboratory-results",
+    "appointments",
+    "patient-summary-hospital-data",
+    "gp-data",
+    "mental-health-patient-summary",
+    "documents",
+    "measurements-vital-signs",
+    "allergy-intolerances",
+    "images",
+    "medication-related-intolerances",
+    "referral-to-questionnaire",
+    "questionnaire-response",
+    "longterm-healthcare-patient-summary",
+    "patient-corrections-request",
+    "vaccinations",
+    "integral-birth-care-process",
+] as const;
+
+export type DataType = (typeof availableDataTypes)[number];
+
+export const DataTypeCodec: t.Type<DataType> = t.keyof({
+    "medication-information": null,
+    "laboratory-results": null,
+    appointments: null,
+    "patient-summary-hospital-data": null,
+    "gp-data": null,
+    "mental-health-patient-summary": null,
+    documents: null,
+    "measurements-vital-signs": null,
+    "allergy-intolerances": null,
+    images: null,
+    "medication-related-intolerances": null,
+    "referral-to-questionnaire": null,
+    "questionnaire-response": null,
+    "longterm-healthcare-patient-summary": null,
+    "patient-corrections-request": null,
+    vaccinations: null,
+    "integral-birth-care-process": null,
+});
+
+export interface SourcesScope {
+    /**
+     * Data type to be filter sources by
+     */
+    dataType?: DataType[];
+}
+
+export const SourcesScopeCodec: t.Type<SourcesScope> = t.partial({
+    dataType: t.array(DataTypeCodec),
+});
