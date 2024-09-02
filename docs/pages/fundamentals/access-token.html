@@ -53,10 +53,11 @@ Once we have this, we can read up to date data of the services the user has onbo
   <h2>Refresh Token</h2>
 </a>
 <p>SDK methods have option to do token auto refresh and will do that as explained in respective methods, but
-if token is close to expire there is an option to issue new token manually and be able to control that process internally.</p>
+if token is expired or close to expire there is an option to issue new token manually and be able to control that process internally.</p>
 <p>Access token can be issued manually by calling refreshToken method as explained below:</p>
 <pre><code class="language-typescript"><span class="hl-3">// Initialize the SDK</span><br/><span class="hl-6">import</span><span class="hl-1"> { </span><span class="hl-7">init</span><span class="hl-1"> } </span><span class="hl-6">from</span><span class="hl-1"> </span><span class="hl-2">&quot;@digime/digime-sdk-nodejs&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">sdk</span><span class="hl-1"> = </span><span class="hl-0">init</span><span class="hl-1">({ </span><span class="hl-7">applicationId:</span><span class="hl-1"> &lt;</span><span class="hl-8">you</span><span class="hl-1">-</span><span class="hl-8">application</span><span class="hl-1">-</span><span class="hl-8">id</span><span class="hl-1">&gt; });</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">contractDetails</span><span class="hl-1"> = {</span><br/><span class="hl-1">    </span><span class="hl-7">contractId:</span><span class="hl-1"> &lt;</span><span class="hl-8">your</span><span class="hl-1">-</span><span class="hl-8">contract</span><span class="hl-1">-</span><span class="hl-8">id</span><span class="hl-1">&gt;,</span><br/><span class="hl-1">    </span><span class="hl-7">privateKey:</span><span class="hl-1"> &lt;</span><span class="hl-8">private</span><span class="hl-1">-</span><span class="hl-8">key</span><span class="hl-1">-</span><span class="hl-8">for</span><span class="hl-1">-</span><span class="hl-8">contract</span><span class="hl-1">-</span><span class="hl-8">id</span><span class="hl-1">&gt;,</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-3">// contractDetails - The same one used in getAuthorizeUrl().</span><br/><span class="hl-3">// userAccessToken - The user access token from the authorization step.</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> { </span><span class="hl-5">newToken</span><span class="hl-1"> } = </span><span class="hl-6">await</span><span class="hl-1"> </span><span class="hl-7">sdk</span><span class="hl-1">.</span><span class="hl-0">refreshToken</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-7">contractDetails</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-7">userAccessToken</span><span class="hl-1">,</span><br/><span class="hl-1">});</span><br/>
 </code></pre>
+<p>If refresh token expired you should see error similar to <code>The token (refresh_token) is invalid</code>. In this case please check please check <a href="./reauthorize.html">getReauthorizeUrl</a> method.</p>
 </div></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
@@ -93,9 +94,10 @@ if token is close to expire there is an option to issue new token manually and b
 <li class="pages-entry pages-entry-page pages-entry-depth-3"><a href="query-sources/query-categories.html">Query <wbr/>Categories</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-3"><a href="query-sources/query-platforms.html">Query <wbr/>Platforms</a></li></ul></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="authorize.html">Authorizing</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="reauthorize.html">Reauthorizing</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="onboard.html">Onboarding <wbr/>Additional <wbr/>Services</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="sample-datasets.html">Sample datasets</a></li>
-<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="reauthorize.html">Reauthorizing account</a></li>
+<li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="reauthorize-account.html">Reauthorizing account</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="read-accounts.html">Read accounts</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="delete-account.html">Delete account</a></li>
 <li class="pages-entry pages-entry-page pages-entry-depth-2"><a href="revoke-account.html">Revoke account</a></li>
