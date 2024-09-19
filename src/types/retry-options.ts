@@ -6,6 +6,7 @@ import * as t from "io-ts";
 import type { RetryFunction, RequiredRetryOptions } from "got";
 import { codecAssertion, CodecAssertion } from "../utils/codec-assertion";
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface RetryOptions extends Partial<RequiredRetryOptions> {}
 
 const isRetryFunction = (u: unknown): u is RetryFunction => typeof u === "function";
