@@ -211,7 +211,7 @@ const getBearerTokenErrorResponse = (
     let payload;
     try {
         payload = verify(token, publicKey);
-    } catch (error) {
+    } catch {
         return [406, bodyError, headersError];
     }
 
