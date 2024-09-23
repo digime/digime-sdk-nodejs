@@ -1,5 +1,4 @@
-![](https://securedownloads.digi.me/partners/digime/SDKReadmeBanner.png)
-<p align="center">
+<p>
     <a href="https://developers.digi.me/slack/join">
         <img src="https://img.shields.io/badge/chat-slack-blueviolet.svg" alt="Developer Chat">
     </a>
@@ -11,9 +10,6 @@
     </a>
     <a href="https://www.typescriptlang.org/">
         <img src="https://img.shields.io/badge/language-typescript-ff69b4.svg" alt="Typescript">
-    </a>
-    <a href="https://developers.digi.me/">
-        <img src="https://img.shields.io/badge/web-digi.me-red.svg" alt="Web">
     </a>
 </p>
 

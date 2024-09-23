@@ -1,24 +1,3 @@
-![](https://securedownloads.digi.me/partners/digime/SDKReadmeBanner.png)
-<p align="center">
-    <a href="https://developers.digi.me/slack/join">
-        <img src="https://img.shields.io/badge/chat-slack-blueviolet.svg" alt="Developer Chat">
-    </a>
-    <a href="LICENSE">
-        <img src="https://img.shields.io/badge/license-apache 2.0-blue.svg" alt="Apache 2.0 License">
-    </a>
-    <a href="#">
-    	<img src="https://img.shields.io/badge/build-passing-brightgreen.svg">
-    </a>
-    <a href="https://www.typescriptlang.org/">
-        <img src="https://img.shields.io/badge/language-typescript-ff69b4.svg" alt="Typescript">
-    </a>
-    <a href="https://developers.digi.me/">
-        <img src="https://img.shields.io/badge/web-digi.me-red.svg" alt="Web">
-    </a>
-</p>
-
-<br>
-
 Use this guide to push data to your user's library in digi.me.
 
 Push to provider type is currently only supported for Medmij and is a bit different approach on how this data is pushed. We will explain this below.
@@ -158,7 +137,7 @@ If we need to push more files to the users in the future, we can keep pushing as
 
 ## 4. Reading files back out
 
-If you've written data to the user, you can read it back out using the [same process for reading user data](./read-data-overview.html). You will need a new contract which reads out raw data, so please contact digi.me [here](https://digi.me/register) to get yours.
+If you've written data to the user, you can read it back out using the [same process for reading user data](./read-data-overview.html). You will need a new contract which reads out raw data, so please contact digi.me [here](https://worlddataexchange.com/register) to get yours.
 
 Note: Reading data is not possible for push to provider flow.
 

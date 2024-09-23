@@ -1,5 +1,5 @@
-![](https://securedownloads.digi.me/partners/digime/SDKReadmeBanner.png)
-<p align="center">
+
+<p>
     <a href="https://developers.digi.me/slack/join">
         <img src="https://img.shields.io/badge/chat-slack-blueviolet.svg" alt="Developer Chat">
     </a>
@@ -7,17 +7,12 @@
         <img src="https://img.shields.io/badge/license-apache 2.0-blue.svg" alt="Apache 2.0 License">
     </a>
     <a href="#">
-    	<img src="https://img.shields.io/badge/build-passing-brightgreen.svg">
+        <img src="https://img.shields.io/badge/build-passing-brightgreen.svg">
     </a>
     <a href="https://www.typescriptlang.org/">
         <img src="https://img.shields.io/badge/language-typescript-ff69b4.svg" alt="Typescript">
     </a>
-    <a href="https://developers.digi.me/">
-        <img src="https://img.shields.io/badge/web-digi.me-red.svg" alt="Web">
-    </a>
 </p>
-
-<br>
 
 ## Requirements
 
@@ -32,7 +27,7 @@ $ npm i @digime/digime-sdk-nodejs
 ```
 
 ## Obtaining your Contract ID, Application ID & Private Key
-To access the digi.me platform, you need to obtain an AppID for your application. You can get yours by filling out the registration form [here](https://digi.me/register).
+To access the digi.me platform, you need to obtain an AppID for your application. You can get yours by filling out the registration form [here](https://worlddataexchange.com/register).
 
 In a production environment, you will also be required to obtain your own Contract ID and Private Key from digi.me support. However, for demo purposes, we provide example values. You can find example keys in our [example application](https://github.com/digime/digime-sdk-nodejs-example).
 
