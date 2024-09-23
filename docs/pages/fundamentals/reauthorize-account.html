@@ -16,28 +16,7 @@
 <li><span>Fundamentals</span></li>
 <li><a href="reauthorize-account.html">Reauthorizing account</a></li></ul>
 <h1> Reauthorizing account</h1></div>
-<div class="tsd-panel tsd-typography"><p><img src="https://securedownloads.digi.me/partners/digime/SDKReadmeBanner.png" alt=""></p>
-<p align="center">
-    <a href="https://developers.digi.me/slack/join">
-        <img src="https://img.shields.io/badge/chat-slack-blueviolet.svg" alt="Developer Chat">
-    </a>
-    <a href="LICENSE">
-        <img src="https://img.shields.io/badge/license-apache 2.0-blue.svg" alt="Apache 2.0 License">
-    </a>
-    <a href="#">
-        <img src="https://img.shields.io/badge/build-passing-brightgreen.svg">
-    </a>
-    <a href="https://www.typescriptlang.org/">
-        <img src="https://img.shields.io/badge/language-typescript-ff69b4.svg" alt="Typescript">
-    </a>
-    <a href="https://developers.digi.me/">
-        <img src="https://img.shields.io/badge/web-digi.me-red.svg" alt="Web">
-    </a>
-</p>
-
-<br>
-
-<p>Reauthorization is needed if user receives error during reading of data similar to this:</p>
+<div class="tsd-panel tsd-typography"><p>Reauthorization is needed if user receives error during reading of data similar to this:</p>
 <pre><code class="language-typescript"><span class="hl-1">{</span><br/><span class="hl-1">  </span><span class="hl-2">&quot;1_1xxxxxxxxx&quot;</span><span class="hl-1">: {</span><br/><span class="hl-1">    </span><span class="hl-2">&quot;state&quot;</span><span class="hl-7">:</span><span class="hl-1"> </span><span class="hl-2">&quot;partial&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-2">&quot;error&quot;</span><span class="hl-7">:</span><span class="hl-1"> {</span><br/><span class="hl-1">      </span><span class="hl-2">&quot;code&quot;</span><span class="hl-7">:</span><span class="hl-1"> </span><span class="hl-2">&quot;ServiceAuthorizationError&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">      </span><span class="hl-2">&quot;error&quot;</span><span class="hl-7">:</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-2">&quot;message&quot;</span><span class="hl-7">:</span><span class="hl-1"> </span><span class="hl-2">&quot;Service authorization required&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">        </span><span class="hl-2">&quot;reauth&quot;</span><span class="hl-7">:</span><span class="hl-1"> </span><span class="hl-4">true</span><br/><span class="hl-1">      },</span><br/><span class="hl-1">      </span><span class="hl-2">&quot;statusCode&quot;</span><span class="hl-7">:</span><span class="hl-1"> </span><span class="hl-10">511</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">  }</span><br/><span class="hl-1">}</span>
 </code></pre>
 <p>This error is shown if account marked with accountId <code>1_1xxxxxxxxx</code> in above example lost authorization rights for 3rd party service.</p>
