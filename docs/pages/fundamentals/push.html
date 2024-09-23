@@ -16,28 +16,7 @@
 <li><span>Fundamentals</span></li>
 <li><a href="push.html">Push Data</a></li></ul>
 <h1> Push Data</h1></div>
-<div class="tsd-panel tsd-typography"><p><img src="https://securedownloads.digi.me/partners/digime/SDKReadmeBanner.png" alt=""></p>
-<p align="center">
-    <a href="https://developers.digi.me/slack/join">
-        <img src="https://img.shields.io/badge/chat-slack-blueviolet.svg" alt="Developer Chat">
-    </a>
-    <a href="LICENSE">
-        <img src="https://img.shields.io/badge/license-apache 2.0-blue.svg" alt="Apache 2.0 License">
-    </a>
-    <a href="#">
-        <img src="https://img.shields.io/badge/build-passing-brightgreen.svg">
-    </a>
-    <a href="https://www.typescriptlang.org/">
-        <img src="https://img.shields.io/badge/language-typescript-ff69b4.svg" alt="Typescript">
-    </a>
-    <a href="https://developers.digi.me/">
-        <img src="https://img.shields.io/badge/web-digi.me-red.svg" alt="Web">
-    </a>
-</p>
-
-<br>
-
-<p>Before we can be push data to the user, we should already have a user access token for this user.</p>
+<div class="tsd-panel tsd-typography"><p>Before we can be push data to the user, we should already have a user access token for this user.</p>
 <p>If not, you&#39;ll need to <a href="./authorize.html">authorize them</a> first. Make sure the user access token is for a <a href="../fundamentals/contracts.html">write contract</a>.</p>
 <p>Once you have authorized a write contract, you should have the <code>userAccessToken</code> for this user.</p>
 <pre><code class="language-typescript"><span class="hl-3">// ... initialize the SDK</span><br/><br/><span class="hl-3">// type - Push type can be library or provider. Library is common case to use when you need to push data to your library. Provider type is used for pushing to 3rd party source.</span><br/><span class="hl-3">// contractDetails - The same one used in getAuthorizeUrl().</span><br/><span class="hl-3">// userAccessToken - The user access token from the authorization step.</span><br/><span class="hl-3">// data - An object containing the buffer of the file to upload and some meta data. If type is provider then Record&lt;string, unknown&gt; type is expected.</span><br/><span class="hl-3">// onAccessTokenChange - A function that will be called when AccessToken is changed.</span><br/><span class="hl-3">// version - Can be &quot;stu3&quot; or  &quot;3.0.2&quot; and it is used only for provider type.</span><br/><span class="hl-3">// standard -  For now only can be set to &quot;fhir&quot; and it is used only for provider type.</span><br/><span class="hl-3">// accountId - Id of account where push needs to be submited. Only for provider type. List of accounts where account Id can be found is related to readAccounts method. Callback URL after authorization will also return accountReference that can be used to match exact account object where push needs to be submited.</span><br/><br/><span class="hl-6">await</span><span class="hl-1"> </span><span class="hl-7">sdk</span><span class="hl-1">.</span><span class="hl-0">pushData</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-7">type:</span><span class="hl-1"> </span><span class="hl-2">&quot;library&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-7">contractDetails</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-7">userAccessToken</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-7">data:</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-7">fileData:</span><span class="hl-1"> </span><span class="hl-7">req</span><span class="hl-1">.</span><span class="hl-7">file</span><span class="hl-1">.</span><span class="hl-7">buffer</span><span class="hl-1">,</span><br/><span class="hl-1">        </span><span class="hl-7">fileName:</span><span class="hl-1"> </span><span class="hl-7">req</span><span class="hl-1">.</span><span class="hl-7">file</span><span class="hl-1">.</span><span class="hl-7">originalname</span><span class="hl-1">,</span><br/><span class="hl-1">        </span><span class="hl-7">fileDescriptor:</span><span class="hl-1"> </span><span class="hl-5">JSON</span><span class="hl-1">.</span><span class="hl-0">parse</span><span class="hl-1">(</span><span class="hl-7">fileMeta</span><span class="hl-1">),</span><br/><span class="hl-1">    },</span><br/><span class="hl-1">    </span><span class="hl-0">onAccessTokenChange</span><span class="hl-1">(</span><span class="hl-7">response</span><span class="hl-1">) {</span><br/><span class="hl-1">        </span><span class="hl-3">// Add logic to save new access token</span><br/><span class="hl-1">    },</span><br/><span class="hl-1">});</span>

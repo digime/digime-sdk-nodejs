@@ -16,28 +16,7 @@
 <li><span>Fundamentals</span></li>
 <li><a href="sample-datasets.html">Sample datasets</a></li></ul>
 <h1> Sample datasets</h1></div>
-<div class="tsd-panel tsd-typography"><p><img src="https://securedownloads.digi.me/partners/digime/SDKReadmeBanner.png" alt=""></p>
-<p align="center">
-    <a href="https://developers.digi.me/slack/join">
-        <img src="https://img.shields.io/badge/chat-slack-blueviolet.svg" alt="Developer Chat">
-    </a>
-    <a href="LICENSE">
-        <img src="https://img.shields.io/badge/license-apache 2.0-blue.svg" alt="Apache 2.0 License">
-    </a>
-    <a href="#">
-        <img src="https://img.shields.io/badge/build-passing-brightgreen.svg">
-    </a>
-    <a href="https://www.typescriptlang.org/">
-        <img src="https://img.shields.io/badge/language-typescript-ff69b4.svg" alt="Typescript">
-    </a>
-    <a href="https://developers.digi.me/">
-        <img src="https://img.shields.io/badge/web-digi.me-red.svg" alt="Web">
-    </a>
-</p>
-
-<br>
-
-<p>For development, testing or demo purpose there is an option to do onboard sample data for services that provide sample datasets.</p>
+<div class="tsd-panel tsd-typography"><p>For development, testing or demo purpose there is an option to do onboard sample data for services that provide sample datasets.</p>
 <p>Dataset is sample data object with test data that can be used by developers or for demo/testing purpose to avoid process with onboarding live/real service.</p>
 <p>To get list of available datasets you need to trigger:</p>
 <pre><code class="language-typescript"><span class="hl-3">// Initialize the SDK</span><br/><span class="hl-6">import</span><span class="hl-1"> {</span><span class="hl-7">init</span><span class="hl-1">} </span><span class="hl-6">from</span><span class="hl-1"> </span><span class="hl-2">&quot;@digime/digime-sdk-nodejs&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">sdk</span><span class="hl-1"> = </span><span class="hl-0">init</span><span class="hl-1">({ </span><span class="hl-7">applicationId:</span><span class="hl-1"> &lt;</span><span class="hl-8">you</span><span class="hl-1">-</span><span class="hl-8">application</span><span class="hl-1">-</span><span class="hl-8">id</span><span class="hl-1">&gt; });</span><br/><br/><span class="hl-3">// contractDetails - The same one used in getAuthorizeUrl().</span><br/><span class="hl-3">// sourceId - Send sourceId to get list of sample data sets for that ID</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">datasets</span><span class="hl-1"> = </span><span class="hl-6">await</span><span class="hl-1"> </span><span class="hl-7">sdk</span><span class="hl-1">.</span><span class="hl-0">getServiceSampleDataSets</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-7">contractDetails</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-7">sourceId</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-3">// Each dataset has key (Dataset ID) that can to be passed to getOnboardServiceUrl and getAuthorizeUrl.</span>
