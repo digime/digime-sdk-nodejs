@@ -1,8 +1,8 @@
-By default, the SDK retries to make calls twice before giving up. This is something that can be configured when the SDK is [initialised](./initialise-sdk.html).
+By default, the SDK retries calls twice before giving up. This behavior can be configured when the SDK is [initialised](./initialise-sdk.html).
 
 ## Errors Returned From digi.me API
 
-These are errors that have been thrown by the digi.me API. These errors will be thrown as `ServerError` and it will contain an error object specifying the error.
+These are errors thrown by the digi.me API. They will be returned as `ServerError`, containing an error object that specifies the details of the error.
 
 ```
 import { ServerError } from "@digime/digime-sdk-nodejs";

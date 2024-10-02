@@ -1,10 +1,10 @@
-If you are getting error `The token (refresh_token) is invalid` you will need to call getReauthorizeUrl method:
+If you are getting error `The token (refresh_token) is expired` you will need to call getReauthorizeUrl method:
 
 ### What are the steps?
 
-* Getting a reauthorization URL and a code verifier from getReauthorizeUrl method.
-* Redirecting the user to this reauthorization URL recived from getReauthorizeUrl method as well.
-* Exchanging the result for fresh user access token.
+* Getting a reauthorization URL and a code verifier from the `getReauthorizeUrl` method.
+* Redirecting the user to the reauthorization URL received from the `getReauthorizeUrl` method.
+* Exchanging the result for a fresh user access token..
 
 ## Getting a authorization URL and a code verifier
 
@@ -90,6 +90,6 @@ const userAccessToken = await sdk.exchangeCodeForToken({
 // Store the userAccessToken against the current user. We can use this for future reads.
 ```
 
-Once the above steps are completed, you will have an User Access Token for this user for this contract. You will be able to perform read/write tasks from their digi.me library.
+Once the above steps are completed, you will have a User Access Token for this user associated with this contract. You will be able to perform read and write tasks from their digi.me library.
 
-Please note that in case you are using invalid token `getReauthorizeUrl` method will return InvalidToken (The token (access_token) is invalid) error and you will not be able to reauthorize this user.
+Please note that if you are using an invalid token, the `getReauthorizeUrl` method will return an InvalidToken error (The token (access_token) is invalid), and you will not be able to reauthorize this user.

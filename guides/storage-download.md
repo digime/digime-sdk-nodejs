@@ -1,4 +1,4 @@
-File download can be done with downloadStorageFile SDK method.
+File downloads can be performed using the `downloadStorageFile` SDK method.
 
 #### Examples
 The most basic initialization:

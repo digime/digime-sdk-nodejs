@@ -1,7 +1,7 @@
 In order to use the JS SDK, you'll first need to initialise it with your unique application ID.
 You can get yours by filling out the registration form [here](https://worlddataexchange.com/register).
 
-By default, the SDK will point to the production environment of digi.me, but when initialising the SDK, you have the ability to override some default behaviour and specify some options.
+By default, the SDK will point to the production environment of digi.me. However, when initializing the SDK, you have the option to override certain default behaviors and specify additional options.
 
 #### Configuration Options
 See all possible [configurations](../../interfaces/Types.SDKConfiguration.html) when initializing the SDK.

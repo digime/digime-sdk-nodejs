@@ -1,4 +1,4 @@
-File delete can be done with deleteStorageFiles SDK method.
+File deletion can be performed using the `deleteStorageFiles` SDK method.
 
 #### Examples
 The most basic initialization:

@@ -1,8 +1,9 @@
-For development, testing or demo purpose there is an option to do onboard sample data for services that provide sample datasets.
+For development, testing, or demo purposes, there is an option to onboard sample data for services that provide sample datasets.
 
-Dataset is sample data object with test data that can be used by developers or for demo/testing purpose to avoid process with onboarding live/real service.
+A dataset is a sample data object containing test data that can be used by developers or for demo/testing purposes, allowing you to avoid the process of onboarding live or real services.
 
-To get list of available datasets you need to trigger:
+To get a list of available datasets, you need to trigger:
+
 ```typescript
 // Initialize the SDK
 import {init} from "@digime/digime-sdk-nodejs";
@@ -34,7 +35,7 @@ const datasets = await sdk.getServiceSampleDataSets({
 }
 ```
 
-Methods getOnboardServiceUrl and getAuthorizeUrl have optional parameter sampleData:
+Methods `getOnboardServiceUrl` and `getAuthorizeUrl` have optional parameter sampleData:
 
 ```
 export interface SampleDataOptions {
@@ -50,6 +51,6 @@ export interface SampleDataOptions {
 }
 ```
 
-Passing this param will trigger sample data flow and user will not be asked to onboard live service.
+Passing this parameter will trigger the sample data flow, and the user will not be asked to onboard a live service.
 
-`autoOnboard` param if passed as true will not ask user for consenting to give data. This option available to additionaly speed up flow and give ability to skip consent screen for sample data.
+If the `autoOnboard` parameter is set to true, the user will not be asked for consent. This option is available to additionally speed up the flow and allows you to skip the consent screen for sample data.

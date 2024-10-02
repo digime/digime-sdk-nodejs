@@ -1,6 +1,6 @@
-Once a user is authorized, you can onboard additional services to their library before reading them all at once.
+Once a user is authorized, you can onboard additional sources to their library before reading all the data at once.
 
-To trigger a new service onboard, you can do the following:
+To trigger the onboarding of a new source, follow these steps:
 ```typescript
 // Initialize the SDK
 import {init} from "@digime/digime-sdk-nodejs";

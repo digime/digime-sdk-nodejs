@@ -1,33 +1,20 @@
-Requesting user data using digi.me is easy!
+Requesting user data with digi.me is simple!
 
-On this page, we will learn how to receive data from your users using the digi.me Private Share platform.
+In this guide, we will learn how to receive data from your users using the digi.me Private Share platform.
 
-In order to access the digi.me platform, you need to obtain an application ID, a contract ID for reading data and its private key.
+To access the digi.me platform, you will need an application ID, a contract ID for reading data, and its private key.
 
-Please check out [Getting Started](./start.html) for more details.
+For more details, please refer to [Getting Started](./start.html).
 
-## 1. Available Services
-To start reading user data, we first need to ask the user to onboard a service.
+## 1. Available Sources
+To begin reading user data, you must first ask the user to onboard a source.
 
-To see a list of services available for users to onboard:
-
-```typescript
-import { init } from "@digime/digime-sdk-nodejs";
-
-const sdk = init({ applicationId });
-
-// Contract Id of your READ contract
-const availableServices = await sdk.getAvailableServices(contractId);
-
-// => Result will be an object with available services for your contract ID.
-```
-
-See [Available Services](../fundamentals/available-services.html) for more explanation.
+To view a list of sources available for users to onboard, click [here](../fundamentals/query-sources/index.html) for more details.
 
 ## 2. Onboarding and Authorization
-To start reading user data, we need to ask the user to onboard a service and authorize us to access it.
+To start reading user data, you need to ask the user to onboard a source and authorize access.
 
-*If you already have an user access token for this user from another contract, you will still need to go through this process. Make sure to include any user access tokens you already have so we can link to the same library.*
+*If you already have a user access token for this user from another contract, you will still need to go through this process. Ensure that you include any user access tokens you already have so we can link to the same library.*
 
 ### Getting an authorization URL and a code verifier
 Start this process by getting the authorization URL by calling `getAuthorizeUrl`:
@@ -130,7 +117,7 @@ https://your-website.com/onboard-return?userId=<user-id>&success=true
 ```
 
 ## 4. Query user data.
-When your user has onboarded all the services you require, we can start reading the data using the session from earlier.
+When your user has onboarded all the sources you require, we can start reading the data using the session from earlier.
 
 ```typescript
 // ... initialize the SDK
@@ -159,8 +146,10 @@ const { stopPolling, filePromise } = sdk.readAllFiles({
 // stopPolling is a function that you can call if you would like to stop the process when it's still running.
 ```
 
-And that's it, you've successfully received data from the user using digi.me!
+And that's it you've successfully received data from the user using digi.me!
 
-When user access token is updated onAccessTokenChange will be triggered. Please use onAccessTokenChange to add logic for updating access token.
+When the user access token is updated, the onAccessTokenChange event will be triggered. Be sure to use onAccessTokenChange to implement logic for updating the access token.
 
-Next time you want to get data from the same user, you can reuse the User Access Token and go straight to step 5 of the process!
+Next time you need to read data from the same user, you can reuse the User Access Token and go directly to step 5 of the process!
+
+Data can also be read file by file. For more details, please refer to the [Reading Data](../fundamentals/read.html) section.

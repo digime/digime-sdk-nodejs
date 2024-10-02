@@ -1,22 +1,21 @@
-In order to push or read data from the user's digi.me, we will need an user access token to their digi.me.
-Once we have this, we can read up to date data of the services the user has onboarded to their digi.me.
+In order to push or read data from a user's digi.me account, we will need a user access token for their digi.me account.
+Once we have this, we can access up-to-date data from the sources the user has onboarded to their digi.me.
 
-User access tokens are obtained once a user successfully goes through a [authorization process](../fundamentals/authorize.html).
+User access tokens are obtained after a user successfully completes the [authorization process](../fundamentals/authorize.html).
 
-Separate user access tokens are required for each contract, so it is possible to have multiple for one user if you require to read and push data.
+Separate user access tokens are required for each contract, so it is possible to have multiple tokens for one user if you need to read and push data.
 
 ## Access Token Expiry
 
-The access token will eventually expire. When you first created it, a timestamp (Unix Epoch Time) at which it will expire will be returned. The SDK will attempt to refresh it automatically when you use it next. If a refresh is needed, it will return the new access token to you.
+The access token will eventually expire. When it is first created, a timestamp (Unix Epoch Time) indicating when it will expire is returned. The SDK will attempt to refresh the token automatically when it is used again. If a refresh is needed, the new access token will be returned to you.
 
-If the refresh is unsuccessful, you'll need to go through the authorization process again with the user.
+If the refresh is unsuccessful, you'll need to go through [reauthorization process](../fundamentals/reauthorize.html).
 
-Note that methods for reading data will also try to do auto refresh, so please add logic for keep this latest tokek that is returned back from SDK.
+Please note that methods for reading data will also attempt auto-refresh, so ensure that you have logic to store the latest token returned by the SDK.
 
 ## Refresh Token
 
-SDK methods have option to do token auto refresh and will do that as explained in respective methods, but
-if token is expired or close to expire there is an option to issue new token manually and be able to control that process internally.
+SDK methods have an option for automatic token refresh, as explained in the respective methods. However, if the token has expired or is close to expiring, there is an option to manually issue a new token and control the process internally.
 
 Access token can be issued manually by calling refreshToken method as explained below:
 

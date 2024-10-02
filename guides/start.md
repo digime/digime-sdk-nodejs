@@ -29,10 +29,10 @@ $ npm i @digime/digime-sdk-nodejs
 ## Obtaining your Contract ID, Application ID & Private Key
 To access the digi.me platform, you need to obtain an AppID for your application. You can get yours by filling out the registration form [here](https://worlddataexchange.com/register).
 
-In a production environment, you will also be required to obtain your own Contract ID and Private Key from digi.me support. However, for demo purposes, we provide example values. You can find example keys in our [example application](https://github.com/digime/digime-sdk-nodejs-example).
+In a production environment, you will also need to obtain your own Contract ID and Private Key from digi.me support. However, for demo purposes, we provide example values. You can find these example keys in our [example application](https://github.com/digime/digime-sdk-nodejs-example).
 
 ## Initializing the SDK
-Once you have the above, we can initiate the SDK.
+Once you have the above information, you can initiate the SDK.
 
 ```typescript
 import { init } from "@digime/digime-sdk-nodejs";
@@ -40,7 +40,7 @@ import { init } from "@digime/digime-sdk-nodejs";
 const digimeSDK = init({ applicationId: <my-unique-application-id> });
 ```
 
-To see all the other options when initializing the SDK, please take a look [here](../fundamentals/initialise-sdk.html).
+To see all the other options for initializing the SDK, please take a look [here](../fundamentals/initialise-sdk.html).
 
 ## Using the SDK
 * Use digi.me to [read data from your users](read-data-overview.html).

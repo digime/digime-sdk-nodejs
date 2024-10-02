@@ -1,6 +1,6 @@
-Currently only for service Medmij we provide option to get portability report.
+Currently, we only provide the option to generate a portability report for the MedMij service.
 
-To get portability report you need trigger:
+To generate a portability report, you need to trigger the following:
 
 ```typescript
 // Initialize the SDK

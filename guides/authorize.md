@@ -1,22 +1,22 @@
-In order to push or read data from digi.me, we first need to create an user access token for each user.
-User access tokens are linked to a contract, and it is possible to create multiple tokens that has access to the same digi.me libary.
-Authorization is the process to obtain an user access token for the user.
+In order to push or read data from digi.me, we first need to create a user access token for each user.
+User access tokens are linked to a contract, and it is possible to create multiple tokens that have access to the same digi.me library.
+Authorization is the process of obtaining a user access token for the user.
 
 ### When do we need to authorize?
 
-Authorization is needed:
+Authorization is required in the following scenarios:
 
-* For new users. You have the option to also ask the user to onboard a service during this process.
-* For an existing user working with a different contract. eg, They have shared data but now we would like to push data in their digi.me.
+* For new users. You also have the option to ask the user to onboard first source during this process.
+* For an existing user working with a different contract. For example, if they have shared data and now you would like to push data into their digi.me.
 
 
-If you are getting error `The token (refresh_token) is invalid` please check [getReauthorizeUrl](./reauthorize.html) method.
+If you encounter the error `The token (refresh_token) is expired` please refer to the [getReauthorizeUrl](./reauthorize.html) method.
 
 ### What are the steps?
 
-* Getting a authorization URL and a code verifier.
-* Redirecting the user to this authorization URL.
-* Exchanging the result for an user access token.
+* Obtain an authorization URL and a code verifier.
+* Redirect the user to the authorization URL.
+* Exchange the result for a user access token.
 
 ## Getting a authorization URL and a code verifier
 
@@ -32,7 +32,7 @@ const contractDetails = {
 
 // contractDetails - The same one passed into getAuthorizeUrl().
 // callback - URL to be called after authorization is done.
-// serviceId - (Optional) During authorization, we can also ask user to onboard a service. ID can be found from getAvailableServices()
+// serviceId - (Optional) During authorization, we can also ask user to onboard a service. ID can be found from querySources()
 // state - Put anything here to identify the user when authorization completes. This will be passed back in the callback.
 // userAccessToken - (Optional) User access token you may already have for this user from another contract.
 // sessionOptions - (Optional) An limits or scopes to set for this session.

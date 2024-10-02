@@ -1,8 +1,8 @@
-Important note: Option suported only for Medmij.
+Important note: This option is supported only for MedMij.
 
-With long-term permissions introduced in MedMij user must be given option to revoke permissions.
+With long-term permissions introduced in MedMij, users must be given the option to revoke permissions.
 
-To get revoke url please do following:
+To get the revoke URL, please do the following:
 
 ```typescript
 // Initialize the SDK
@@ -28,15 +28,13 @@ const { location } = await sdk.getRevokeAccountPermissionUrl({
 });
 
 ```
-Account ids can be used from the list of all user accounts that can be fetched using [readAccounts](./read-accounts.html).
+Account IDs can be used from the list of all user accounts that can be fetched using [readAccounts](./read-accounts.html).
 
 Click [here](../../interfaces/Types.GetRevokeAccountPermissionUrlResponse.html) to check response that will be returned from `getRevokeAccountPermissionUrl` call.
 
-The `location` returned might look something like this:
+Redirect the user to `location` returned in above response and they will have the possibility to adjust consent and withdraw it. 
 
-Redirect the user to this URL and they will have the possibility to adjust consent and withdraw it. 
-
-At the end of the process, the `location` provided above can contain following extra query parameters:
+At the end of the process user will be redirected back to the `redirectUri` provided above. This url can contain following extra query parameters:
 
 | Parameter | Description | Returned Always |
 |-|-|-|
