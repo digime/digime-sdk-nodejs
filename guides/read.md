@@ -1,6 +1,6 @@
-Before data can be read, we should already have a user access token for this user.
+Before data can be read, you must already have a user access token for this user.
 
-If not, you'll need to [authorize them](./authorize.html) first, and ask them to [onboard any extra services](./onboard.html) to provide the data you're requesting.
+If not, you will need to [authorize them](./authorize.html) first and ask them to [onboard any extra services](./onboard.html) to provide the data you are requesting.
 
 
 ## Getting a Read Session
@@ -23,10 +23,10 @@ const { session, updatedAccessToken }  = await sdk.readSession({
 
 The [session](../../interfaces/Types.Session.html) received can now be used to query data.
 
-More on limits and scoping of raw and mapped data interface can be found [here](../../interfaces/Types.PullSessionOptions.html).
+More information on the limits and scoping of the raw and mapped data interface can be found [here](../../interfaces/Types.PullSessionOptions.html).
 
 ## Reading All Files
-Using the session received above, we can trigger [readAllFiles()](../../interfaces/SDK.DigimeSDK.html#readAllFiles) to read all available files from this user.
+Using the session received above, we can trigger the [readAllFiles()](../../interfaces/SDK.DigimeSDK.html#readAllFiles) method to read all available files from this user.
 
 ```typescript
 // ... initialize the SDK

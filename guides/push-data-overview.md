@@ -1,18 +1,18 @@
 Use this guide to push data to your user's library in digi.me.
 
-Push to provider type is currently only supported for Medmij and is a bit different approach on how this data is pushed. We will explain this below.
+Currently, the "push to provider" functionality is only supported for MedMij, and it follows a slightly different approach for how data is pushed. We will explain this below.
 
-In order to access the digi.me platform, you need to obtain an application ID, a contract for writing data and its private key.
+To access the digi.me platform, you need an application ID, a contract for writing data, and its private key.
 
-Please check out [Getting Started](./start.html) for more details.
+For more details, please check [Getting Started](./start.html).
 
 ## 1. Onboarding and Authorization
-Before we can push data to user, we need go through the authorization flow and obtain a user access token.
+Before pushing data to a user, you must go through the authorization flow and obtain a user access token.
 
-*If you already have an user access token for this user for another contract, you will still need to go through this process. Make sure to include any user access tokens you already have so we can link to the same library.*
+*If you already have a user access token for this user from another contract, you will still need to go through this process. Be sure to include any existing user access tokens so we can link them to the same library.*
 
 ### Getting an authorization URL and a code verifier
-Start this process by getting the authorization URL by calling `getAuthorizeUrl`:
+Begin the process by obtaining the authorization URL by calling `getAuthorizeUrl`:
 
 ```typescript
 import { init } from "@digime/digime-sdk-nodejs";
@@ -37,14 +37,13 @@ const { url, codeVerifier } = await sdk.getAuthorizeUrl({
 // This will kick start the authorization process.
 ```
 
-NOTE: Please have in mind that sourceType needs to be set to push only if you want to push data to provider. Currently this is only supported for Medmij. If sourceType is set to push we will show only services that are eligible for push to provider flow. 
+NOTE: Please keep in mind that sourceType needs to be set to push only if you intend to push data to a provider. Currently, this is only supported for Medmij. If sourceType is set to push, only services eligible for the push-to-provider flow will be displayed.
 
 ### Redirect the user
 
-From the step above, you will have received a URL to which you can redirect your users to to start the authorization process.
-Don't forget to also store the code verifier against this user as you'll need it later!
+From the previous step, you will have received a URL to which you can redirect your users to begin the authorization process. Don't forget to store the code verifier associated with this user, as you'll need it later!
 
-An authorization URL should look something like:
+An authorization URL should look something like this:
 
 ```
 https://api.digi.me/apps/saas/authorize?code=<code>
@@ -106,7 +105,7 @@ await sdk.pushData({
 });
 ```
 
-If you want to use push to provide (currently only Medmij) flow here is an example of puhs to provider call:
+If you want to use the push-to-provider flow (currently only supported for Medmij), here is an example:
 
 ```typescript
 // ... initialize the SDK

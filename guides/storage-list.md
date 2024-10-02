@@ -1,4 +1,4 @@
-Getting list of files from storage can be done with listStorageFiles SDK method.
+Getting the list of files from storage can be done using the `listStorageFiles` SDK method.
 
 #### Examples
 The most basic initialization:

@@ -1,4 +1,4 @@
-Reauthorization is needed if user receives error during reading of data similar to this:
+Reauthorization is needed if the user receives an error during data reading similar to this:
 
 ```typescript
 {
@@ -16,11 +16,12 @@ Reauthorization is needed if user receives error during reading of data similar 
 }
 ```
 
-This error is shown if account marked with accountId `1_1xxxxxxxxx` in above example lost authorization rights for 3rd party service.
+This error indicates that the account marked with accountId `1_1xxxxxxxxx` in the above example has lost authorization rights for a third-party source.
 
-Account ids can also be used from the list of all user accounts that can be fetched using [readAccounts](./read-accounts.html).
+Account IDs can also be obtained from the list of all user accounts that can be fetched using [readAccounts](./read-accounts.html).
 
-To trigger account reauthorization you need to do the following:
+To trigger account reauthorization, you need to do the following:
+
 ```typescript
 // Initialize the SDK
 import { init } from "@digime/digime-sdk-nodejs";

@@ -22,6 +22,6 @@ const { deleted } = await sdk.deleteAccount({
 });
 ```
 
-Account ids can be used from the list of all user accounts that can be fetched using [readAccounts](./read-accounts.html).
+Account IDs can be used from the list of all user accounts that can be fetched using [readAccounts](./read-accounts.html).
 
 Click [here](../../interfaces/Types.DeleteAccountResponse.html) to check response that will be returned from deleteAccount call.

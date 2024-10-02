@@ -1,6 +1,6 @@
-Before data can be read, we should already have a user access token for this user.
+Before data can be read accounts, you must already have a user access token for that user.
 
-If not, you'll need to [authorize them](./authorize.html) first.
+If you do not have one, you will need to [authorize](./authorize.html) first.
 
 ## Reading accounts
 Using the session received above, we can trigger readAccounts to read all user accounts.

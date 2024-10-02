@@ -1,8 +1,8 @@
-Before we can be push data to the user, we should already have a user access token for this user.
+Before pushing data you must already have a user access token for that user.
 
-If not, you'll need to [authorize them](./authorize.html) first. Make sure the user access token is for a [write contract](../fundamentals/contracts.html).
+If you do not have one, you will need to [authorize them](./authorize.html) first. Ensure that the user access token is associated with a [write contract](../fundamentals/contracts.html).
 
-Once you have authorized a write contract, you should have the `userAccessToken` for this user.
+Once you have authorized a write contract, you should have the `userAccessToken` for the user.
 
 ```typescript
 // ... initialize the SDK

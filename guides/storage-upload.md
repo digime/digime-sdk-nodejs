@@ -1,4 +1,4 @@
-Upload files to storage can be done with uploadFileToStorage SDK method.
+Uploading files to storage can be done using the `uploadFileToStorage` SDK method.
 
 #### Examples
 The most basic initialization:
