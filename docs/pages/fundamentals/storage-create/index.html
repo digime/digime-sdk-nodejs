@@ -16,7 +16,7 @@
 <li><span>Fundamentals</span></li>
 <li><a href="index.html">Storage</a></li></ul>
 <h1> Storage</h1></div>
-<div class="tsd-panel tsd-typography"><p>The SDK Provides a functions that you can use to create cloud storage. Storage can be used as an independed storage not related to user. For creation of provisional storage you should use SDK method createProvisionalStorage.</p>
+<div class="tsd-panel tsd-typography"><p>The SDK provides functions that you can use to create cloud storage. This storage can be used as independent storage not related to a specific user. To create provisional storage, you should use the SDK method <code>createProvisionalStorage</code></p>
 
 <a href="#examples" id="examples" style="color: inherit; text-decoration: none;">
   <h4>Examples</h4>
@@ -27,15 +27,15 @@
 <p>This method creates provisional storage and returns:</p>
 <pre><code><span class="hl-9">storage</span><span class="hl-1">: {</span><br/><span class="hl-1">    </span><span class="hl-9">id</span><span class="hl-1">: </span><span class="hl-7">string</span><span class="hl-1">;</span><br/><span class="hl-1">    </span><span class="hl-9">kid</span><span class="hl-1">: </span><span class="hl-7">string</span><span class="hl-1">;</span><br/><span class="hl-1">};</span><br/>
 </code></pre>
-<p>Storage id returned in above response will be used for uploading items to storage as well as for geting them from storage.</p>
-<p>Provisional storage can be connected later with user when calling <a href="../authorize.html">getAuthorizeUrl()</a> method by passing in storageId.</p>
-<p>SDK also supports getting storage id for existing user. This can be done by calling:</p>
+<p>The storage ID returned in the above response will be used for uploading items to storage as well as for retrieving them from storage..</p>
+<p>Provisional storage can later be connected to a user when calling the <a href="../authorize.html">getAuthorizeUrl()</a> method by passing in the storageId.</p>
+<p>The SDK also supports retrieving the storage ID for an existing user. This can be done by calling:</p>
 <pre><code><span class="hl-3">// contractDetails - The same one used in getAuthorizeUrl().</span><br/><span class="hl-3">// userAccessToken - The user access token from the authorization step.</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">storage</span><span class="hl-1"> = </span><span class="hl-6">await</span><span class="hl-1"> </span><span class="hl-7">sdk</span><span class="hl-1">.</span><span class="hl-0">getUserStorage</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-7">contractDetails</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-7">userAccessToken</span><span class="hl-1">,</span><br/><span class="hl-1">});</span>
 </code></pre>
 <p>This method will return:</p>
 <pre><code><span class="hl-1">    </span><span class="hl-9">storage</span><span class="hl-1">: {</span><br/><span class="hl-1">        </span><span class="hl-9">id</span><span class="hl-1">: </span><span class="hl-7">string</span><span class="hl-1">;</span><br/><span class="hl-1">        </span><span class="hl-9">kid</span><span class="hl-1">: </span><span class="hl-7">string</span><span class="hl-1">;</span><br/><span class="hl-1">    };</span><br/><span class="hl-1">    </span><span class="hl-7">userAccessToken</span><span class="hl-1">?: </span><span class="hl-7">UserAccessToken</span><span class="hl-1">;</span>
 </code></pre>
-<p>Please note that above method will do auto refresh of userAccessToken so it is needed to add logic to save new userAccessToken.</p>
+<p>Please note that the above method will automatically refresh the userAccessToken, so it is necessary to add logic to save the new userAccessToken.</p>
 </div></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">

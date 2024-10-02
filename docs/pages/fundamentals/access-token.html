@@ -16,23 +16,22 @@
 <li><span>Fundamentals</span></li>
 <li><a href="access-token.html">User Access Tokens</a></li></ul>
 <h1> User Access Tokens</h1></div>
-<div class="tsd-panel tsd-typography"><p>In order to push or read data from the user&#39;s digi.me, we will need an user access token to their digi.me.
-Once we have this, we can read up to date data of the services the user has onboarded to their digi.me.</p>
-<p>User access tokens are obtained once a user successfully goes through a <a href="../fundamentals/authorize.html">authorization process</a>.</p>
-<p>Separate user access tokens are required for each contract, so it is possible to have multiple for one user if you require to read and push data.</p>
+<div class="tsd-panel tsd-typography"><p>In order to push or read data from a user&#39;s digi.me account, we will need a user access token for their digi.me account.
+Once we have this, we can access up-to-date data from the sources the user has onboarded to their digi.me.</p>
+<p>User access tokens are obtained after a user successfully completes the <a href="../fundamentals/authorize.html">authorization process</a>.</p>
+<p>Separate user access tokens are required for each contract, so it is possible to have multiple tokens for one user if you need to read and push data.</p>
 
 <a href="#access-token-expiry" id="access-token-expiry" style="color: inherit; text-decoration: none;">
   <h2>Access Token Expiry</h2>
 </a>
-<p>The access token will eventually expire. When you first created it, a timestamp (Unix Epoch Time) at which it will expire will be returned. The SDK will attempt to refresh it automatically when you use it next. If a refresh is needed, it will return the new access token to you.</p>
-<p>If the refresh is unsuccessful, you&#39;ll need to go through the authorization process again with the user.</p>
-<p>Note that methods for reading data will also try to do auto refresh, so please add logic for keep this latest tokek that is returned back from SDK.</p>
+<p>The access token will eventually expire. When it is first created, a timestamp (Unix Epoch Time) indicating when it will expire is returned. The SDK will attempt to refresh the token automatically when it is used again. If a refresh is needed, the new access token will be returned to you.</p>
+<p>If the refresh is unsuccessful, you&#39;ll need to go through <a href="../fundamentals/reauthorize.html">reauthorization process</a>.</p>
+<p>Please note that methods for reading data will also attempt auto-refresh, so ensure that you have logic to store the latest token returned by the SDK.</p>
 
 <a href="#refresh-token" id="refresh-token" style="color: inherit; text-decoration: none;">
   <h2>Refresh Token</h2>
 </a>
-<p>SDK methods have option to do token auto refresh and will do that as explained in respective methods, but
-if token is expired or close to expire there is an option to issue new token manually and be able to control that process internally.</p>
+<p>SDK methods have an option for automatic token refresh, as explained in the respective methods. However, if the token has expired or is close to expiring, there is an option to manually issue a new token and control the process internally.</p>
 <p>Access token can be issued manually by calling refreshToken method as explained below:</p>
 <pre><code class="language-typescript"><span class="hl-3">// Initialize the SDK</span><br/><span class="hl-6">import</span><span class="hl-1"> { </span><span class="hl-7">init</span><span class="hl-1"> } </span><span class="hl-6">from</span><span class="hl-1"> </span><span class="hl-2">&quot;@digime/digime-sdk-nodejs&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">sdk</span><span class="hl-1"> = </span><span class="hl-0">init</span><span class="hl-1">({ </span><span class="hl-7">applicationId:</span><span class="hl-1"> &lt;</span><span class="hl-8">you</span><span class="hl-1">-</span><span class="hl-8">application</span><span class="hl-1">-</span><span class="hl-8">id</span><span class="hl-1">&gt; });</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">contractDetails</span><span class="hl-1"> = {</span><br/><span class="hl-1">    </span><span class="hl-7">contractId:</span><span class="hl-1"> &lt;</span><span class="hl-8">your</span><span class="hl-1">-</span><span class="hl-8">contract</span><span class="hl-1">-</span><span class="hl-8">id</span><span class="hl-1">&gt;,</span><br/><span class="hl-1">    </span><span class="hl-7">privateKey:</span><span class="hl-1"> &lt;</span><span class="hl-8">private</span><span class="hl-1">-</span><span class="hl-8">key</span><span class="hl-1">-</span><span class="hl-8">for</span><span class="hl-1">-</span><span class="hl-8">contract</span><span class="hl-1">-</span><span class="hl-8">id</span><span class="hl-1">&gt;,</span><br/><span class="hl-1">}</span><br/><br/><span class="hl-3">// contractDetails - The same one used in getAuthorizeUrl().</span><br/><span class="hl-3">// userAccessToken - The user access token from the authorization step.</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> { </span><span class="hl-5">newToken</span><span class="hl-1"> } = </span><span class="hl-6">await</span><span class="hl-1"> </span><span class="hl-7">sdk</span><span class="hl-1">.</span><span class="hl-0">refreshToken</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-7">contractDetails</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-7">userAccessToken</span><span class="hl-1">,</span><br/><span class="hl-1">});</span><br/>
 </code></pre>
