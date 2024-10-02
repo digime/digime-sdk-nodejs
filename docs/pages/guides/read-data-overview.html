@@ -16,25 +16,22 @@
 <li><span>Guides</span></li>
 <li><a href="read-data-overview.html">Reading data - Step by step guide</a></li></ul>
 <h1> Reading data - Step by step guide</h1></div>
-<div class="tsd-panel tsd-typography"><p>Requesting user data using digi.me is easy!</p>
-<p>On this page, we will learn how to receive data from your users using the digi.me Private Share platform.</p>
-<p>In order to access the digi.me platform, you need to obtain an application ID, a contract ID for reading data and its private key.</p>
-<p>Please check out <a href="./start.html">Getting Started</a> for more details.</p>
+<div class="tsd-panel tsd-typography"><p>Requesting user data with digi.me is simple!</p>
+<p>In this guide, we will learn how to receive data from your users using the digi.me Private Share platform.</p>
+<p>To access the digi.me platform, you will need an application ID, a contract ID for reading data, and its private key.</p>
+<p>For more details, please refer to <a href="./start.html">Getting Started</a>.</p>
 
-<a href="#1-available-services" id="1-available-services" style="color: inherit; text-decoration: none;">
-  <h2>1. Available Services</h2>
+<a href="#1-available-sources" id="1-available-sources" style="color: inherit; text-decoration: none;">
+  <h2>1. Available Sources</h2>
 </a>
-<p>To start reading user data, we first need to ask the user to onboard a service.</p>
-<p>To see a list of services available for users to onboard:</p>
-<pre><code class="language-typescript"><span class="hl-6">import</span><span class="hl-1"> { </span><span class="hl-7">init</span><span class="hl-1"> } </span><span class="hl-6">from</span><span class="hl-1"> </span><span class="hl-2">&quot;@digime/digime-sdk-nodejs&quot;</span><span class="hl-1">;</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">sdk</span><span class="hl-1"> = </span><span class="hl-0">init</span><span class="hl-1">({ </span><span class="hl-7">applicationId</span><span class="hl-1"> });</span><br/><br/><span class="hl-3">// Contract Id of your READ contract</span><br/><span class="hl-4">const</span><span class="hl-1"> </span><span class="hl-5">availableServices</span><span class="hl-1"> = </span><span class="hl-6">await</span><span class="hl-1"> </span><span class="hl-7">sdk</span><span class="hl-1">.</span><span class="hl-0">getAvailableServices</span><span class="hl-1">(</span><span class="hl-7">contractId</span><span class="hl-1">);</span><br/><br/><span class="hl-3">// =&gt; Result will be an object with available services for your contract ID.</span>
-</code></pre>
-<p>See <a href="../fundamentals/available-services.html">Available Services</a> for more explanation.</p>
+<p>To begin reading user data, you must first ask the user to onboard a source.</p>
+<p>To view a list of sources available for users to onboard, click <a href="../fundamentals/query-sources/index.html">here</a> for more details.</p>
 
 <a href="#2-onboarding-and-authorization" id="2-onboarding-and-authorization" style="color: inherit; text-decoration: none;">
   <h2>2. Onboarding and Authorization</h2>
 </a>
-<p>To start reading user data, we need to ask the user to onboard a service and authorize us to access it.</p>
-<p><em>If you already have an user access token for this user from another contract, you will still need to go through this process. Make sure to include any user access tokens you already have so we can link to the same library.</em></p>
+<p>To start reading user data, you need to ask the user to onboard a source and authorize access.</p>
+<p><em>If you already have a user access token for this user from another contract, you will still need to go through this process. Ensure that you include any user access tokens you already have so we can link to the same library.</em></p>
 
 <a href="#getting-an-authorization-url-and-a-code-verifier" id="getting-an-authorization-url-and-a-code-verifier" style="color: inherit; text-decoration: none;">
   <h3>Getting an authorization URL and a code verifier</h3>
@@ -83,12 +80,13 @@ An example URL might be:</p>
 <a href="#4-query-user-data" id="4-query-user-data" style="color: inherit; text-decoration: none;">
   <h2>4. Query user data.</h2>
 </a>
-<p>When your user has onboarded all the services you require, we can start reading the data using the session from earlier.</p>
+<p>When your user has onboarded all the sources you require, we can start reading the data using the session from earlier.</p>
 <pre><code class="language-typescript"><span class="hl-3">// ... initialize the SDK</span><br/><br/><span class="hl-3">// session - The session we received from getAuthorizeUrl().</span><br/><span class="hl-3">// privateKey - The private key for this contract.</span><br/><span class="hl-3">// contractId - Your contract id</span><br/><span class="hl-3">// userAccessToken - The user access token from the authorization step.</span><br/><span class="hl-3">// onFileData - A function that will be called when a file is successfully downloaded.</span><br/><span class="hl-3">// onFileError - A function that will be called when an error occurs when downloading a file.</span><br/><span class="hl-3">// onStatusChange - A function that will be called when file list status is changed.</span><br/><span class="hl-3">// onAccessTokenChange - A function that will be called when AccessToken is changed.</span><br/><br/><span class="hl-4">const</span><span class="hl-1"> { </span><span class="hl-5">stopPolling</span><span class="hl-1">, </span><span class="hl-5">filePromise</span><span class="hl-1"> } = </span><span class="hl-7">sdk</span><span class="hl-1">.</span><span class="hl-0">readAllFiles</span><span class="hl-1">({</span><br/><span class="hl-1">    </span><span class="hl-7">sessionKey:</span><span class="hl-1"> </span><span class="hl-7">session</span><span class="hl-1">.</span><span class="hl-7">key</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-7">privateKey:</span><span class="hl-1"> &lt;</span><span class="hl-8">private</span><span class="hl-1">-</span><span class="hl-8">key</span><span class="hl-1">-</span><span class="hl-8">of</span><span class="hl-1">-</span><span class="hl-8">contract</span><span class="hl-1">&gt;,</span><br/><span class="hl-1">    </span><span class="hl-7">contractId:</span><span class="hl-1"> &lt;</span><span class="hl-8">your</span><span class="hl-1">-</span><span class="hl-8">contract</span><span class="hl-1">-</span><span class="hl-8">id</span><span class="hl-1">&gt;,</span><br/><span class="hl-1">    </span><span class="hl-7">userAccessToken</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-7">onFileData:</span><span class="hl-1"> </span><span class="hl-7">onFileDownloaded</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-7">onFileError:</span><span class="hl-1"> </span><span class="hl-7">onFileError</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-7">onStatusChange:</span><span class="hl-1"> </span><span class="hl-7">onStatusChange</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-7">onAccessTokenChange:</span><span class="hl-1"> </span><span class="hl-7">onAccessTokenChange</span><span class="hl-1">,</span><br/><span class="hl-1">});</span><br/><br/><span class="hl-3">// filePromise is a promise that will resolve when data fetching is complete.</span><br/><span class="hl-3">// stopPolling is a function that you can call if you would like to stop the process when it&#39;s still running.</span>
 </code></pre>
-<p>And that&#39;s it, you&#39;ve successfully received data from the user using digi.me!</p>
-<p>When user access token is updated onAccessTokenChange will be triggered. Please use onAccessTokenChange to add logic for updating access token.</p>
-<p>Next time you want to get data from the same user, you can reuse the User Access Token and go straight to step 5 of the process!</p>
+<p>And that&#39;s it you&#39;ve successfully received data from the user using digi.me!</p>
+<p>When the user access token is updated, the onAccessTokenChange event will be triggered. Be sure to use onAccessTokenChange to implement logic for updating the access token.</p>
+<p>Next time you need to read data from the same user, you can reuse the User Access Token and go directly to step 5 of the process!</p>
+<p>Data can also be read file by file. For more details, please refer to the <a href="../fundamentals/read.html">Reading Data</a> section.</p>
 </div></div>
 <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
 <div class="tsd-navigation settings">
