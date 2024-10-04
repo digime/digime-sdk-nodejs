@@ -13,7 +13,7 @@ interface Token {
 }
 
 interface User {
-    id: string;
+    id?: string;
 }
 
 export interface UserAccessToken {
@@ -28,7 +28,7 @@ const TokenCodec: t.Type<Token> = t.type({
     value: t.string,
 });
 
-const UserCodec: t.Type<User> = t.type({
+const UserCodec: t.Type<User> = t.partial({
     id: t.string,
 });
 
