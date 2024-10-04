@@ -31,7 +31,6 @@ const testKeyPair: NodeRSA = new NodeRSA({ b: 2048 });
 
 beforeEach(() => {
     nock.cleanAll();
-    nock.disableNetConnect();
 });
 
 describe.each<[string, ReturnType<typeof SDK.init>, string]>([
@@ -398,7 +397,6 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
         describe("Triggers onFileError correctly", () => {
             it.each<[string, string, string, NodeRSA, boolean, boolean]>([
-                // tslint:disable:max-line-length
                 [
                     "Error",
                     "brotli decompression fails",
@@ -424,7 +422,6 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     true,
                     false,
                 ],
-                // tslint:enable:max-line-length
             ])("With %p error when %s", async (errorName, _label2, file, keyPair, corruptLength) => {
                 const fileList = [
                     {

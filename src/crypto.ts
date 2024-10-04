@@ -18,7 +18,7 @@ const BYTES = {
 const ALPHA_LOWER = `abcdefghijklmnopqrstuvwxyz`;
 const ALPHA_UPPER: string = ALPHA_LOWER.toUpperCase();
 const NUMERIC = `0123456789`;
-const ALPHA_NUMERIC = `${ALPHA_LOWER}${ALPHA_UPPER}${NUMERIC}`;
+export const ALPHA_NUMERIC = `${ALPHA_LOWER}${ALPHA_UPPER}${NUMERIC}`;
 
 const isValidSize = (data: Buffer): boolean => {
     const bytes = data.length;
@@ -65,4 +65,4 @@ const getRandomAlphaNumeric = (size: number): string => {
 
 const hashSha256 = (data: string | Buffer): Buffer => crypto.createHash("sha256").update(data).digest();
 
-export { decryptData, getRandomAlphaNumeric, hashSha256, createEncryptStream, createDecryptStream };
+export { decryptData, getRandomAlphaNumeric, hashSha256, createEncryptStream, createDecryptStream, isValidSize };

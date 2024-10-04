@@ -22,3 +22,20 @@ export const SAMPLE_TOKEN = {
     },
     consentid: "test-consent-id",
 };
+
+export const BACKEND_FORMAT_SAMPLE_TOKEN = {
+    access_token: {
+        expires_on: 1000000,
+        value: "sample-token",
+    },
+    refresh_token: {
+        expires_on: 1000000,
+        value: "sample-refresh-token",
+    },
+    sub: "test-user-id",
+    consentid: "test-consent-id",
+    identifier: {
+        id: "app-scope-identifier",
+    },
+    token_type: "Bearer",
+};

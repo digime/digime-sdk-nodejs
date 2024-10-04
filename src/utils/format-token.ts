@@ -8,12 +8,12 @@ import { UserAccessToken } from "../types/user-access-token";
 const formatToken = async (token: unknown): Promise<UserAccessToken> => {
     return {
         accessToken: {
-            value: get(token, ["access_token", "value"]),
-            expiry: get(token, ["access_token", "expires_on"]),
+            value: get(token, ["access_token", "value"], ""),
+            expiry: get(token, ["access_token", "expires_on"], 0),
         },
         refreshToken: {
-            value: get(token, ["refresh_token", "value"]),
-            expiry: get(token, ["refresh_token", "expires_on"]),
+            value: get(token, ["refresh_token", "value"], ""),
+            expiry: get(token, ["refresh_token", "expires_on"], 0),
         },
         user: {
             id: get(token, ["sub"]),
