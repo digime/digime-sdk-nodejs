@@ -113,7 +113,7 @@ const queryCountries = async (
     const { contractId, privateKey } = contractDetails;
 
     try {
-        const response = await net.post(`${sdkConfig.baseUrl}discovery/countries`, {
+        const response = await net.post(`${String(sdkConfig.baseUrl)}discovery/countries`, {
             headers: {
                 "Content-Type": "application/json",
             },

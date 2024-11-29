@@ -38,7 +38,6 @@ export const ReadSessionOptionsCodec: t.Type<ReadSessionOptions> = t.intersectio
 
 const _readSession = async (options: ReadSessionOptions, sdkConfig: SDKConfiguration): Promise<ReadSessionResponse> => {
     if (!ReadSessionOptionsCodec.is(options)) {
-        // tslint:disable-next-line:max-line-length
         throw new TypeValidationError(
             "Parameters failed validation. props should be a plain object that contains the properties contractDetails and userAccessToken. If scope is passed in, please ensure it's the right format."
         );
@@ -48,7 +47,7 @@ const _readSession = async (options: ReadSessionOptions, sdkConfig: SDKConfigura
 
     const { contractId, privateKey } = contractDetails;
 
-    const url = `${sdkConfig.baseUrl}permission-access/trigger`;
+    const url = `${String(sdkConfig.baseUrl)}permission-access/trigger`;
 
     const response = await net.post(url, {
         headers: {

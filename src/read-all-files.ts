@@ -49,7 +49,7 @@ const readAllFiles = (options: ReadAllFilesOptions, sdkConfig: SDKConfiguration)
 
     let allowPollingToContinue = true;
 
-    // eslint-disable-next-line no-async-promise-executor
+    // eslint-disable-next-line no-async-promise-executor, @typescript-eslint/no-misused-promises
     const allFilesPromise: Promise<CAFileListResponse["status"]> = new Promise(async (resolve, reject) => {
         const filePromises: Array<Promise<unknown>> = [];
         const handledFiles: { [name: string]: number } = {};
@@ -86,6 +86,7 @@ const readAllFiles = (options: ReadAllFilesOptions, sdkConfig: SDKConfiguration)
                     continue;
                 }
 
+                // eslint-disable-next-line unicorn/no-array-reduce
                 const newFiles: string[] = (fileList || []).reduce((accumulator: string[], file) => {
                     const { name, updatedDate } = file;
 
@@ -98,37 +99,40 @@ const readAllFiles = (options: ReadAllFilesOptions, sdkConfig: SDKConfiguration)
                 }, []);
 
                 const newPromises = newFiles.map((fileName: string) => {
-                    return readFile(
-                        {
-                            sessionKey,
-                            fileName,
-                            privateKey,
-                            userAccessToken,
-                            contractId,
-                        },
-                        sdkConfig
-                    )
-                        .then((fileResponse) => {
-                            if (isFunction(onFileData)) {
-                                if (
-                                    fileResponse.userAccessToken &&
-                                    userAccessToken !== fileResponse.userAccessToken &&
-                                    isFunction(onAccessTokenChange)
-                                ) {
-                                    userAccessToken = fileResponse.userAccessToken;
-                                    onAccessTokenChange(userAccessToken);
+                    return (
+                        readFile(
+                            {
+                                sessionKey,
+                                fileName,
+                                privateKey,
+                                userAccessToken,
+                                contractId,
+                            },
+                            sdkConfig
+                        )
+                            .then((fileResponse) => {
+                                if (isFunction(onFileData)) {
+                                    if (
+                                        fileResponse.userAccessToken &&
+                                        userAccessToken !== fileResponse.userAccessToken &&
+                                        isFunction(onAccessTokenChange)
+                                    ) {
+                                        userAccessToken = fileResponse.userAccessToken;
+                                        onAccessTokenChange(userAccessToken);
+                                    }
+                                    onFileData({ ...fileResponse, fileList });
                                 }
-                                onFileData({ ...fileResponse, fileList });
-                            }
-                            return;
-                        })
-                        .catch((error) => {
-                            // Failed all attempts
-                            if (isFunction(onFileError)) {
-                                onFileError({ error, fileName, fileList });
-                            }
-                            return;
-                        });
+                                return;
+                            })
+                            // eslint-disable-next-line @typescript-eslint/use-unknown-in-catch-callback-variable
+                            .catch((error) => {
+                                // Failed all attempts
+                                if (isFunction(onFileError)) {
+                                    onFileError({ error, fileName, fileList });
+                                }
+                                return;
+                            })
+                    );
                 });
 
                 filePromises.push(...newPromises);
@@ -141,11 +145,14 @@ const readAllFiles = (options: ReadAllFilesOptions, sdkConfig: SDKConfiguration)
                 .then(() => {
                     resolve(status);
                 })
-                .catch((e) => {
-                    reject(e);
+                // eslint-disable-next-line @typescript-eslint/use-unknown-in-catch-callback-variable
+                .catch((error) => {
+                    // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+                    reject(error);
                 });
-        } catch (e) {
-            reject(e);
+        } catch (error) {
+            // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+            reject(error);
         }
     });
 

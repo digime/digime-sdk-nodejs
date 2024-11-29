@@ -14,7 +14,7 @@ import {
 import { TEST_BASE_URL, TEST_CUSTOM_BASE_URL, TEST_CUSTOM_ONBOARD_URL } from "../utils/test-constants";
 import NodeRSA from "node-rsa";
 import { ContractDetails } from "./types/common";
-import { URL } from "url";
+import { URL } from "node:url";
 import { sign } from "jsonwebtoken";
 import { HTTPError } from "got/dist/source";
 
@@ -47,7 +47,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 ])("%s", (_title, sdk, baseUrl) => {
     describe("pushData", () => {
         describe("Throws TypeValidationErrors", () => {
-            const invalidInputs = [true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")];
+            const invalidInputs = [true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")];
 
             describe("Throws TypeValidationError when contractId is ", () => {
                 it.each(invalidInputs)("%p", async (contractId: any) => {
@@ -59,7 +59,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         },
                     });
 
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
+                    return expect(promise).rejects.toThrow(TypeValidationError);
                 });
             });
 
@@ -73,14 +73,14 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         },
                     });
 
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
+                    return expect(promise).rejects.toThrow(TypeValidationError);
                 });
             });
 
             describe("When fileData is", () => {
                 const invalidFileDataInput = [...invalidInputs, "non empty strings"];
                 it.each(invalidFileDataInput)("%p", (fileData: any) => {
-                    expect(
+                    void expect(
                         sdk.pushData({
                             ...defaultValidDataPush,
                             data: fileData,
@@ -96,8 +96,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 ["with data that is not a buffer", invalidFileMeta.NON_BUFFER_FILE_DATA],
                 ["with data that is a base64 string", invalidFileMeta.BASE_64_FILE_DATA],
                 ["with missing file name", invalidFileMeta.MISSING_FILE_NAME],
-            ])("%p", async (_label, data: any) => {
-                expect(
+            ])("%p", (_label, data: any) => {
+                void expect(
                     sdk.pushData({
                         ...defaultValidDataPush,
                         data,
@@ -113,11 +113,11 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 ["PDF file", validFileMeta.FILE_PDF],
                 ["JPG file", validFileMeta.FILE_JPG],
             ])("%p", async (_label, data: any) => {
-                nock(`${new URL(baseUrl).origin}`)
+                nock(new URL(baseUrl).origin)
                     .post(`${new URL(baseUrl).pathname}permission-access/import`)
                     .reply(200, {
                         status: "delivered",
-                        expires: 200000,
+                        expires: 200_000,
                     });
 
                 const response = await sdk.pushData({
@@ -136,7 +136,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 ["PDF file", validFileMetaStream("FILE_PDF")],
                 ["JPG file", validFileMetaStream("FILE_JPG")],
             ])("%p", async (_label, data: any) => {
-                nock(`${new URL(baseUrl).origin}`)
+                nock(new URL(baseUrl).origin)
                     .post(`${new URL(baseUrl).pathname}permission-access/import`)
                     .reply(201);
 
@@ -152,7 +152,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             const callback = jest.fn();
 
             beforeAll(async () => {
-                const scope = nock(`${new URL(baseUrl).origin}`)
+                const scope = nock(new URL(baseUrl).origin)
                     .post(`${new URL(baseUrl).pathname}permission-access/import`)
                     .reply(201);
 
@@ -173,7 +173,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             const pushCallback = jest.fn();
 
             beforeAll(async () => {
-                const pushScope = nock(`${new URL(baseUrl).origin}`)
+                const pushScope = nock(new URL(baseUrl).origin)
                     .post(`${new URL(baseUrl).pathname}permission-access/import`)
                     .reply(401)
                     .post(`${new URL(baseUrl).pathname}permission-access/import`)
@@ -182,11 +182,11 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 const jwt: string = sign(
                     {
                         access_token: {
-                            expires_on: 1000000,
+                            expires_on: 1_000_000,
                             value: "refreshed-sample-token",
                         },
                         refresh_token: {
-                            expires_on: 1000000,
+                            expires_on: 1_000_000,
                             value: "refreshed-refresh-token",
                         },
                         sub: "test-user-id",
@@ -204,13 +204,13 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     }
                 );
 
-                const refreshScope = nock(`${new URL(baseUrl).origin}`)
+                const refreshScope = nock(new URL(baseUrl).origin)
                     .post(`${new URL(baseUrl).pathname}oauth/token`)
                     .reply(201, {
                         token: jwt,
                     });
 
-                const verifyJKUScope = nock(`${new URL(baseUrl).origin}`)
+                const verifyJKUScope = nock(new URL(baseUrl).origin)
                     .get(`${new URL(baseUrl).pathname}test-jku-url`)
                     .reply(201, {
                         keys: [
@@ -228,15 +228,15 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 await sdk.pushData({ ...defaultValidDataPush });
             });
 
-            it(`Refresh endpoint is called`, async () => {
+            it(`Refresh endpoint is called`, () => {
                 expect(refreshCallback).toHaveBeenCalledTimes(1);
             });
 
-            it(`Push endpoint is called twice`, async () => {
+            it(`Push endpoint is called twice`, () => {
                 expect(pushCallback).toHaveBeenCalledTimes(2);
             });
 
-            it(`jku verification endpoint is called`, async () => {
+            it(`jku verification endpoint is called`, () => {
                 expect(jkuCallback).toHaveBeenCalledTimes(1);
             });
         });
@@ -245,21 +245,21 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             let error: Error;
 
             beforeAll(async () => {
-                nock(`${new URL(baseUrl).origin}`)
+                nock(new URL(baseUrl).origin)
                     .post(`${new URL(baseUrl).pathname}permission-access/import`)
                     .reply(404);
 
                 try {
                     await sdk.pushData({ ...defaultValidDataPush });
-                } catch (e) {
-                    if (!(e instanceof Error)) {
-                        throw e;
+                } catch (error_) {
+                    if (!(error_ instanceof Error)) {
+                        throw error_;
                     }
-                    error = e;
+                    error = error_;
                 }
             });
 
-            it("Throws HTTPError when we get an error from the call", async () => {
+            it("Throws HTTPError when we get an error from the call", () => {
                 return expect(error).toBeInstanceOf(HTTPError);
             });
         });
@@ -268,7 +268,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             let error: ServerError;
 
             beforeAll(async () => {
-                nock(`${new URL(baseUrl).origin}`)
+                nock(new URL(baseUrl).origin)
                     .post(`${new URL(baseUrl).pathname}permission-access/import`)
                     .reply(404, {
                         error: {
@@ -280,11 +280,11 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
                 try {
                     await sdk.pushData({ ...defaultValidDataPush });
-                } catch (e) {
-                    if (!(e instanceof Error)) {
-                        throw e;
+                } catch (error_) {
+                    if (!(error_ instanceof Error)) {
+                        throw error_;
                     }
-                    error = e;
+                    error = error_;
                 }
             });
 

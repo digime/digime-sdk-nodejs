@@ -18,7 +18,7 @@ export interface DeleteAccountOptions {
 
 export interface DeleteAccountResponse {
     deleted: boolean;
-    response: Response<unknown>;
+    response: Response;
 }
 
 const deleteAccount = async (
@@ -28,7 +28,7 @@ const deleteAccount = async (
     const { userAccessToken, contractDetails, accountId } = options;
     const { contractId, privateKey } = contractDetails;
 
-    const url = `${sdkConfig.baseUrl}permission-access/service/h:accountId`;
+    const url = `${String(sdkConfig.baseUrl)}permission-access/service/h:accountId`;
 
     try {
         const response = await net.delete(url, {

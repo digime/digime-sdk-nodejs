@@ -8,7 +8,7 @@ import { handleServerResponse, net } from "./net";
 import { Session } from "./types/api/session";
 import { UserAccessToken, UserAccessTokenCodec } from "./types/user-access-token";
 import { sign } from "jsonwebtoken";
-import { URL, URLSearchParams } from "url";
+import { URL, URLSearchParams } from "node:url";
 import { getPayloadFromToken } from "./utils/get-payload-from-token";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { ContractDetails, ContractDetailsCodec, PullSessionOptions, PullSessionOptionsCodec } from "./types/common";
@@ -36,7 +36,7 @@ export interface GetReauthorizeUrlOptions {
      */
     state?: string;
     /**
-     * Send prefared locale for authorization client to be used.
+     * Send preferred locale for authorization client to be used.
      * If passed locale is not supported then language will fallback to browser language.
      * If browser locale is not supported we will fallback to default locale (en).
      */
@@ -90,7 +90,7 @@ const getReauthorizeUrl = async (
     const { contractId, privateKey } = contractDetails;
     let codeVerifier: string = "";
     try {
-        const response = await net.post(`${sdkConfig.baseUrl}oauth/token/reference`, {
+        const response = await net.post(`${String(sdkConfig.baseUrl)}oauth/token/reference`, {
             headers: {
                 "Content-Type": "application/json",
             },
@@ -138,7 +138,7 @@ const getReauthorizeUrl = async (
         const code = get(payload, ["reference_code"]);
         const session = get(response.body, "session", {} as GetReauthorizeUrlResponse["session"]);
 
-        const result: URL = new URL(`${sdkConfig.onboardUrl}user-reauth`);
+        const result: URL = new URL(`${String(sdkConfig.onboardUrl)}user-reauth`);
 
         result.search = new URLSearchParams({
             code,

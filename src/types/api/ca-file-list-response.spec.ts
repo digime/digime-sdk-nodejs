@@ -6,8 +6,11 @@ import { isCAFileListResponse, assertIsCAFileListResponse } from "./ca-file-list
 import { loadDefinitions } from "../../../utils/test-utils";
 import { TypeValidationError } from "../../errors";
 
+const actualError = () => assertIsCAFileListResponse({}, "Test error message");
+const actualTypeError = () => assertIsCAFileListResponse({ error: {} }, "Test start %s test end");
+
 describe("isCAFileListResponse", () => {
-    it("Returns true when given a valid CAFileListResponse", async () => {
+    it("Returns true when given a valid CAFileListResponse", () => {
         const fixtures = [
             ...loadDefinitions(`fixtures/network/get-file-list/file-list-completed.json`),
             ...loadDefinitions(`fixtures/network/get-file-list/file-list-partial.json`),
@@ -21,7 +24,7 @@ describe("isCAFileListResponse", () => {
     });
 
     describe("Returns false when given a non-object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = isCAFileListResponse(value);
             expect(actual).toBe(false);
         });
@@ -61,7 +64,7 @@ describe("isCAFileListResponse", () => {
     });
 
     describe("Returns false when the status.state property of the CAFileListResponse object is not a string", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, {}, () => null, Symbol("test")])("%p", (value) => {
             const actual = isCAFileListResponse({
                 status: {
                     state: value,
@@ -83,7 +86,7 @@ describe("isCAFileListResponse", () => {
     });
 
     describe("Returns false when the status.details property of the CAFileListResponse object is not an object", () => {
-        it.each([true, false, null, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = isCAFileListResponse({
                 status: {
                     state: "running",
@@ -132,7 +135,7 @@ describe("isCAFileListResponse", () => {
     });
 
     describe("Returns false when the entries in status.details property of the CAFileListResponse object are not an object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = isCAFileListResponse({
                 status: {
                     state: "running",
@@ -159,7 +162,7 @@ describe("isCAFileListResponse", () => {
     });
 
     describe("Returns false when the entries in status.details property of the CAFileListResponse object are not an object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = isCAFileListResponse({
                 status: {
                     state: "running",
@@ -173,7 +176,7 @@ describe("isCAFileListResponse", () => {
     });
 
     describe("Returns false when the entries in status.details property of the CAFileListResponse object have a non-string state", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, () => null, Symbol("test")])("%p", (value) => {
             const actual = isCAFileListResponse({
                 status: {
                     state: "running",
@@ -215,7 +218,7 @@ describe("isCAFileListResponse", () => {
     });
 
     describe("Returns false when the fileList property of the CAFileListResponse object is not an array", () => {
-        it.each([true, false, null, 0, NaN, "", {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, 0, Number.NaN, "", {}, () => null, Symbol("test")])("%p", (value) => {
             const actual = isCAFileListResponse({
                 status: {
                     state: "running",
@@ -227,7 +230,7 @@ describe("isCAFileListResponse", () => {
     });
 
     describe("Returns false when the fileList property of the CAFileListResponse object is an array containing non-objects", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = isCAFileListResponse({
                 status: {
                     state: "running",
@@ -250,7 +253,7 @@ describe("isCAFileListResponse", () => {
     });
 
     describe("Returns false when the fileList.name property of the CAFileListResponse object is not a string", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, {}, () => null, Symbol("test")])("%p", (value) => {
             const actual = isCAFileListResponse({
                 status: {
                     state: "running",
@@ -285,7 +288,7 @@ describe("isCAFileListResponse", () => {
 });
 
 describe("assertIsCAFileListResponse", () => {
-    it("Does not throw when given a minimal valid CAFileListResponse object", async () => {
+    it("Does not throw when given a minimal valid CAFileListResponse object", () => {
         const fixtures = [
             ...loadDefinitions(`fixtures/network/get-file-list/file-list-completed.json`),
             ...loadDefinitions(`fixtures/network/get-file-list/file-list-partial.json`),
@@ -299,7 +302,7 @@ describe("assertIsCAFileListResponse", () => {
     });
 
     describe("Throws TypeValidationError when given a non-object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = () => assertIsCAFileListResponse(value);
             expect(actual).toThrow(TypeValidationError);
         });
@@ -340,7 +343,7 @@ describe("assertIsCAFileListResponse", () => {
     });
 
     describe("Throws TypeValidationError when the status.state property of the CAFileListResponse object is not a string", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, {}, () => null, Symbol("test")])("%p", (value) => {
             const actual = () =>
                 assertIsCAFileListResponse({
                     status: {
@@ -363,7 +366,7 @@ describe("assertIsCAFileListResponse", () => {
     });
 
     describe("Throws TypeValidationError when the status.details property of the CAFileListResponse object is not an object", () => {
-        it.each([true, false, null, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = () =>
                 assertIsCAFileListResponse({
                     status: {
@@ -413,7 +416,7 @@ describe("assertIsCAFileListResponse", () => {
     });
 
     describe("Throws TypeValidationError when the entries in status.details property of the CAFileListResponse object are not an object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = () =>
                 assertIsCAFileListResponse({
                     status: {
@@ -441,7 +444,7 @@ describe("assertIsCAFileListResponse", () => {
     });
 
     describe("Throws TypeValidationError when the entries in status.details property of the CAFileListResponse object are not an object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = () =>
                 assertIsCAFileListResponse({
                     status: {
@@ -456,7 +459,7 @@ describe("assertIsCAFileListResponse", () => {
     });
 
     describe("Throws TypeValidationError when the entries in status.details property of the CAFileListResponse object have a non-string state", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, () => null, Symbol("test")])("%p", (value) => {
             const actual = () =>
                 assertIsCAFileListResponse({
                     status: {
@@ -499,7 +502,7 @@ describe("assertIsCAFileListResponse", () => {
     });
 
     describe("Throws TypeValidationError when the fileList property of the CAFileListResponse object is not an array", () => {
-        it.each([true, false, null, 0, NaN, "", {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, 0, Number.NaN, "", {}, () => null, Symbol("test")])("%p", (value) => {
             const actual = () =>
                 assertIsCAFileListResponse({
                     status: {
@@ -512,7 +515,7 @@ describe("assertIsCAFileListResponse", () => {
     });
 
     describe("Throws TypeValidationError when the fileList property of the CAFileListResponse object is an array containing non-objects", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = () =>
                 assertIsCAFileListResponse({
                     status: {
@@ -536,7 +539,7 @@ describe("assertIsCAFileListResponse", () => {
     });
 
     describe("Throws TypeValidationError when the fileList.name property of the CAFileListResponse object is not a string", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, {}, () => null, Symbol("test")])("%p", (value) => {
             const actual = () =>
                 assertIsCAFileListResponse({
                     status: {
@@ -572,14 +575,12 @@ describe("assertIsCAFileListResponse", () => {
     });
 
     it("Throws TypeValidationError with custom error messages", () => {
-        const actual = () => assertIsCAFileListResponse(0, "Test error message");
-        expect(actual).toThrow(TypeValidationError);
-        expect(actual).toThrow("Test error message");
+        expect(actualError).toThrow(TypeValidationError);
+        expect(actualError).toThrow("Test error message");
     });
 
     it("Throws TypeValidationError with custom formated error messages", () => {
-        const actual = () => assertIsCAFileListResponse(0, "Test start %s test end");
-        expect(actual).toThrow(TypeValidationError);
-        expect(actual).toThrow(/^Test start ([\S\s]*)? test end$/);
+        expect(actualTypeError).toThrow(TypeValidationError);
+        expect(actualTypeError).toThrow(/^Test start ([\S\s]*)? test end$/);
     });
 });

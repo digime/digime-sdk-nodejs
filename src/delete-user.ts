@@ -17,14 +17,14 @@ export interface DeleteUserOptions {
 
 export interface DeleteUserResponse {
     deleted: boolean;
-    response: Response<unknown>;
+    response: Response;
 }
 
 const deleteUser = async (options: DeleteUserOptions, sdkConfig: SDKConfiguration): Promise<DeleteUserResponse> => {
     const { userAccessToken, contractDetails } = options;
     const { contractId, privateKey } = contractDetails;
 
-    const url = `${sdkConfig.baseUrl}user`;
+    const url = `${String(sdkConfig.baseUrl)}user`;
 
     try {
         const response = await net.delete(url, {

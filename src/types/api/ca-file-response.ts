@@ -34,8 +34,6 @@ export interface MappedFileMetadata {
     serviceGroup: string;
     serviceName: string;
     schema: FileDataSchema;
-    /** @deprecated this will be removed in next major update. New schema prop should be used. */
-    objectVersion: string;
 }
 
 export interface RawFileMetadata {
@@ -63,7 +61,6 @@ const MappedFileMetadataCodec: t.Type<MappedFileMetadata> = t.type({
     serviceGroup: t.string,
     serviceName: t.string,
     schema: FileDataSchemaCodec,
-    objectVersion: t.string,
 });
 
 const RawFileMetadataCodec: t.Type<RawFileMetadata> = t.intersection([
@@ -115,17 +112,21 @@ const FileHeaderCodec: t.Type<CAFileHeaderResponse> = t.type({
 export const assertIsCAFileHeaderResponse: CodecAssertion<CAFileHeaderResponse> = codecAssertion(FileHeaderCodec);
 
 export interface DecodedCAFileHeaderResponse {
-    fileMetadata: MappedFileMetadata | RawFileMetadata;
+    metadata: MappedFileMetadata | RawFileMetadata;
     compression?: string;
 }
 
 const DecodedCAFileHeaderResponseCodec: t.Type<DecodedCAFileHeaderResponse> = t.intersection([
     t.type({
-        fileMetadata: t.union([MappedFileMetadataCodec, RawFileMetadataCodec]),
+        metadata: t.union([MappedFileMetadataCodec, RawFileMetadataCodec]),
     }),
     t.partial({
         compression: t.string,
     }),
 ]);
+
+export const assertIsDecodedCAFileHeaderResponse: CodecAssertion<DecodedCAFileHeaderResponse> = codecAssertion(
+    DecodedCAFileHeaderResponseCodec
+);
 
 export const isDecodedCAFileHeaderResponse = DecodedCAFileHeaderResponseCodec.is;

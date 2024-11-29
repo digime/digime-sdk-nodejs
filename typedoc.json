@@ -1,0 +1,27 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "name": "Node.js SDK for digi.me",
+    "theme": "default",
+    "customCss": "typedoc-theme/style.css",
+    "entryPoints": ["src/sdk.ts", "src/errors.ts", "src/types.ts"],
+    "categorizeByGroup": false,
+    "out": "docs",
+    "plugin": ["typedoc-plugin-missing-exports"],
+    "excludeExternals": true,
+    "exclude": ["**/*+(index|.spec|.e2e).ts"],
+    "projectDocuments": [
+        "documents/initializing-the-sdk.md",
+        "documents/quick-start-guide.md",
+        "documents/create-user.md",
+        "documents/manage-accounts.md",
+        "documents/reading-data.md",
+        "documents/push-data.md",
+        "documents/handling-errors.md",
+        "documents/query.md",
+        "documents/storage.md",
+        "documents/sample-datasets.md",
+        "documents/portability-report.md",
+        "documents/example-applications.md"
+    ],
+    "sort": ["kind", "instance-first", "alphabetical-ignoring-documents"]
+}

@@ -9,7 +9,7 @@ import { handleServerResponse, net } from "./net";
 import { Session } from "./types/api/session";
 import { UserAccessToken, UserAccessTokenCodec } from "./types/user-access-token";
 import { sign } from "jsonwebtoken";
-import { URL, URLSearchParams } from "url";
+import { URL, URLSearchParams } from "node:url";
 import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
 import { getPayloadFromToken } from "./utils/get-payload-from-token";
 import { SDKConfiguration } from "./types/sdk-configuration";
@@ -36,7 +36,7 @@ export interface GetReauthorizeAccountUrlOptions {
      */
     accountId: string;
     /**
-     * Send prefared locale for authorization client to be used.
+     * Send preferred locale for authorization client to be used.
      * If passed locale is not supported then language will fallback to browser language.
      * If browser locale is not supported we will fallback to default locale (en).
      */
@@ -74,7 +74,7 @@ const _accountReference = async (
     const { contractId, privateKey } = contractDetails;
 
     try {
-        const { body } = await net.post(`${sdkConfig.baseUrl}reference`, {
+        const { body } = await net.post(`${String(sdkConfig.baseUrl)}reference`, {
             json: {
                 type: "accountId",
                 value: accountId,
@@ -125,7 +125,7 @@ const _getReauthorizeAccountUrl = async (
     const { userAccessToken, contractDetails, callback, locale } = props;
     const { contractId, privateKey } = contractDetails;
 
-    const response = await net.post(`${sdkConfig.baseUrl}oauth/token/reference`, {
+    const response = await net.post(`${String(sdkConfig.baseUrl)}oauth/token/reference`, {
         headers: {
             "Content-Type": "application/json",
         },
@@ -170,7 +170,7 @@ const _getReauthorizeAccountUrl = async (
 
     const accountRef = await _accountReference(props, sdkConfig);
 
-    const result: URL = new URL(`${sdkConfig.onboardUrl}reauthorize`);
+    const result: URL = new URL(`${String(sdkConfig.onboardUrl)}reauthorize`);
     result.search = new URLSearchParams({
         code,
         accountRef,

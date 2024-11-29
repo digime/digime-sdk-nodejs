@@ -55,7 +55,7 @@ const getServiceSampleDataSets = async (
     const { contractId, privateKey } = contractDetails;
 
     try {
-        const url = `${sdkConfig.baseUrl}permission-access/sample/datasets/${sourceId}`;
+        const url = `${String(sdkConfig.baseUrl)}permission-access/sample/datasets/${String(sourceId)}`;
 
         const response = await net.get(url, {
             responseType: "json",

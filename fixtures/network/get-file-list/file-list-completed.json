@@ -5,8 +5,8 @@
         "method": "GET",
         "status": 200,
         "response": {
-            "status":{
-                "state":"completed"
+            "status": {
+                "state": "completed"
             }
         }
     },
@@ -16,8 +16,8 @@
         "method": "GET",
         "status": 200,
         "response": {
-            "status":{
-                "state":"completed"
+            "status": {
+                "state": "completed"
             }
         }
     }

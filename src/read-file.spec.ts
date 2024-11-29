@@ -41,21 +41,21 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([["Custom SDK", cus
             const server = await createTestServer(3999, (_req, res) => {
                 const fileDefs = loadScopeDefinitions(
                     "fixtures/network/get-file/valid-files.json",
-                    `${new URL(baseUrl).origin}`
+                    new URL(baseUrl).origin
                 );
 
                 const caFormatted = fileContentToCAFormat(fileDefs, testKeyPair);
 
                 const responseStream = failedOnce
                     ? Readable.from(
-                          caFormatted[0].response instanceof Buffer ? caFormatted[0].response : Buffer.from("test")
+                          caFormatted[0]?.response instanceof Buffer ? caFormatted[0].response : Buffer.from("test")
                       )
                     : new FailableJunkStream(10, 5);
                 if (!failedOnce) {
                     failedOnce = true;
                 }
                 res.setHeader("Content-Type", "application/octet-stream");
-                res.setHeader("x-metadata", (caFormatted[0].rawHeaders as Record<string, string>)?.["x-metadata"]);
+                res.setHeader("x-metadata", (caFormatted[0]?.rawHeaders as Record<string, string>)["x-metadata"] || "");
                 responseStream.on("error", () => {
                     if (res.socket) {
                         res.socket.destroy();
@@ -82,6 +82,6 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([["Custom SDK", cus
             });
 
             server.close();
-        }, 1000000);
+        }, 1_000_000);
     }
 );

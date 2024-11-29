@@ -13,7 +13,11 @@
                     "objectCount": 1,
                     "objectType": "media",
                     "serviceGroup": "social",
-                    "serviceName": "instagram"
+                    "serviceName": "instagram",
+                    "schema": {
+                        "standard": "fhir",
+                        "version": "3.0.0"
+                    }
                 },
                 "compression": "gzip"
             }
@@ -34,7 +38,11 @@
                     "objectCount": 1,
                     "objectType": "media",
                     "serviceGroup": "social",
-                    "serviceName": "instagram"
+                    "serviceName": "instagram",
+                    "schema": {
+                        "standard": "fhir",
+                        "version": "3.0.0"
+                    }
                 },
                 "compression": "gzip"
             }
@@ -55,7 +63,11 @@
                     "objectCount": 1,
                     "objectType": "media",
                     "serviceGroup": "social",
-                    "serviceName": "instagram"
+                    "serviceName": "instagram",
+                    "schema": {
+                        "standard": "fhir",
+                        "version": "3.0.0"
+                    }
                 },
                 "compression": "gzip"
             }
@@ -68,15 +80,19 @@
         "method": "GET",
         "status": 200,
         "response": {
-                "test-content": "api.digi.me-file2.json"
-            },
+            "test-content": "api.digi.me-file2.json"
+        },
         "rawHeaders": {
             "x-metadata": {
                 "metadata": {
                     "objectCount": 1,
                     "objectType": "media",
                     "serviceGroup": "social",
-                    "serviceName": "instagram"
+                    "serviceName": "instagram",
+                    "schema": {
+                        "standard": "fhir",
+                        "version": "3.0.0"
+                    }
                 },
                 "compression": "gzip"
             }
@@ -95,10 +111,7 @@
             "x-metadata": {
                 "metadata": {
                     "mimetype": "text/plain",
-                    "accounts": [
-                        { "accountid": "test-account-1" },
-                        { "accountid": "test-account-2" }
-                    ]
+                    "accounts": [{ "accountid": "test-account-1" }, { "accountid": "test-account-2" }]
                 },
                 "compression": "gzip"
             }
@@ -117,10 +130,7 @@
             "x-metadata": {
                 "metadata": {
                     "mimetype": "text/plain",
-                    "accounts": [
-                        { "accountid": "test-account-1" },
-                        { "accountid": "test-account-2" }
-                    ]
+                    "accounts": [{ "accountid": "test-account-1" }, { "accountid": "test-account-2" }]
                 },
                 "compression": "gzip"
             }

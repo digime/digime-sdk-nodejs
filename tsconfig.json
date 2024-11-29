@@ -3,186 +3,28 @@
         "target": "ESNext",
         "moduleResolution": "node",
         "module": "commonjs",
+        "allowJs": true,
         "declaration": true,
         "inlineSourceMap": true,
         "esModuleInterop": true,
         "strict": true,
         "resolveJsonModule": true,
-
-        /* Additional Checks */
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
+        "noUncheckedIndexedAccess": true,
 
         /* Debugging Options */
         "traceResolution": false,
         "listEmittedFiles": false,
         "listFiles": false,
         "pretty": true,
-        
-        "lib": ["ESNext"]
+
+        "lib": ["ESNext"],
+        "noEmit": true
     },
-    "include": ["src/**/*", "utils/**/*", "tools/**/*"],
-    "exclude": ["dist/**", "node_modules/**", "**/*.spec.ts"],
-    "compileOnSave": false,
-    "typedocOptions": {
-        "name": "@digime/digime-sdk-nodejs",
-        "theme": "default",
-        "customCss": "typedoc-theme/style.css",
-        "entryPoints": ["src/sdk.ts", "src/errors.ts", "src/types.ts"],
-        "categorizeByGroup": false,
-        "out": "docs",
-        "excludeExternals": true,
-        "internalModule": "Internal",
-        "exclude": "**/*+(index|.spec|.e2e).ts",
-        "pluginPages": {
-            "pages": [
-                {
-                    "name": "Guides",
-                    "childrenSourceDir": "./guides",
-                    "childrenOutputDir": "guides",
-                    "children": [
-                        {
-                            "name": "Getting Started",
-                            "source": "start.md"
-                        },
-                        {
-                            "name": "Reading data - Step by step guide",
-                            "source": "read-data-overview.md"
-                        },
-                        {
-                            "name": "Pushing data - Step by step guide",
-                            "source": "push-data-overview.md"
-                        }
-                    ],
-                    "output": "guides"
-                },
-                {
-                    "name": "Fundamentals",
-                    "childrenSourceDir": "./guides",
-                    "childrenOutputDir": "fundamentals",
-                    "children": [
-                        {
-                            "name": "Contracts",
-                            "source": "contracts.md"
-                        },
-                        {
-                            "name": "Initializing the SDK",
-                            "source": "initialise-sdk.md"
-                        },
-                        {
-                            "name": "Query Available Sources",
-                            "source": "query-sources.md",
-                            "childrenSourceDir": "../guides",
-                            "children": [
-                                {
-                                    "name": "Query Countries",
-                                    "source": "query-countries.md"
-                                },
-                                {
-                                    "name": "Query Categories",
-                                    "source": "query-categories.md"
-                                },
-                                {
-                                    "name": "Query Platforms",
-                                    "source": "query-platforms.md"
-                                }
-                            ]
-                        }
-                        ,
-                        {
-                            "name": "Authorizing",
-                            "source": "authorize.md"
-                        },
-                        {
-                            "name": "Reauthorizing",
-                            "source": "reauthorize.md"
-                        },
-                        {
-                            "name": "Onboarding Additional Services",
-                            "source": "onboard.md"
-                        },
-                        {
-                            "name": "Sample datasets",
-                            "source": "sample-datasets.md"
-                        },
-                        {
-                            "name": "Reauthorizing account",
-                            "source": "reauthorize-account.md"
-                        },
-                        {
-                            "name": "Read accounts",
-                            "source": "read-accounts.md"
-                        },
-                        {
-                            "name": "Delete account",
-                            "source": "delete-account.md"
-                        },
-                        {
-                            "name": "Revoke account",
-                            "source": "revoke-account.md"
-                        },
-                        {
-                            "name": "Reading Data",
-                            "source": "read.md",
-                            "childrenSourceDir": "../guides",
-                            "output": "read.html",
-                            "children": [
-                                {
-                                    "name": "File Metadata",
-                                    "source": "file-meta.md"
-                                }
-                            ]
-                        },
-                        {
-                            "name": "Push Data",
-                            "source": "push.md"
-                        },
-                        {
-                            "name": "User Access Tokens",
-                            "source": "access-token.md"
-                        },
-                        {
-                            "name": "Storage",
-                            "source": "storage-create.md",
-                            "childrenSourceDir": "../guides",
-                            "children": [
-                                {
-                                    "name": "Upload files to storage",
-                                    "source": "storage-upload.md"
-                                },
-                                {
-                                    "name": "List storage files",
-                                    "source": "storage-list.md"
-                                },
-                                {
-                                    "name": "Download storage files",
-                                    "source": "storage-download.md"
-                                },
-                                {
-                                    "name": "Delete storage files",
-                                    "source": "storage-delete.md"
-                                }
-                            ]
-                        }
-                        ,
-                        {
-                            "name": "Handling Errors",
-                            "source": "handling-errors.md"
-                        },
-                        {
-                            "name": "Example Applications",
-                            "source": "example-applications.md"
-                        },
-                        {
-                            "name": "Portability report",
-                            "source": "portability-report.md"
-                        }
-                    ],
-                    "output": "fundamentals"
-                },
-             ],
-        }
-    },
+    "include": ["src/**/*", "utils/**/*", "tools/**/*", "eslint.config.mjs"],
+    "exclude": ["dist/**", "node_modules/**"],
+    "compileOnSave": false
 }

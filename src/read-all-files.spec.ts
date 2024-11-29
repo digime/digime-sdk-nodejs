@@ -6,8 +6,9 @@ import get from "lodash.get";
 import { isPlainObject } from "./utils/basic-utils";
 import nock from "nock";
 import NodeRSA from "node-rsa";
+// eslint-disable-next-line unicorn/import-style, unicorn/prefer-node-protocol
 import { basename } from "path";
-import { URL } from "url";
+import { URL } from "node:url";
 import * as SDK from ".";
 import { fileContentToCAFormat, loadScopeDefinitions } from "../utils/test-utils";
 import { TypeValidationError } from "./errors";
@@ -39,7 +40,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 ])("%s", (_title, sdk, baseUrl) => {
     describe(`getSessionData`, () => {
         it("Returns a promise and a function", async () => {
-            nock(`${new URL(baseUrl).origin}`)
+            nock(new URL(baseUrl).origin)
                 .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                 .reply(200, {
                     status: {
@@ -67,7 +68,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 ["partial", "fixtures/network/get-file-list/file-list-partial.json"],
                 ["completed", "fixtures/network/get-file-list/file-list-completed.json"],
             ])("%s", async (_state, fixturePath) => {
-                const listScopes = nock.define(loadScopeDefinitions(fixturePath, `${new URL(baseUrl).origin}`));
+                const listScopes = nock.define(loadScopeDefinitions(fixturePath, new URL(baseUrl).origin));
 
                 const listCallback = jest.fn();
 
@@ -91,7 +92,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         });
 
         it("Continues polling if the status returned is pending", async () => {
-            const scope = nock(`${new URL(baseUrl).origin}`)
+            const scope = nock(new URL(baseUrl).origin)
                 .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                 .reply(200, {
                     status: {
@@ -129,22 +130,22 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     const fileList = [
                         {
                             name: "file1.json",
-                            updatedDate: 1568716294874,
+                            updatedDate: 1_568_716_294_874,
                             schema: { standard: "digime", version: "1.0.0" },
                         },
                         {
                             name: "file2.json",
-                            updatedDate: 1568716294874,
+                            updatedDate: 1_568_716_294_874,
                             schema: { standard: "digime", version: "1.0.0" },
                         },
                         {
                             name: "file3.json",
-                            updatedDate: 1568716294874,
+                            updatedDate: 1_568_716_294_874,
                             schema: { standard: "digime", version: "1.0.0" },
                         },
                     ];
 
-                    nock(`${new URL(baseUrl).origin}`)
+                    nock(new URL(baseUrl).origin)
                         .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                         .reply(200, {
                             status: {
@@ -164,10 +165,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                             },
                         });
 
-                    const fileDefs = loadScopeDefinitions(
-                        `fixtures/network/get-file/${file}`,
-                        `${new URL(baseUrl).origin}`
-                    );
+                    const fileDefs = loadScopeDefinitions(`fixtures/network/get-file/${file}`, new URL(baseUrl).origin);
 
                     const caFormatted = fileContentToCAFormat(fileDefs, testKeyPair);
 
@@ -208,7 +206,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         });
 
         it("Calls onFileData() callback if a filelist is returned and files downloaded successfully", async () => {
-            nock(`${new URL(baseUrl).origin}`)
+            nock(new URL(baseUrl).origin)
                 .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                 .reply(200, {
                     status: {
@@ -222,17 +220,17 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     fileList: [
                         {
                             name: "file1.json",
-                            updatedDate: 1568716294874,
+                            updatedDate: 1_568_716_294_874,
                             schema: { standard: "digime", version: "1.0.0" },
                         },
                         {
                             name: "file2.json",
-                            updatedDate: 1568716294874,
+                            updatedDate: 1_568_716_294_874,
                             schema: { standard: "digime", version: "1.0.0" },
                         },
                         {
                             name: "file3.json",
-                            updatedDate: 1568716294874,
+                            updatedDate: 1_568_716_294_874,
                             schema: { standard: "digime", version: "1.0.0" },
                         },
                     ],
@@ -246,7 +244,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
             const fileDefs = loadScopeDefinitions(
                 "fixtures/network/get-file/valid-files.json",
-                `${new URL(baseUrl).origin}`
+                new URL(baseUrl).origin
             );
 
             const caFormatted = fileContentToCAFormat(fileDefs, testKeyPair);
@@ -268,7 +266,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         });
 
         it("Redownloads the file again if updated date changes between polling", async () => {
-            nock(`${new URL(baseUrl).origin}`)
+            nock(new URL(baseUrl).origin)
                 .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                 .reply(200, {
                     status: {
@@ -310,7 +308,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
             const fileDefs = loadScopeDefinitions(
                 "fixtures/network/get-file/valid-files.json",
-                `${new URL(baseUrl).origin}`
+                new URL(baseUrl).origin
             );
 
             const caFormatted = fileContentToCAFormat(fileDefs, testKeyPair);
@@ -333,7 +331,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         });
 
         it("Stops the polling when stopPolling function is triggered", async () => {
-            nock(`${new URL(baseUrl).origin}`)
+            nock(new URL(baseUrl).origin)
                 .persist()
                 .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                 .reply(200, {
@@ -354,7 +352,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
 
             const fileDefs = loadScopeDefinitions(
                 "fixtures/network/get-file/valid-files.json",
-                `${new URL(baseUrl).origin}`
+                new URL(baseUrl).origin
             );
 
             const caFormatted = fileContentToCAFormat(fileDefs, testKeyPair);
@@ -378,7 +376,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         });
 
         describe("Throws TypeValidationError when sessionKey (first parameter) is", () => {
-            it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+            it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
                 "%p",
                 (sessionKey: any) => {
                     expect(() =>
@@ -426,22 +424,22 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 const fileList = [
                     {
                         name: "file1.json",
-                        updatedDate: 1568716294874,
+                        updatedDate: 1_568_716_294_874,
                         schema: { standard: "fhir", version: "3.0.0" },
                     },
                     {
                         name: "file2.json",
-                        updatedDate: 1568716294874,
+                        updatedDate: 1_568_716_294_874,
                         schema: { standard: "fhir", version: "3.0.0" },
                     },
                     {
                         name: "file3.json",
-                        updatedDate: 1568716294874,
+                        updatedDate: 1_568_716_294_874,
                         schema: { standard: "fhir", version: "3.0.0" },
                     },
                 ];
 
-                nock(`${new URL(baseUrl).origin}`)
+                nock(new URL(baseUrl).origin)
                     .get(`${new URL(baseUrl).pathname}permission-access/query/test-session-key`)
                     .reply(200, {
                         status: {
@@ -461,10 +459,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                         },
                     });
 
-                const fileDefs = loadScopeDefinitions(
-                    `fixtures/network/get-file/${file}`,
-                    `${new URL(baseUrl).origin}`
-                );
+                const fileDefs = loadScopeDefinitions(`fixtures/network/get-file/${file}`, new URL(baseUrl).origin);
 
                 const caFormatted = fileContentToCAFormat(fileDefs, keyPair, {
                     overrideCompression: "no-compression",
