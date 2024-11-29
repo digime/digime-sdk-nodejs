@@ -10,6 +10,7 @@ import { sprintf } from "sprintf-js";
 export const codecAssertion = <T extends t.Mixed>(codec: T) => {
     return (value: unknown, message = "%s"): asserts value is t.TypeOf<T> => {
         try {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             ThrowReporter.report(codec.decode(value));
         } catch (error) {
             if (!(error instanceof Error)) {

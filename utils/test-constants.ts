@@ -10,11 +10,11 @@ export const TEST_CUSTOM_ONBOARD_URL = "https://api.digi.test/saas/";
 
 export const SAMPLE_TOKEN = {
     accessToken: {
-        expiry: 1000000,
+        expiry: 1_000_000,
         value: "sample-token",
     },
     refreshToken: {
-        expiry: 1000000,
+        expiry: 1_000_000,
         value: "sample-refresh-token",
     },
     user: {
@@ -25,11 +25,11 @@ export const SAMPLE_TOKEN = {
 
 export const BACKEND_FORMAT_SAMPLE_TOKEN = {
     access_token: {
-        expires_on: 1000000,
+        expires_on: 1_000_000,
         value: "sample-token",
     },
     refresh_token: {
-        expires_on: 1000000,
+        expires_on: 1_000_000,
         value: "sample-refresh-token",
     },
     sub: "test-user-id",

@@ -15,6 +15,7 @@ describe("sleep", () => {
     it("should resolve after the specified time", async () => {
         const mockFn = jest.fn();
 
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         sleep(1000).then(mockFn);
 
         expect(mockFn).not.toHaveBeenCalled();
@@ -28,6 +29,7 @@ describe("sleep", () => {
     it("should not resolve before the specified time", async () => {
         const mockFn = jest.fn();
 
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         sleep(2000).then(mockFn);
 
         jest.advanceTimersByTime(1000);

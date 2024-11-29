@@ -3,14 +3,14 @@
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import crypto from "crypto";
+import crypto from "node:crypto";
 import isPlainObject from "lodash.isplainobject";
 import get from "lodash.get";
 import nock from "nock";
 import type { Interceptor, ReplyHeaders } from "nock";
 import NodeRSA from "node-rsa";
-import { gzipSync, brotliCompressSync } from "zlib";
-import type { ClientRequest } from "http";
+import { gzipSync, brotliCompressSync } from "node:zlib";
+import type { ClientRequest } from "node:http";
 import base64url from "base64url";
 import { verify } from "jsonwebtoken";
 import http, { RequestListener } from "node:http";
@@ -69,10 +69,7 @@ interface SpyOnScopeRequestsOptions {
     requestHandler?: RequestHandler;
 }
 
-const spyOnScopeRequests = (
-    scope: nock.Scope | nock.Scope[],
-    options?: SpyOnScopeRequestsOptions
-): jest.Mock<any, any> => {
+const spyOnScopeRequests = (scope: nock.Scope | nock.Scope[], options?: SpyOnScopeRequestsOptions): jest.Mock => {
     const resolvedOptions: Required<SpyOnScopeRequestsOptions> = {
         requestHandler: (mockFn, _r, _i, body) => {
             mockFn(JSON.parse(body));
@@ -85,6 +82,7 @@ const spyOnScopeRequests = (
 
     for (const s of scopes) {
         s.on("request", (request: ClientRequest, interceptor: Interceptor, body: string) => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             resolvedOptions.requestHandler(requestSpy, request, interceptor, body);
         });
     }
@@ -120,7 +118,8 @@ const fileContentToCAFormat = (
     key: NodeRSA,
     { corruptLength = false, overrideCompression }: FileContentToCAFormatOptions = {}
 ): NockDefinitionWithHeader[] =>
-    definitions.reduce((acc, definition) => {
+    // eslint-disable-next-line unicorn/no-array-reduce
+    definitions.reduce<NockDefinitionWithHeader[]>((acc, definition) => {
         const response: unknown = definition.response;
 
         let fileContent: any = response;
@@ -134,16 +133,18 @@ const fileContentToCAFormat = (
 
         const def = {
             ...definition,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             response: createCAData(key, fileContent, {
                 compression: overrideCompression || compression,
                 corruptLength,
             }),
             rawHeaders: {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 "x-metadata": parseMetaToHeader(get(headers, ["x-metadata"])),
             },
         };
         return [...acc, def];
-    }, [] as NockDefinitionWithHeader[]);
+    }, []);
 
 const parseMetaToHeader = (meta: Record<string, unknown>): string => {
     return base64url.encode(JSON.stringify(meta));
@@ -268,10 +269,10 @@ class FailableJunkStream extends Readable {
 
     _read() {
         if (this.index === this.failAfter) {
-            this.destroy(new Error(`Something went wrong! ${this.index}`));
+            this.destroy(new Error(`Something went wrong! ${String(this.index)}`));
             return;
         } else if (this.index <= this.chunks) {
-            const chunk = `Junk ${this.index++}\n`;
+            const chunk = `Junk ${String(this.index++)}\n`;
             this.push(chunk);
         } else {
             this.push(null);

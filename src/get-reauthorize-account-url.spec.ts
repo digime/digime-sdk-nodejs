@@ -4,7 +4,7 @@
 
 import nock from "nock";
 import NodeRSA from "node-rsa";
-import { URL } from "url";
+import { URL } from "node:url";
 import {
     SAMPLE_TOKEN,
     TEST_BASE_URL,
@@ -48,7 +48,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
         const CALLBACK_URL = "https://test.callback/";
 
         describe("Throws TypeValidationError when contractDetails is ", () => {
-            it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+            it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (contractDetails: any) => {
                     const promise = sdk.getReauthorizeAccountUrl({
@@ -58,13 +58,13 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         callback: CALLBACK_URL,
                     });
 
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
+                    return expect(promise).rejects.toThrow(TypeValidationError);
                 }
             );
         });
 
         describe("Throws TypeValidationError when contractId is ", () => {
-            it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+            it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (contractId: any) => {
                     const contractDetails = {
@@ -79,13 +79,13 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         callback: CALLBACK_URL,
                     });
 
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
+                    return expect(promise).rejects.toThrow(TypeValidationError);
                 }
             );
         });
 
         describe("Throws TypeValidationError when privateKey is ", () => {
-            it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+            it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (privateKey: any) => {
                     const contractDetails = {
@@ -100,13 +100,13 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         callback: CALLBACK_URL,
                     });
 
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
+                    return expect(promise).rejects.toThrow(TypeValidationError);
                 }
             );
         });
 
         describe("Throws TypeValidationError when callback is ", () => {
-            it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+            it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (callback: any) => {
                     const promise = sdk.getReauthorizeAccountUrl({
@@ -116,13 +116,13 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         callback,
                     });
 
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
+                    return expect(promise).rejects.toThrow(TypeValidationError);
                 }
             );
         });
 
         describe("Throws TypeValidationError when accountId is ", () => {
-            it.each([true, false, null, undefined, {}, [], NaN, "", () => null, Symbol("test")])(
+            it.each([true, false, null, undefined, {}, [], Number.NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (accountId: any) => {
                     const promise = sdk.getReauthorizeAccountUrl({
@@ -132,7 +132,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         callback: CALLBACK_URL,
                     });
 
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
+                    return expect(promise).rejects.toThrow(TypeValidationError);
                 }
             );
         });
@@ -141,7 +141,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
             let error: ServerError;
 
             beforeAll(async () => {
-                nock(`${new URL(baseUrl).origin}`)
+                nock(new URL(baseUrl).origin)
                     .post(`${new URL(baseUrl).pathname}oauth/token/reference`)
                     .reply(404, {
                         error: {
@@ -158,11 +158,11 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         userAccessToken: SAMPLE_TOKEN,
                         callback: CALLBACK_URL,
                     });
-                } catch (e) {
-                    if (!(e instanceof Error)) {
-                        throw e;
+                } catch (error_) {
+                    if (!(error_ instanceof Error)) {
+                        throw error_;
                     }
-                    error = e;
+                    error = error_;
                 }
             });
 
@@ -189,7 +189,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
             let error: Error;
 
             beforeAll(async () => {
-                nock(`${new URL(baseUrl).origin}`)
+                nock(new URL(baseUrl).origin)
                     .post(`${new URL(baseUrl).pathname}oauth/token/reference`)
                     .reply(404);
 
@@ -200,15 +200,15 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         userAccessToken: SAMPLE_TOKEN,
                         callback: CALLBACK_URL,
                     });
-                } catch (e) {
-                    if (!(e instanceof Error)) {
-                        throw e;
+                } catch (error_) {
+                    if (!(error_ instanceof Error)) {
+                        throw error_;
                     }
-                    error = e;
+                    error = error_;
                 }
             });
 
-            it("Throws HTTPError when we get an error from the call", async () => {
+            it("Throws HTTPError when we get an error from the call", () => {
                 return expect(error).toBeInstanceOf(HTTPError);
             });
         });

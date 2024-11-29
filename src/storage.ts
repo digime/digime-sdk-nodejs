@@ -11,8 +11,8 @@ import * as t from "io-ts";
 import { DigiMeSDKError, TypeValidationError } from "./errors";
 import { codecAssertion, CodecAssertion } from "./utils/codec-assertion";
 import { addLeadingAndTrailingSlash, addLeadingSlash } from "./utils/basic-utils";
-import { Readable } from "stream";
-import { ReadableStream } from "stream/web";
+import { Readable } from "node:stream";
+import { ReadableStream } from "node:stream/web";
 import { UserAccessToken, UserAccessTokenCodec } from "./types/user-access-token";
 import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
 
@@ -56,7 +56,7 @@ const createProvisionalStorage = async (
     const { contractId, privateKey } = contractDetails;
 
     try {
-        const response = await net.post(`${sdkConfig.baseUrl}storage`, {
+        const response = await net.post(`${String(sdkConfig.baseUrl)}storage`, {
             headers: {
                 "Content-Type": "application/json",
             },
@@ -137,7 +137,7 @@ const _getUserStorage = async (
     const { contractDetails, userAccessToken } = options;
     const { contractId, privateKey } = contractDetails;
 
-    const response = await net.get(`${sdkConfig.baseUrl}storage`, {
+    const response = await net.get(`${String(sdkConfig.baseUrl)}storage`, {
         headers: {
             "Content-Type": "application/json",
         },
@@ -246,9 +246,9 @@ const listStorageFiles = async (
 
     try {
         const response = await net.get(
-            `${sdkConfig.cloudBaseUrl}clouds/${storageId}/files/apps/${
+            `${String(sdkConfig.cloudBaseUrl)}clouds/${storageId}/files/apps/${
                 sdkConfig.applicationId
-            }${formatedPath}?recursive=${recursive ? "true" : "false"}`,
+            }${String(formatedPath)}?recursive=${recursive ? "true" : "false"}`,
             {
                 responseType: "json",
                 hooks: {
@@ -285,8 +285,8 @@ const listStorageFiles = async (
         const formatedFiles: StorageFile[] = response.body.files.map((file: StorageFile) => {
             return {
                 ...file,
-                originalPath: file.originalPath.split(`/apps/${sdkConfig.applicationId}`)[1],
-                path: file.path.split(`/apps/${sdkConfig.applicationId.toLowerCase()}`)[1],
+                originalPath: file.originalPath.split(`/apps/${sdkConfig.applicationId}`)[1] ?? file.originalPath,
+                path: file.path.split(`/apps/${sdkConfig.applicationId.toLowerCase()}`)[1] ?? file.path,
             };
         });
 
@@ -353,7 +353,7 @@ const downloadStorageFile = async (
 
     try {
         const readStream = net.stream(
-            `${sdkConfig.cloudBaseUrl}clouds/${storageId}/files/apps/${sdkConfig.applicationId}${formatedPath}`,
+            `${String(sdkConfig.cloudBaseUrl)}clouds/${storageId}/files/apps/${sdkConfig.applicationId}${String(formatedPath)}`,
             {
                 headers: {
                     accept: "application/octet-stream",
@@ -442,7 +442,7 @@ const deleteStorageFiles = async (
         const { contractId, privateKey } = contractDetails;
 
         const response = await net.delete(
-            `${sdkConfig.cloudBaseUrl}clouds/${storageId}/files/apps/${sdkConfig.applicationId}${path}`,
+            `${String(sdkConfig.cloudBaseUrl)}clouds/${storageId}/files/apps/${sdkConfig.applicationId}${path}`,
             {
                 retry: sdkConfig.retryOptions,
                 hooks: {
@@ -554,10 +554,10 @@ const uploadFileToStorage = async (
 
         const encryptStream = createEncryptStream(privateKey);
 
-        const fullPath = `${formatedPath}${fileName}`;
+        const fullPath = `${String(formatedPath)}${fileName}`;
 
         const response = await net.post(
-            `${sdkConfig.cloudBaseUrl}clouds/${storageId}/files/apps/${sdkConfig.applicationId}${fullPath}`,
+            `${String(sdkConfig.cloudBaseUrl)}clouds/${storageId}/files/apps/${sdkConfig.applicationId}${fullPath}`,
             {
                 headers: {
                     contentType: "application/octet-stream",

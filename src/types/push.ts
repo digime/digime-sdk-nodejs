@@ -3,7 +3,7 @@
  */
 
 import * as t from "io-ts";
-import { Readable } from "stream";
+import { Readable } from "node:stream";
 import { codecAssertion, CodecAssertion } from "../utils/codec-assertion";
 
 export interface PushedFileMeta {

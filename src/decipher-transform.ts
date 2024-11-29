@@ -2,8 +2,8 @@
  * Copyright (c) 2009-2024 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import crypto from "crypto";
-import stream from "stream";
+import crypto from "node:crypto";
+import stream from "node:stream";
 
 type HeaderConfig = {
     encryptedKey: { length: number };
@@ -80,8 +80,8 @@ export class DecipherTransform extends stream.Transform {
         if (this.decipher) {
             try {
                 this.push(this.decipher.final());
-            } catch (e) {
-                const error = e === null ? e : (e as Error);
+            } catch (error_) {
+                const error = error_ === null ? error_ : (error_ as Error);
                 return callback(error);
             }
         }

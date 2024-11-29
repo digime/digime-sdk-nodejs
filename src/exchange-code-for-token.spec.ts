@@ -4,7 +4,7 @@
 
 import nock from "nock";
 import NodeRSA from "node-rsa";
-import { URL } from "url";
+import { URL } from "node:url";
 import * as SDK from ".";
 import { SAMPLE_TOKEN, TEST_BASE_URL, TEST_CUSTOM_BASE_URL, TEST_CUSTOM_ONBOARD_URL } from "../utils/test-constants";
 import { TypeValidationError } from "./errors";
@@ -12,7 +12,6 @@ import { ContractDetails } from "./types/common";
 import { sign } from "jsonwebtoken";
 import { UserAccessToken, UserAccessTokenCodec } from "./types/user-access-token";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 jest.mock("./utils/sleep");
 
 const digime = SDK.init({
@@ -44,8 +43,9 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
     ["Custom SDK", customSDK, TEST_CUSTOM_BASE_URL],
 ])("%s", (_title, sdk, baseUrl) => {
     describe("Throws TypeValidationError when contractDetails is ", () => {
-        it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+        it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
             "%p",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             async (contractDetails: any) => {
                 const promise = sdk.exchangeCodeForToken({
                     contractDetails,
@@ -53,14 +53,15 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     codeVerifier: SAMPLE_CODE_VERIFIER,
                 });
 
-                return expect(promise).rejects.toThrowError(TypeValidationError);
+                return expect(promise).rejects.toThrow(TypeValidationError);
             }
         );
     });
 
     describe("Throws TypeValidationError when contractId is ", () => {
-        it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+        it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
             "%p",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             async (contractId: any) => {
                 const promise = sdk.exchangeCodeForToken({
                     contractDetails: {
@@ -71,14 +72,15 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     codeVerifier: SAMPLE_CODE_VERIFIER,
                 });
 
-                return expect(promise).rejects.toThrowError(TypeValidationError);
+                return expect(promise).rejects.toThrow(TypeValidationError);
             }
         );
     });
 
     describe("Throws TypeValidationError when privateKey is ", () => {
-        it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+        it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
             "%p",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             async (privateKey: any) => {
                 const promise = sdk.exchangeCodeForToken({
                     contractDetails: {
@@ -89,14 +91,15 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     codeVerifier: SAMPLE_CODE_VERIFIER,
                 });
 
-                return expect(promise).rejects.toThrowError(TypeValidationError);
+                return expect(promise).rejects.toThrow(TypeValidationError);
             }
         );
     });
 
     describe("Throws TypeValidationError when codeVerifier is ", () => {
-        it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+        it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
             "%p",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             async (codeVerifier: any) => {
                 const promise = sdk.exchangeCodeForToken({
                     contractDetails: CONTRACT_DETAILS,
@@ -104,14 +107,15 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     codeVerifier,
                 });
 
-                return expect(promise).rejects.toThrowError(TypeValidationError);
+                return expect(promise).rejects.toThrow(TypeValidationError);
             }
         );
     });
 
     describe("Throws TypeValidationError when authorizationCode is ", () => {
-        it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+        it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
             "%p",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             async (authorizationCode: any) => {
                 const promise = sdk.exchangeCodeForToken({
                     contractDetails: CONTRACT_DETAILS,
@@ -119,7 +123,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     codeVerifier: SAMPLE_CODE_VERIFIER,
                 });
 
-                return expect(promise).rejects.toThrowError(TypeValidationError);
+                return expect(promise).rejects.toThrow(TypeValidationError);
             }
         );
     });
@@ -131,11 +135,11 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             const jwt: string = sign(
                 {
                     access_token: {
-                        expires_on: 1000000,
+                        expires_on: 1_000_000,
                         value: "sample-token",
                     },
                     refresh_token: {
-                        expires_on: 1000000,
+                        expires_on: 1_000_000,
                         value: "sample-refresh-token",
                     },
                     sub: "test-user-id",
@@ -153,7 +157,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 }
             );
 
-            nock(`${new URL(baseUrl).origin}`)
+            nock(new URL(baseUrl).origin)
                 .post(`${new URL(baseUrl).pathname}oauth/token`)
                 .reply(201, {
                     token: jwt,

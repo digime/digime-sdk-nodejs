@@ -74,7 +74,7 @@ const getPortabilityReport = async (
     const { contractId, privateKey } = contractDetails;
 
     const response = await net.get(
-        `${sdkConfig.baseUrl}export/${serviceType}/report?format=${format}&from=${from}&to=${to}`,
+        `${String(sdkConfig.baseUrl)}export/${serviceType}/report?format=${format}&from=${String(from)}&to=${String(to)}`,
         {
             headers: {
                 accept: "application/octet-stream",

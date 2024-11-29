@@ -141,7 +141,7 @@ const _readAccounts = async (
     const { contractDetails, userAccessToken } = options;
     const { contractId, privateKey } = contractDetails;
 
-    const url = `${sdkConfig.baseUrl}permission-access/accounts`;
+    const url = `${String(sdkConfig.baseUrl)}permission-access/accounts`;
 
     const response = await net.get(url, {
         responseType: "json",

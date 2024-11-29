@@ -22,17 +22,20 @@ This SDK is a server side Node library that allows seamless authentication with 
 ## Requirements
 
 ### Development
-- Node 18.0 or above
-- (Optional, if using TypeScript) TypeScript 4.0 or above
+
+-   Node 20.0 or above
+-   (Optional, if using TypeScript) TypeScript 5.0 or above
 
 ## Installation
 
 Using npm:
+
 ```shell
 $ npm i @digime/digime-sdk-nodejs
 ```
 
 ## Example Application
+
 You can check out an [example application](https://github.com/digime/digime-sdk-nodejs-example) which uses the digi.me SDK.
 
 ## Getting Started

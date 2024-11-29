@@ -9,7 +9,7 @@ import { net } from "./net";
 import { Session } from "./types/api/session";
 import { UserAccessToken, UserAccessTokenCodec } from "./types/user-access-token";
 import { sign } from "jsonwebtoken";
-import { URL, URLSearchParams } from "url";
+import { URL, URLSearchParams } from "node:url";
 import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
 import { getPayloadFromToken } from "./utils/get-payload-from-token";
 import { SDKConfiguration } from "./types/sdk-configuration";
@@ -61,7 +61,7 @@ export interface GetOnboardServiceUrlOptions {
         pull?: PullSessionOptions;
     };
     /**
-     * Send prefared locale for authorization client to be used.
+     * Send preferred locale for authorization client to be used.
      * If passed locale is not supported then language will fallback to browser language.
      * If browser locale is not supported we will fallback to default locale (en).
      */
@@ -138,7 +138,7 @@ const _getOnboardServiceUrl = async (
     } = props;
     const { contractId, privateKey } = contractDetails;
 
-    const response = await net.post(`${sdkConfig.baseUrl}oauth/token/reference`, {
+    const response = await net.post(`${String(sdkConfig.baseUrl)}oauth/token/reference`, {
         headers: {
             "Content-Type": "application/json",
         },
@@ -183,11 +183,11 @@ const _getOnboardServiceUrl = async (
     const code = get(payload, ["reference_code"]);
     const session = get(response.body, "session", {} as GetOnboardServiceUrlResponse["session"]);
 
-    const result: URL = new URL(`${sdkConfig.onboardUrl}onboard`);
+    const result: URL = new URL(`${String(sdkConfig.onboardUrl)}onboard`);
 
     result.search = new URLSearchParams({
         code,
-        sourceType: sourceType ? sourceType : "pull",
+        sourceType: sourceType || "pull",
         ...(serviceId && { service: serviceId.toString() }),
         ...(sampleData && sampleData.dataSet && { sampleDataSet: sampleData.dataSet }),
         ...(sampleData && sampleData.autoOnboard && { sampleDataAutoOnboard: sampleData.autoOnboard.toString() }),

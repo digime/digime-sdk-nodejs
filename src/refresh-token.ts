@@ -21,7 +21,7 @@ const refreshToken = async (options: RefreshTokenOptions, sdkConfig: SDKConfigur
     const { contractDetails, userAccessToken } = options;
     const { contractId, privateKey } = contractDetails;
 
-    const url = `${sdkConfig.baseUrl}oauth/token`;
+    const url = `${String(sdkConfig.baseUrl)}oauth/token`;
 
     try {
         const response = await net.post(url, {

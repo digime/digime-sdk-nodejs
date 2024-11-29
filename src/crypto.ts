@@ -2,10 +2,10 @@
  * Copyright (c) 2009-2024 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import crypto from "crypto";
+import crypto from "node:crypto";
 import NodeRSA from "node-rsa";
 import { FileDecryptionError } from "./errors";
-import stream from "stream";
+import stream from "node:stream";
 import { CipherTransform } from "./cipher-transform";
 import { DecipherTransform } from "./decipher-transform";
 
@@ -28,16 +28,16 @@ const isValidSize = (data: Buffer): boolean => {
 const decryptData = (key: NodeRSA, file: Buffer): Buffer => {
     // Verify file data is of correct length
     if (!isValidSize(file)) {
-        throw new FileDecryptionError(`File size not valid: ${file.length}`);
+        throw new FileDecryptionError(`File size not valid: ${String(file.length)}`);
     }
 
     // Recover DSK and DIV
-    const dsk: Buffer = key.decrypt(file.slice(...BYTES.DSK));
-    const div: Buffer = file.slice(...BYTES.DIV);
+    const dsk: Buffer = key.decrypt(file.subarray(...BYTES.DSK));
+    const div: Buffer = file.subarray(...BYTES.DIV);
 
     // Recover concated hash and data
     const decipher = crypto.createDecipheriv("aes-256-cbc", dsk, div);
-    const data = Buffer.concat([decipher.update(file.slice(...BYTES.DATA)), decipher.final()]);
+    const data = Buffer.concat([decipher.update(file.subarray(...BYTES.DATA)), decipher.final()]);
 
     return data;
 };
@@ -51,16 +51,19 @@ const createDecryptStream = (privateKey: string): stream.Transform => {
 };
 
 const getRandomAlphaNumeric = (size: number): string => {
-    const charsLength: number = ALPHA_NUMERIC.length;
-    const value: string[] = Array.from({ length: size });
-    for (let i = 0; i < size; i++) {
-        let random: number;
-        do {
-            random = crypto.randomBytes(1).readUInt8(0);
-        } while (random > 256 - (256 % charsLength));
-        value[i] = ALPHA_NUMERIC[random % charsLength];
+    // Empty strings are not random
+    if (size <= 0) {
+        throw new TypeError("Size parameter must be greater than 0");
     }
-    return value.join("");
+
+    let string = "";
+    for (let i = 0; i < size; i++) {
+        // Pick a random character from ALPHA_NUMERIC
+        // Using the ! postfix, as we're generating random ints that fall in the range of ALPHA_NUMERIC
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        string += ALPHA_NUMERIC.at(crypto.randomInt(ALPHA_NUMERIC.length))!;
+    }
+    return string;
 };
 
 const hashSha256 = (data: string | Buffer): Buffer => crypto.createHash("sha256").update(data).digest();

@@ -5,8 +5,11 @@
 import { isSDKConfiguration, assertIsSDKConfiguration } from "./sdk-configuration";
 import { TypeValidationError } from "../errors";
 
+const actualError = () => assertIsSDKConfiguration({}, "Test error message");
+const actualTypeError = () => assertIsSDKConfiguration({ error: {} }, "Test start %s test end");
+
 describe("isSDKConfiguration", () => {
-    it("Returns true when given a minimal valid DMESDKConfiguration", async () => {
+    it("Returns true when given a minimal valid DMESDKConfiguration", () => {
         const config = {
             applicationId: "test-application-id",
         };
@@ -14,7 +17,7 @@ describe("isSDKConfiguration", () => {
         expect(isSDKConfiguration(config)).toBe(true);
     });
 
-    it("Returns false when not passed in required paramters", async () => {
+    it("Returns false when not passed in required paramters", () => {
         const config = {
             baseUrl: "https://api.digi.me",
         };
@@ -22,7 +25,7 @@ describe("isSDKConfiguration", () => {
         expect(isSDKConfiguration(config)).toBe(false);
     });
 
-    it("Returns true when given a valid DMESDKConfiguration with retryOptions", async () => {
+    it("Returns true when given a valid DMESDKConfiguration with retryOptions", () => {
         const config = {
             applicationId: "test-application-id",
             baseUrl: "https://api.digi.me",
@@ -33,7 +36,7 @@ describe("isSDKConfiguration", () => {
     });
 
     describe("Returns false when given a non-object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = isSDKConfiguration(value);
             expect(actual).toBe(false);
         });
@@ -44,7 +47,7 @@ describe("isSDKConfiguration", () => {
     });
 
     describe("Returns false when the baseUrl property is not a string", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, {}, () => null, Symbol("test")])("%p", (value) => {
             const actual = isSDKConfiguration({
                 baseUrl: value,
             });
@@ -54,7 +57,7 @@ describe("isSDKConfiguration", () => {
 });
 
 describe("assertIsSDKConfiguration", () => {
-    it("Does not throw when given a minimal valid DMESDKConfiguration", async () => {
+    it("Does not throw when given a minimal valid DMESDKConfiguration", () => {
         const config = {
             applicationId: "test-application-id",
         };
@@ -62,7 +65,7 @@ describe("assertIsSDKConfiguration", () => {
         expect(() => assertIsSDKConfiguration(config)).not.toThrow();
     });
 
-    it("Does not throw when given a valid DMESDKConfiguration with retryOptions", async () => {
+    it("Does not throw when given a valid DMESDKConfiguration with retryOptions", () => {
         const config = {
             applicationId: "test-application-id",
             retryOptions: {},
@@ -72,7 +75,7 @@ describe("assertIsSDKConfiguration", () => {
     });
 
     describe("Throws TypeValidationError when given a non-object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = () => assertIsSDKConfiguration(value);
             expect(actual).toThrow(TypeValidationError);
         });
@@ -83,7 +86,7 @@ describe("assertIsSDKConfiguration", () => {
     });
 
     describe("Throws TypeValidationError when the baseUrl property is not a string", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, {}, () => null, Symbol("test")])("%p", (value) => {
             const actual = () =>
                 assertIsSDKConfiguration({
                     baseUrl: value,
@@ -93,14 +96,12 @@ describe("assertIsSDKConfiguration", () => {
     });
 
     it("Throws TypeValidationError with custom error messages", () => {
-        const actual = () => assertIsSDKConfiguration({}, "Test error message");
-        expect(actual).toThrow(TypeValidationError);
-        expect(actual).toThrow("Test error message");
+        expect(actualError).toThrow(TypeValidationError);
+        expect(actualError).toThrow("Test error message");
     });
 
     it("Throws TypeValidationError with custom formated error messages", () => {
-        const actual = () => assertIsSDKConfiguration({}, "Test start %s test end");
-        expect(actual).toThrow(TypeValidationError);
-        expect(actual).toThrow(/^Test start ([\S\s]*)? test end$/);
+        expect(actualTypeError).toThrow(TypeValidationError);
+        expect(actualTypeError).toThrow(/^Test start ([\S\s]*)? test end$/);
     });
 });

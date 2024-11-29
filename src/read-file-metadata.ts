@@ -6,7 +6,7 @@ import { TypeValidationError } from "./errors";
 import { isNonEmptyString } from "./utils/basic-utils";
 import { net } from "./net";
 import { getRandomAlphaNumeric } from "./crypto";
-import { isDecodedCAFileHeaderResponse, MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
+import { assertIsDecodedCAFileHeaderResponse, MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
 import base64url from "base64url";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { UserAccessToken } from "./types/user-access-token";
@@ -64,7 +64,7 @@ const fetchFileMetadata = async (
     const { sessionKey, fileName, userAccessToken } = options;
     const { privateKey, contractId } = options.contractDetails;
 
-    const response = await net.head(`${sdkConfig.baseUrl}permission-access/query/${sessionKey}/${fileName}`, {
+    const response = await net.head(`${String(sdkConfig.baseUrl)}permission-access/query/${sessionKey}/${fileName}`, {
         headers: {
             accept: "application/json",
         },
@@ -91,13 +91,13 @@ const fetchFileMetadata = async (
         },
     });
     const base64Meta: string = response.headers["x-metadata"] as string;
-    let decodedMeta;
+    let decodedMeta: unknown;
 
     if (base64Meta) {
         decodedMeta = JSON.parse(base64url.decode(base64Meta));
     }
 
-    isDecodedCAFileHeaderResponse(decodedMeta);
+    assertIsDecodedCAFileHeaderResponse(decodedMeta);
 
     return {
         fileMetadata: decodedMeta.metadata,

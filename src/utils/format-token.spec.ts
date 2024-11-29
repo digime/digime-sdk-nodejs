@@ -7,7 +7,7 @@ import { UserAccessToken } from "../types/user-access-token";
 import { BACKEND_FORMAT_SAMPLE_TOKEN, SAMPLE_TOKEN } from "../../utils/test-constants";
 
 describe("formatToken", () => {
-    it("should correctly format a valid token", async () => {
+    it("should correctly format a valid token", () => {
         const expected: UserAccessToken = {
             accessToken: {
                 value: SAMPLE_TOKEN.accessToken.value,
@@ -23,11 +23,11 @@ describe("formatToken", () => {
             consentid: SAMPLE_TOKEN.consentid,
         };
 
-        const result = await formatToken(BACKEND_FORMAT_SAMPLE_TOKEN);
+        const result = formatToken(BACKEND_FORMAT_SAMPLE_TOKEN);
         expect(result).toEqual(expected);
     });
 
-    it("should handle missing access and refresh token properties gracefully", async () => {
+    it("should handle missing access and refresh token properties gracefully", () => {
         const token = {
             access_token: {},
             refresh_token: {},
@@ -49,11 +49,11 @@ describe("formatToken", () => {
             consentid: undefined,
         };
 
-        const result = await formatToken(token);
+        const result = formatToken(token);
         expect(result).toEqual(expected);
     });
 
-    it("should return default values for missing user properties", async () => {
+    it("should return default values for missing user properties", () => {
         const token = {};
 
         const expected: UserAccessToken = {
@@ -71,7 +71,7 @@ describe("formatToken", () => {
             consentid: undefined,
         };
 
-        const result = await formatToken(token);
+        const result = formatToken(token);
         expect(result).toEqual(expected);
     });
 });

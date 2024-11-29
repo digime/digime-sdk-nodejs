@@ -96,7 +96,7 @@ const queryPlatforms = async (
     const { contractId, privateKey } = contractDetails;
 
     try {
-        const response = await net.post(`${sdkConfig.baseUrl}discovery/platforms`, {
+        const response = await net.post(`${String(sdkConfig.baseUrl)}discovery/platforms`, {
             headers: {
                 "Content-Type": "application/json",
             },

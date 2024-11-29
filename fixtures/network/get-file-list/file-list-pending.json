@@ -5,8 +5,8 @@
         "method": "GET",
         "status": 200,
         "response": {
-            "status":{
-                "state":"pending"
+            "status": {
+                "state": "pending"
             }
         }
     },
@@ -16,8 +16,8 @@
         "method": "GET",
         "status": 200,
         "response": {
-            "status":{
-                "state":"pending"
+            "status": {
+                "state": "pending"
             }
         }
     }

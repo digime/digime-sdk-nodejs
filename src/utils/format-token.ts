@@ -5,7 +5,7 @@
 import get from "lodash.get";
 import { UserAccessToken } from "../types/user-access-token";
 
-const formatToken = async (token: unknown): Promise<UserAccessToken> => {
+const formatToken = (token: unknown): UserAccessToken => {
     return {
         accessToken: {
             value: get(token, ["access_token", "value"], ""),

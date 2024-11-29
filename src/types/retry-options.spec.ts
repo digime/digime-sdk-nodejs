@@ -25,7 +25,7 @@ const VALID_HTTP_METHODS = [
 ];
 
 describe("isRetryOptions", () => {
-    it("Returns true when given all RetryOptions properties", async () => {
+    it("Returns true when given all RetryOptions properties", () => {
         const config = {
             limit: 4,
             methods: ["GET"],
@@ -60,7 +60,7 @@ describe("isRetryOptions", () => {
     });
 
     describe("Returns false when given a non-object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = isRetryOptions(value);
             expect(actual).toBe(false);
         });
@@ -130,8 +130,11 @@ describe("isRetryOptions", () => {
     });
 });
 
+const actualErrorMsg = () => assertIsRetryOptions(0, "Test error message");
+const actualErrorStartEnd = () => assertIsRetryOptions(0, "Test start %s test end");
+
 describe("assertIsRetryOptions", () => {
-    it("Does not throw when given all RetryOptions properties", async () => {
+    it("Does not throw when given all RetryOptions properties", () => {
         const config = {
             limit: 4,
             methods: ["GET"],
@@ -159,7 +162,7 @@ describe("assertIsRetryOptions", () => {
     });
 
     describe("Throws TypeValidationError when given a non-object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = () => assertIsRetryOptions(value);
             expect(actual).toThrow(TypeValidationError);
         });
@@ -236,14 +239,12 @@ describe("assertIsRetryOptions", () => {
     });
 
     it("Throws TypeValidationError with custom error messages", () => {
-        const actual = () => assertIsRetryOptions(0, "Test error message");
-        expect(actual).toThrow(TypeValidationError);
-        expect(actual).toThrow("Test error message");
+        expect(actualErrorMsg).toThrow(TypeValidationError);
+        expect(actualErrorMsg).toThrow("Test error message");
     });
 
     it("Throws TypeValidationError with custom formated error messages", () => {
-        const actual = () => assertIsRetryOptions(0, "Test start %s test end");
-        expect(actual).toThrow(TypeValidationError);
-        expect(actual).toThrow(/^Test start ([\S\s]*)? test end$/);
+        expect(actualErrorStartEnd).toThrow(TypeValidationError);
+        expect(actualErrorStartEnd).toThrow(/^Test start ([\S\s]*)? test end$/);
     });
 });

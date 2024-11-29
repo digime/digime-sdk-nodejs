@@ -3,7 +3,7 @@
  */
 
 import NodeRSA from "node-rsa";
-import fs from "fs";
+import fs from "node:fs";
 import { PushDataOptions } from "../../src/push";
 import { ContractDetails } from "../../src/types/common";
 import { SAMPLE_TOKEN } from "../../utils/test-constants";
@@ -75,7 +75,6 @@ const validFileMetaStreamData = {
 
 export const validFileMetaStream = (type: keyof typeof validFileMetaStreamData) => {
     const [path, mimeType] = validFileMetaStreamData[type];
-
     return {
         fileData: fs.createReadStream(path),
         fileName: "file-name",

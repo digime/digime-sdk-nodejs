@@ -5,18 +5,30 @@
         "method": "GET",
         "status": 200,
         "response": {
-            "status":{
-                "details":{
-                    "test-account-id":{
-                        "state":"running"
+            "status": {
+                "details": {
+                    "test-account-id": {
+                        "state": "running"
                     }
                 },
-                "state":"running"
+                "state": "running"
             },
             "fileList": [
-                {"name":"file1.json","updatedDate":1568716294874, "schema": {"standard": "digime", "version": "1.0.0"}},
-                {"name":"file2.json","updatedDate":1568716294874, "schema": {"standard": "digime", "version": "1.0.0"}},
-                {"name":"file3.json","updatedDate":1568716294874, "schema": {"standard": "digime", "version": "1.0.0"}}
+                {
+                    "name": "file1.json",
+                    "updatedDate": 1568716294874,
+                    "schema": { "standard": "digime", "version": "1.0.0" }
+                },
+                {
+                    "name": "file2.json",
+                    "updatedDate": 1568716294874,
+                    "schema": { "standard": "digime", "version": "1.0.0" }
+                },
+                {
+                    "name": "file3.json",
+                    "updatedDate": 1568716294874,
+                    "schema": { "standard": "digime", "version": "1.0.0" }
+                }
             ]
         }
     },
@@ -26,18 +38,30 @@
         "method": "GET",
         "status": 200,
         "response": {
-            "status":{
-                "details":{
-                    "test-account-id":{
-                        "state":"running"
+            "status": {
+                "details": {
+                    "test-account-id": {
+                        "state": "running"
                     }
                 },
-                "state":"running"
+                "state": "running"
             },
             "fileList": [
-                {"name":"file1.json","updatedDate":1568716294874, "schema": {"standard": "digime", "version": "1.0.0"}},
-                {"name":"file2.json","updatedDate":1568716294874, "schema": {"standard": "digime", "version": "1.0.0"}},
-                {"name":"file3.json","updatedDate":1568716294874, "schema": {"standard": "digime", "version": "1.0.0"}}
+                {
+                    "name": "file1.json",
+                    "updatedDate": 1568716294874,
+                    "schema": { "standard": "digime", "version": "1.0.0" }
+                },
+                {
+                    "name": "file2.json",
+                    "updatedDate": 1568716294874,
+                    "schema": { "standard": "digime", "version": "1.0.0" }
+                },
+                {
+                    "name": "file3.json",
+                    "updatedDate": 1568716294874,
+                    "schema": { "standard": "digime", "version": "1.0.0" }
+                }
             ]
         }
     }

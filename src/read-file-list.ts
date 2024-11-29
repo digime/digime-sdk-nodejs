@@ -29,7 +29,7 @@ const _readFileList = async (
     options: ReadFileListOptionsFormated,
     sdkConfig: SDKConfiguration
 ): Promise<CAFileListResponse> => {
-    const url = `${sdkConfig.baseUrl}permission-access/query/${options.sessionKey}`;
+    const url = `${String(sdkConfig.baseUrl)}permission-access/query/${options.sessionKey}`;
     const { userAccessToken } = options;
     const { contractId, privateKey } = options.contractDetails;
 
@@ -75,10 +75,13 @@ const readFileList = async (
         userAccessToken: props.userAccessToken,
         contractDetails: {
             contractId: props.contractId,
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string
             privateKey: props.privateKey.toString(),
         },
     };
     return refreshTokenWrapper(_readFileList, formatedOptions, sdkConfiguration);
 };
 
-export { readFileList, ReadFileListOptions, CAFileListResponse as ReadFileListResponse };
+export { readFileList, ReadFileListOptions };
+
+export { CAFileListResponse as ReadFileListResponse } from "./types/api/ca-file-list-response";

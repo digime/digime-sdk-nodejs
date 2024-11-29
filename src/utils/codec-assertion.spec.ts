@@ -20,6 +20,7 @@ describe("codecAssertion", () => {
     let reportSpy: jest.SpyInstance;
 
     beforeEach(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         reportSpy = jest.spyOn(ThrowReporter, "report") as jest.SpyInstance;
         reportSpy.mockImplementation(() => {});
         (sprintf as jest.Mock).mockImplementation(() => "");
@@ -31,7 +32,7 @@ describe("codecAssertion", () => {
     });
 
     it("should assert the value if it matches the codec type", () => {
-        reportSpy.mockReturnValue(undefined);
+        reportSpy.mockReturnValue("");
 
         expect(() => assertWithCodec("hello")).not.toThrow();
     });
@@ -48,6 +49,7 @@ describe("codecAssertion", () => {
 
     it("should throw a non-error if something unexpected happens during validation", () => {
         reportSpy.mockImplementation(() => {
+            // eslint-disable-next-line @typescript-eslint/only-throw-error
             throw "Some unexpected error";
         });
 
