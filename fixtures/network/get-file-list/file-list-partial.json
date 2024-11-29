@@ -5,8 +5,8 @@
         "method": "GET",
         "status": 200,
         "response": {
-            "status":{
-                "state":"partial"
+            "status": {
+                "state": "partial"
             },
             "fileList": []
         }
@@ -17,8 +17,8 @@
         "method": "GET",
         "status": 200,
         "response": {
-            "status":{
-                "state":"partial"
+            "status": {
+                "state": "partial"
             },
             "fileList": []
         }

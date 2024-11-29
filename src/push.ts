@@ -12,7 +12,7 @@ import { SDKConfiguration } from "./types/sdk-configuration";
 import { ContractDetails, ContractDetailsCodec } from "./types/common";
 import * as t from "io-ts";
 import urijs from "urijs";
-import { Readable } from "stream";
+import { Readable } from "node:stream";
 import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
 import isFunction from "lodash.isfunction";
 
@@ -88,10 +88,10 @@ const pushData = async (options: PushDataOptions, sdkConfig: SDKConfiguration): 
 
     if (
         pushResponse?.userAccessToken &&
-        pushResponse?.userAccessToken !== userAccessToken &&
+        pushResponse.userAccessToken !== userAccessToken &&
         isFunction(onAccessTokenChange)
     ) {
-        onAccessTokenChange(pushResponse?.userAccessToken);
+        onAccessTokenChange(pushResponse.userAccessToken);
     }
 };
 
@@ -105,7 +105,7 @@ const _pushToLibrary = async (
 
     const { contractId, privateKey } = contractDetails;
 
-    const requestPath = urijs(`${sdkConfig.baseUrl}permission-access/import`);
+    const requestPath = urijs(`${String(sdkConfig.baseUrl)}permission-access/import`);
 
     const fileDescriptor = sign(
         {
@@ -118,7 +118,7 @@ const _pushToLibrary = async (
         }
     );
 
-    await net.post(requestPath.toString(), {
+    await net.post(requestPath.valueOf(), {
         headers: {
             contentType: "application/octet-stream",
             FileDescriptor: fileDescriptor,
@@ -176,9 +176,11 @@ const _pushToProvider = async (
 
     const { contractId, privateKey } = contractDetails;
 
-    const requestPath = urijs(`${sdkConfig.baseUrl}permission-access/import/h:accountId/${standard}/${version}`);
+    const requestPath = urijs(
+        `${String(sdkConfig.baseUrl)}permission-access/import/h:accountId/${standard}/${version}`
+    );
 
-    await net.post(requestPath.toString(), {
+    await net.post(requestPath.valueOf(), {
         headers: {
             contentType: "application/json",
             accountId,

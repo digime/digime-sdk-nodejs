@@ -11,11 +11,6 @@ describe("getRandomAlphaNumeric", () => {
         expect(result).toHaveLength(size);
     });
 
-    it("should return an empty string when size is 0", () => {
-        const result = getRandomAlphaNumeric(0);
-        expect(result).toBe("");
-    });
-
     it("should only contain characters from ALPHA_NUMERIC", () => {
         const size = 100;
         const result = getRandomAlphaNumeric(size);

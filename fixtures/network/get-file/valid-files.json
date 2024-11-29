@@ -13,7 +13,11 @@
                     "objectCount": 1,
                     "objectType": "media",
                     "serviceGroup": "social",
-                    "serviceName": "instagram"
+                    "serviceName": "instagram",
+                    "schema": {
+                        "standard": "fhir",
+                        "version": "3.0.0"
+                    }
                 }
             }
         }
@@ -33,7 +37,11 @@
                     "objectCount": 1,
                     "objectType": "media",
                     "serviceGroup": "social",
-                    "serviceName": "instagram"
+                    "serviceName": "instagram",
+                    "schema": {
+                        "standard": "fhir",
+                        "version": "3.0.0"
+                    }
                 }
             }
         }
@@ -53,7 +61,11 @@
                     "objectCount": 1,
                     "objectType": "media",
                     "serviceGroup": "social",
-                    "serviceName": "instagram"
+                    "serviceName": "instagram",
+                    "schema": {
+                        "standard": "fhir",
+                        "version": "3.0.0"
+                    }
                 }
             }
         }
@@ -73,7 +85,11 @@
                     "objectCount": 1,
                     "objectType": "media",
                     "serviceGroup": "social",
-                    "serviceName": "instagram"
+                    "serviceName": "instagram",
+                    "schema": {
+                        "standard": "fhir",
+                        "version": "3.0.0"
+                    }
                 }
             }
         }
@@ -89,10 +105,7 @@
             "x-metadata": {
                 "metadata": {
                     "mimetype": "text/plain",
-                    "accounts": [
-                        { "accountid": "test-account-1" },
-                        { "accountid": "test-account-2" }
-                    ]
+                    "accounts": [{ "accountid": "test-account-1" }, { "accountid": "test-account-2" }]
                 }
             }
         }
@@ -108,10 +121,7 @@
             "x-metadata": {
                 "metadata": {
                     "mimetype": "text/plain",
-                    "accounts": [
-                        { "accountid": "test-account-1" },
-                        { "accountid": "test-account-2" }
-                    ]
+                    "accounts": [{ "accountid": "test-account-1" }, { "accountid": "test-account-2" }]
                 }
             }
         }

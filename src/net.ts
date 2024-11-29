@@ -10,7 +10,7 @@ import isString from "lodash.isstring";
 
 export const net: Got = got;
 
-export const handleServerResponse = (error: Error | unknown): void => {
+export const handleServerResponse = (error: unknown): void => {
     if (!(error instanceof HTTPError)) {
         return;
     }
@@ -44,14 +44,14 @@ export const handleServerResponse = (error: Error | unknown): void => {
         code = body.error?.toString();
         message = body.message?.toString();
     } else {
-        code = body?.error?.code;
-        message = body?.error?.message;
-        reference = body?.error?.reference;
+        code = body.error?.code;
+        message = body.error?.message;
+        reference = body.error?.reference;
     }
 
-    if (error?.response?.statusCode && error?.response?.statusMessage) {
-        statusCode = error?.response?.statusCode;
-        statusMessage = error?.response?.statusMessage.toString();
+    if (error.response.statusCode && error.response.statusMessage) {
+        statusCode = error.response.statusCode;
+        statusMessage = error.response.statusMessage.toString();
     }
 
     if (code === "SDKInvalid" || code === "SDKVersionInvalid") {
@@ -73,7 +73,7 @@ export const handleServerResponse = (error: Error | unknown): void => {
     });
 };
 
-export const shouldThrowError = (error: Error | unknown): void => {
+export const shouldThrowError = (error: unknown): void => {
     if (!(error instanceof HTTPError)) {
         throw error;
     }
@@ -85,7 +85,7 @@ export const shouldThrowError = (error: Error | unknown): void => {
 
     const body: unknown = error.response.body;
 
-    if (isApiErrorResponse(body) && body?.error?.code !== "InvalidToken") {
+    if (isApiErrorResponse(body) && body.error.code !== "InvalidToken") {
         handleServerResponse(error);
         throw error;
     }

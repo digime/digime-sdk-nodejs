@@ -2,8 +2,8 @@
  * Copyright (c) 2009-2024 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import crypto from "crypto";
-import stream from "stream";
+import crypto from "node:crypto";
+import stream from "node:stream";
 
 export class CipherTransform extends stream.Transform {
     private cipher: crypto.Cipher;
@@ -32,8 +32,8 @@ export class CipherTransform extends stream.Transform {
     public _flush(callback: stream.TransformCallback) {
         try {
             this.push(this.cipher.final());
-        } catch (e) {
-            const error = e === null ? e : (e as Error);
+        } catch (error_) {
+            const error = error_ === null ? error_ : (error_ as Error);
             return callback(error);
         }
         callback();

@@ -45,7 +45,7 @@ const exchangeCodeForToken = async (
     const { contractId, privateKey } = contractDetails;
 
     try {
-        const response = await net.post(`${sdkConfig.baseUrl}oauth/token`, {
+        const response = await net.post(`${String(sdkConfig.baseUrl)}oauth/token`, {
             responseType: "json",
             retry: sdkConfig.retryOptions,
             hooks: {

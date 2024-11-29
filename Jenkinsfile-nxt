@@ -1,2 +1,2 @@
 #!/usr/bin/env groovy
-HeliumNodeJsLibrary(node_version: "18.20.4")
+HeliumNodeJsLibrary(node_version: "20.18.1")

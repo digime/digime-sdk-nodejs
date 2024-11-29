@@ -4,7 +4,7 @@
 
 import nock from "nock";
 import NodeRSA from "node-rsa";
-import { URL } from "url";
+import { URL } from "node:url";
 import {
     TEST_BASE_URL,
     TEST_CUSTOM_BASE_URL,
@@ -17,7 +17,7 @@ import { ContractDetails } from "./types/common";
 import { GetAuthorizeUrlResponse } from "./get-authorize-url";
 import { sign } from "jsonwebtoken";
 import { HTTPError } from "got/dist/source";
-import { isEqual } from "lodash";
+import isEqual from "lodash.isequal";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -50,7 +50,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
         const CALLBACK_URL = "https://test.callback/";
 
         describe("Throws TypeValidationError when contractDetails is ", () => {
-            it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+            it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (contractDetails: any) => {
                     const promise = sdk.getAuthorizeUrl({
@@ -59,13 +59,13 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         state: "test-state",
                     });
 
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
+                    return expect(promise).rejects.toThrow(TypeValidationError);
                 }
             );
         });
 
         describe("Throws TypeValidationError when contractId is ", () => {
-            it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+            it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (contractId: any) => {
                     const contractDetails = {
@@ -79,13 +79,13 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         state: "test-state",
                     });
 
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
+                    return expect(promise).rejects.toThrow(TypeValidationError);
                 }
             );
         });
 
         describe("Throws TypeValidationError when privateKey is ", () => {
-            it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+            it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (privateKey: any) => {
                     const contractDetails = {
@@ -99,13 +99,13 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         state: "test-state",
                     });
 
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
+                    return expect(promise).rejects.toThrow(TypeValidationError);
                 }
             );
         });
 
         describe("Throws TypeValidationError when callback is ", () => {
-            it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+            it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (callback: any) => {
                     const promise = sdk.getAuthorizeUrl({
@@ -114,13 +114,13 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         state: "test-state",
                     });
 
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
+                    return expect(promise).rejects.toThrow(TypeValidationError);
                 }
             );
         });
 
         describe("Throws TypeValidationError when actions is not an object", () => {
-            it.each([true, false, null, [], 0, NaN, "", () => null, Symbol("test")])(
+            it.each([true, false, null, [], 0, Number.NaN, "", () => null, Symbol("test")])(
                 "%p",
                 async (sessionOptions: any) => {
                     const promise = sdk.getAuthorizeUrl({
@@ -130,7 +130,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         state: "test-state",
                     });
 
-                    return expect(promise).rejects.toThrowError(TypeValidationError);
+                    return expect(promise).rejects.toThrow(TypeValidationError);
                 }
             );
         });
@@ -155,7 +155,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     state: "test-state",
                 });
 
-                return expect(promise).rejects.toThrowError(TypeValidationError);
+                return expect(promise).rejects.toThrow(TypeValidationError);
             });
         });
 
@@ -178,7 +178,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     }
                 );
 
-                nock(`${new URL(baseUrl).origin}`)
+                nock(new URL(baseUrl).origin)
                     .post(`${new URL(baseUrl).pathname}oauth/authorize`)
                     .reply(201, {
                         token: jwt,
@@ -241,7 +241,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     }
                 );
 
-                nock(`${new URL(baseUrl).origin}`)
+                nock(new URL(baseUrl).origin)
                     .post(`${new URL(baseUrl).pathname}oauth/authorize`)
                     .reply(201, {
                         token: jwt,
@@ -273,7 +273,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
             let error: ServerError;
 
             beforeAll(async () => {
-                nock(`${new URL(baseUrl).origin}`)
+                nock(new URL(baseUrl).origin)
                     .post(`${new URL(baseUrl).pathname}oauth/authorize`)
                     .reply(404, {
                         error: {
@@ -290,11 +290,11 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         serviceId: 30,
                         state: "test-state",
                     });
-                } catch (e) {
-                    if (!(e instanceof Error)) {
-                        throw e;
+                } catch (error_) {
+                    if (!(error_ instanceof Error)) {
+                        throw error_;
                     }
-                    error = e;
+                    error = error_;
                 }
             });
 
@@ -321,7 +321,7 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
             let error: Error;
 
             beforeAll(async () => {
-                nock(`${new URL(baseUrl).origin}`)
+                nock(new URL(baseUrl).origin)
                     .post(`${new URL(baseUrl).pathname}oauth/authorize`)
                     .reply(404);
 
@@ -332,15 +332,15 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                         serviceId: 30,
                         state: "test-state",
                     });
-                } catch (e) {
-                    if (!(e instanceof Error)) {
-                        throw e;
+                } catch (error_) {
+                    if (!(error_ instanceof Error)) {
+                        throw error_;
                     }
-                    error = e;
+                    error = error_;
                 }
             });
 
-            it("Throws HTTPError when we get an error from the call", async () => {
+            it("Throws HTTPError when we get an error from the call", () => {
                 return expect(error).toBeInstanceOf(HTTPError);
             });
         });
@@ -381,7 +381,8 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     },
                 };
 
-                nock(`${new URL(baseUrl).origin}`)
+                nock(new URL(baseUrl).origin)
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     .post(`${new URL(baseUrl).pathname}oauth/authorize`, (body) => isEqual(body.actions, actionsToSend))
                     .reply(201, {
                         token: jwt,
@@ -449,7 +450,8 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                     extra: "This is an unexpacted field",
                 };
 
-                nock(`${new URL(baseUrl).origin}`)
+                nock(new URL(baseUrl).origin)
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     .post(`${new URL(baseUrl).pathname}oauth/authorize`, (body) => isEqual(body.actions, actionsToSend))
                     .reply(201, {
                         token: jwt,

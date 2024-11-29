@@ -21,8 +21,8 @@ const getPayloadFromToken = async (token: string | undefined, options: SDKConfig
         throw new TypeValidationError("Token passed in to getPayloadFromToken is not an object.");
     }
 
-    const jku: unknown = decodedToken?.header?.jku;
-    const kid: unknown = decodedToken?.header?.kid;
+    const jku: unknown = decodedToken.header.jku;
+    const kid: unknown = decodedToken.header.kid;
 
     if (!isString(jku) || !isString(kid)) {
         throw new DigiMeSDKError("Unexpected JWT payload in token. No jku or kid found.");

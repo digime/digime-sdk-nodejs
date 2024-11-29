@@ -4,13 +4,11 @@
 
 import nock from "nock";
 import NodeRSA from "node-rsa";
-import { URL } from "url";
+import { URL } from "node:url";
 import * as SDK from ".";
 import { TEST_BASE_URL, TEST_CUSTOM_BASE_URL, TEST_CUSTOM_ONBOARD_URL } from "../utils/test-constants";
 import { ContractDetails } from "./types/common";
 import { getBearerTokenErrorResponse } from "../utils/test-utils";
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const digime = SDK.init({
     applicationId: "test-application-id",
@@ -41,8 +39,8 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         let failedOnce = false;
         const sourceId = 1;
 
-        nock(`${new URL(baseUrl).origin}`)
-            .get(`${new URL(baseUrl).pathname}permission-access/sample/datasets/${sourceId}`)
+        nock(new URL(baseUrl).origin)
+            .get(`${new URL(baseUrl).pathname}permission-access/sample/datasets/${String(sourceId)}`)
             .times(2)
             .reply(function (_uri, _body, callback) {
                 const bearerTokenErrorResponse = getBearerTokenErrorResponse(

@@ -7,8 +7,8 @@ import { isNonEmptyString } from "./utils/basic-utils";
 import { net } from "./net";
 import { decryptData, getRandomAlphaNumeric } from "./crypto";
 import NodeRSA from "node-rsa";
-import { isDecodedCAFileHeaderResponse, MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
-import * as zlib from "zlib";
+import { assertIsDecodedCAFileHeaderResponse, MappedFileMetadata, RawFileMetadata } from "./types/api/ca-file-response";
+import * as zlib from "node:zlib";
 import base64url from "base64url";
 import { SDKConfiguration } from "./types/sdk-configuration";
 import { UserAccessToken } from "./types/user-access-token";
@@ -80,7 +80,7 @@ const fetchFile = async (options: ReadFileOptionsFormated, sdkConfig: SDKConfigu
     const { sessionKey, fileName, userAccessToken } = options;
     const { privateKey, contractId } = options.contractDetails;
 
-    const response = await net.get(`${sdkConfig.baseUrl}permission-access/query/${sessionKey}/${fileName}`, {
+    const response = await net.get(`${String(sdkConfig.baseUrl)}permission-access/query/${sessionKey}/${fileName}`, {
         headers: {
             accept: "application/octet-stream",
         },
@@ -109,7 +109,7 @@ const fetchFile = async (options: ReadFileOptionsFormated, sdkConfig: SDKConfigu
     });
 
     const lastModified = response.headers["last-modified"] as string;
-    const fileContent: Buffer = response.body as Buffer;
+    const fileContent: Buffer = response.body;
     const base64Meta: string = response.headers["x-metadata"] as string;
     let decodedMeta;
 
@@ -117,7 +117,7 @@ const fetchFile = async (options: ReadFileOptionsFormated, sdkConfig: SDKConfigu
         decodedMeta = JSON.parse(base64url.decode(base64Meta));
     }
 
-    isDecodedCAFileHeaderResponse(decodedMeta);
+    assertIsDecodedCAFileHeaderResponse(decodedMeta);
 
     return {
         compression: decodedMeta.compression,
@@ -134,6 +134,7 @@ const readFile = async (options: ReadFileOptions, sdkConfig: SDKConfiguration): 
         userAccessToken: options.userAccessToken,
         contractDetails: {
             contractId: options.contractId,
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string
             privateKey: options.privateKey.toString(),
         },
     };

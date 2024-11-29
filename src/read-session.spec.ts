@@ -4,14 +4,14 @@
 
 import nock from "nock";
 import NodeRSA from "node-rsa";
-import { URL } from "url";
+import { URL } from "node:url";
 import * as SDK from ".";
 import { SAMPLE_TOKEN, TEST_BASE_URL, TEST_CUSTOM_BASE_URL, TEST_CUSTOM_ONBOARD_URL } from "../utils/test-constants";
 import { ServerError, TypeValidationError } from "./errors";
 import { ReadSessionResponse } from "./read-session";
 import { ContractDetails } from "./types/common";
 import { sign } from "jsonwebtoken";
-import { isEqual } from "lodash";
+import isEqual from "lodash.isequal";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -41,7 +41,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
     ["Custom SDK", customSDK, TEST_CUSTOM_BASE_URL],
 ])("%s", (_title, sdk, baseUrl) => {
     describe("Throws TypeValidationError when contractDetails is ", () => {
-        it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+        it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
             "%p",
             async (contractDetails: any) => {
                 const promise = sdk.readSession({
@@ -49,13 +49,13 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     userAccessToken: SAMPLE_TOKEN,
                 });
 
-                return expect(promise).rejects.toThrowError(TypeValidationError);
+                return expect(promise).rejects.toThrow(TypeValidationError);
             }
         );
     });
 
     describe("Throws TypeValidationError when contractId is ", () => {
-        it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+        it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
             "%p",
             async (contractId: any) => {
                 const contractDetails = {
@@ -68,13 +68,13 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     userAccessToken: SAMPLE_TOKEN,
                 });
 
-                return expect(promise).rejects.toThrowError(TypeValidationError);
+                return expect(promise).rejects.toThrow(TypeValidationError);
             }
         );
     });
 
     describe("Throws TypeValidationError when privateKey is ", () => {
-        it.each([true, false, null, undefined, {}, [], 0, NaN, "", () => null, Symbol("test")])(
+        it.each([true, false, null, undefined, {}, [], 0, Number.NaN, "", () => null, Symbol("test")])(
             "%p",
             async (privateKey: any) => {
                 const contractDetails = {
@@ -87,25 +87,28 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     userAccessToken: SAMPLE_TOKEN,
                 });
 
-                return expect(promise).rejects.toThrowError(TypeValidationError);
+                return expect(promise).rejects.toThrow(TypeValidationError);
             }
         );
     });
 
     describe("Throws TypeValidationError when options is ", () => {
-        it.each([true, false, null, [], 0, NaN, "", () => null, Symbol("test")])("%p", async (sessionOptions: any) => {
-            const promise = sdk.readSession({
-                contractDetails: CONTRACT_DETAILS,
-                userAccessToken: SAMPLE_TOKEN,
-                sessionOptions,
-            });
+        it.each([true, false, null, [], 0, Number.NaN, "", () => null, Symbol("test")])(
+            "%p",
+            async (sessionOptions: any) => {
+                const promise = sdk.readSession({
+                    contractDetails: CONTRACT_DETAILS,
+                    userAccessToken: SAMPLE_TOKEN,
+                    sessionOptions,
+                });
 
-            return expect(promise).rejects.toThrowError(TypeValidationError);
-        });
+                return expect(promise).rejects.toThrow(TypeValidationError);
+            }
+        );
     });
 
     describe("Throws TypeValidationError when scope is ", () => {
-        it.each([true, false, null, [], 0, NaN, "", () => null, Symbol("test")])("%p", async (scope: any) => {
+        it.each([true, false, null, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", async (scope: any) => {
             const promise = sdk.readSession({
                 contractDetails: CONTRACT_DETAILS,
                 userAccessToken: SAMPLE_TOKEN,
@@ -114,7 +117,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 },
             });
 
-            return expect(promise).rejects.toThrowError(TypeValidationError);
+            return expect(promise).rejects.toThrow(TypeValidationError);
         });
     });
 
@@ -135,7 +138,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 },
             });
 
-            return expect(promise).rejects.toThrowError(TypeValidationError);
+            return expect(promise).rejects.toThrow(TypeValidationError);
         });
     });
 
@@ -148,7 +151,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         };
 
         beforeAll(async () => {
-            const scope = nock(`${new URL(baseUrl).origin}`)
+            const scope = nock(new URL(baseUrl).origin)
                 .post(`${new URL(baseUrl).pathname}permission-access/trigger`)
                 .reply(202, {
                     session,
@@ -188,8 +191,9 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 extra: "This is an unexpacted field",
             };
 
-            const scope = nock(`${new URL(baseUrl).origin}`)
+            const scope = nock(new URL(baseUrl).origin)
                 .post(`${new URL(baseUrl).pathname}permission-access/trigger`, (body) =>
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                     isEqual({ extra: body.extra }, optionsWithExtras)
                 )
                 .reply(202, {
@@ -232,11 +236,11 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             const jwt: string = sign(
                 {
                     access_token: {
-                        expires_on: 1000000,
+                        expires_on: 1_000_000,
                         value: "refreshed-sample-token",
                     },
                     refresh_token: {
-                        expires_on: 1000000,
+                        expires_on: 1_000_000,
                         value: "refreshed-refresh-token",
                     },
                     sub: "test-user-id",
@@ -254,7 +258,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                 }
             );
 
-            const triggerScope = nock(`${new URL(baseUrl).origin}`)
+            const triggerScope = nock(new URL(baseUrl).origin)
                 .post(`${new URL(baseUrl).pathname}permission-access/trigger`)
                 .reply(401, {
                     error: {
@@ -267,7 +271,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     session,
                 });
 
-            const refreshScope = nock(`${new URL(baseUrl).origin}`)
+            const refreshScope = nock(new URL(baseUrl).origin)
                 .post(`${new URL(baseUrl).pathname}oauth/token`)
                 .reply(201, {
                     token: jwt,
@@ -305,11 +309,11 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         it("returns the refreshed user access token", () => {
             expect(response.userAccessToken).toEqual({
                 accessToken: {
-                    expiry: 1000000,
+                    expiry: 1_000_000,
                     value: "refreshed-sample-token",
                 },
                 refreshToken: {
-                    expiry: 1000000,
+                    expiry: 1_000_000,
                     value: "refreshed-refresh-token",
                 },
                 user: {
@@ -328,7 +332,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
         let error: ServerError;
 
         beforeAll(async () => {
-            nock(`${new URL(baseUrl).origin}`)
+            nock(new URL(baseUrl).origin)
                 .post(`${new URL(baseUrl).pathname}permission-access/trigger`)
                 .reply(401)
                 .post(`${new URL(baseUrl).pathname}oauth/token`)
@@ -344,11 +348,11 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
                     contractDetails: CONTRACT_DETAILS,
                     userAccessToken: SAMPLE_TOKEN,
                 });
-            } catch (e) {
-                if (!(e instanceof Error)) {
-                    throw e;
+            } catch (error_) {
+                if (!(error_ instanceof Error)) {
+                    throw error_;
                 }
-                error = e;
+                error = error_;
             }
         });
 

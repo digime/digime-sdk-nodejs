@@ -8,8 +8,6 @@
 
 import { ApiError } from "./types/api/api-error-response";
 
-// tslint:disable:max-classes-per-file
-
 /**
  * Generic Error thrown by the SDK.
  */

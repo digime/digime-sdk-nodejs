@@ -5,6 +5,9 @@
 import { isApiErrorResponse, assertIsApiErrorResponse } from "./api-error-response";
 import { TypeValidationError } from "../..";
 
+const actualError = () => assertIsApiErrorResponse({}, "Test error message");
+const actualTypeError = () => assertIsApiErrorResponse({ error: {} }, "Test start %s test end");
+
 describe("isApiErrorResponse", () => {
     it("Returns true when given a valid API error response", async () => {
         const fixtures = [
@@ -23,7 +26,7 @@ describe("isApiErrorResponse", () => {
     });
 
     describe("Returns false when given a non-object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = isApiErrorResponse(value);
             expect(actual).toBe(false);
         });
@@ -34,7 +37,7 @@ describe("isApiErrorResponse", () => {
     });
 
     describe("Returns false when the code property of the error object is not a string", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, {}, () => null, Symbol("test")])("%p", (value) => {
             const actual = isApiErrorResponse({
                 error: {
                     code: value,
@@ -46,7 +49,7 @@ describe("isApiErrorResponse", () => {
     });
 
     describe("Returns false when the message property of the error object is not a string", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, {}, () => null, Symbol("test")])("%p", (value) => {
             const actual = isApiErrorResponse({
                 error: {
                     code: "Test code",
@@ -57,7 +60,7 @@ describe("isApiErrorResponse", () => {
         });
     });
 
-    it("Returns false when error object is missing the code property", async () => {
+    it("Returns false when error object is missing the code property", () => {
         const response = {
             error: {
                 message: "Test message",
@@ -67,7 +70,7 @@ describe("isApiErrorResponse", () => {
         expect(isApiErrorResponse(response)).toBe(false);
     });
 
-    it("Returns false when error object is missing the message property", async () => {
+    it("Returns false when error object is missing the message property", () => {
         const response = {
             error: {
                 code: "SDKInvalid",
@@ -96,7 +99,7 @@ describe("assertIsApiErrorResponse", () => {
     });
 
     describe("Throws TypeValidationError when given a non-object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = () => assertIsApiErrorResponse(value);
             expect(actual).toThrow(TypeValidationError);
         });
@@ -107,17 +110,20 @@ describe("assertIsApiErrorResponse", () => {
     });
 
     describe("Throws TypeValidationError when the message property of the error object is not a string", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", {}, () => null, Symbol("test")])("%p", (value) => {
-            const actual = () =>
-                assertIsApiErrorResponse({
-                    error: value,
-                });
-            expect(actual).toThrow(TypeValidationError);
-        });
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", {}, () => null, Symbol("test")])(
+            "%p",
+            (value) => {
+                const actual = () =>
+                    assertIsApiErrorResponse({
+                        error: value,
+                    });
+                expect(actual).toThrow(TypeValidationError);
+            }
+        );
     });
 
     describe("Throws TypeValidationError when the code property of the error object is not a string", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, {}, () => null, Symbol("test")])("%p", (value) => {
             const actual = () =>
                 assertIsApiErrorResponse({
                     error: {
@@ -130,7 +136,7 @@ describe("assertIsApiErrorResponse", () => {
     });
 
     describe("Throws TypeValidationError when the message property of the error object is not a string", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, {}, () => null, Symbol("test")])("%p", (value) => {
             const actual = () =>
                 assertIsApiErrorResponse({
                     error: {
@@ -143,14 +149,12 @@ describe("assertIsApiErrorResponse", () => {
     });
 
     it("Throws TypeValidationError with custom error messages", () => {
-        const actual = () => assertIsApiErrorResponse({}, "Test error message");
-        expect(actual).toThrow(TypeValidationError);
-        expect(actual).toThrow("Test error message");
+        expect(actualError).toThrow(TypeValidationError);
+        expect(actualError).toThrow("Test error message");
     });
 
     it("Throws TypeValidationError with custom formated error messages", () => {
-        const actual = () => assertIsApiErrorResponse({ error: {} }, "Test start %s test end");
-        expect(actual).toThrow(TypeValidationError);
-        expect(actual).toThrow(/^Test start ([\S\s]*)? test end$/);
+        expect(actualTypeError).toThrow(TypeValidationError);
+        expect(actualTypeError).toThrow(/^Test start ([\S\s]*)? test end$/);
     });
 });

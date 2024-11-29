@@ -5,10 +5,11 @@
 import { isSession, assertIsSession } from "./session";
 import { TypeValidationError } from "../../errors";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+const actualError = () => assertIsSession({}, "Test error message");
+const actualTypeError = () => assertIsSession({ error: {} }, "Test start %s test end");
 
 describe("isSession", () => {
-    it("Returns true when given a valid session", async () => {
+    it("Returns true when given a valid session", () => {
         expect(
             isSession({
                 expiry: 0,
@@ -18,7 +19,7 @@ describe("isSession", () => {
     });
 
     describe("Returns false when given a non-object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = isSession(value);
             expect(actual).toBe(false);
         });
@@ -29,7 +30,7 @@ describe("isSession", () => {
     });
 
     describe("Returns false when expiry is not a number", () => {
-        it.each([true, false, null, undefined, [], {}, "", () => null, Symbol("test")])("%p", (value: any) => {
+        it.each([true, false, null, undefined, [], {}, "", () => null, Symbol("test")])("%p", (value: unknown) => {
             const actual = isSession({
                 expiry: value,
                 key: "test-session-key",
@@ -39,17 +40,20 @@ describe("isSession", () => {
     });
 
     describe("Returns false when sessionKey is not a string", () => {
-        it.each([true, false, null, NaN, undefined, [], {}, () => null, Symbol("test")])("%p", (value: any) => {
-            const actual = isSession({
-                expiry: 0,
-                key: value,
-            });
-            expect(actual).toBe(false);
-        });
+        it.each([true, false, null, Number.NaN, undefined, [], {}, () => null, Symbol("test")])(
+            "%p",
+            (value: unknown) => {
+                const actual = isSession({
+                    expiry: 0,
+                    key: value,
+                });
+                expect(actual).toBe(false);
+            }
+        );
     });
 
     describe("Returns false when sessionExchangeToken is not a string", () => {
-        it.each([true, false, null, NaN, undefined, [], {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, Number.NaN, undefined, [], {}, () => null, Symbol("test")])("%p", (value) => {
             const actual = isSession({
                 expiry: 0,
                 sessionKey: "test-session-key",
@@ -61,7 +65,7 @@ describe("isSession", () => {
 });
 
 describe("assertIsSession", () => {
-    it("Does not throw when given a valid session", async () => {
+    it("Does not throw when given a valid session", () => {
         expect(() =>
             assertIsSession({
                 expiry: 0,
@@ -71,7 +75,7 @@ describe("assertIsSession", () => {
     });
 
     describe("Throws TypeValidationError when given a non-object", () => {
-        it.each([true, false, null, undefined, [], 0, NaN, "", () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, undefined, [], 0, Number.NaN, "", () => null, Symbol("test")])("%p", (value) => {
             const actual = () => assertIsSession(value);
             expect(actual).toThrow(TypeValidationError);
         });
@@ -94,7 +98,7 @@ describe("assertIsSession", () => {
     });
 
     describe("Throws TypeValidationError when sessionKey is not a string", () => {
-        it.each([true, false, null, NaN, undefined, [], {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, Number.NaN, undefined, [], {}, () => null, Symbol("test")])("%p", (value) => {
             const actual = () =>
                 assertIsSession({
                     expiry: 0,
@@ -106,7 +110,7 @@ describe("assertIsSession", () => {
     });
 
     describe("Throws TypeValidationError when sessionExchangeToken is not a string", () => {
-        it.each([true, false, null, NaN, undefined, [], {}, () => null, Symbol("test")])("%p", (value) => {
+        it.each([true, false, null, Number.NaN, undefined, [], {}, () => null, Symbol("test")])("%p", (value) => {
             const actual = () =>
                 assertIsSession({
                     expiry: 0,
@@ -118,14 +122,12 @@ describe("assertIsSession", () => {
     });
 
     it("Throws TypeValidationError with custom error messages", () => {
-        const actual = () => assertIsSession({}, "Test error message");
-        expect(actual).toThrow(TypeValidationError);
-        expect(actual).toThrow("Test error message");
+        expect(actualError).toThrow(TypeValidationError);
+        expect(actualError).toThrow("Test error message");
     });
 
     it("Throws TypeValidationError with custom formated error messages", () => {
-        const actual = () => assertIsSession({}, "Test start %s test end");
-        expect(actual).toThrow(TypeValidationError);
-        expect(actual).toThrow(/^Test start ([\S\s]*)? test end$/);
+        expect(actualTypeError).toThrow(TypeValidationError);
+        expect(actualTypeError).toThrow(/^Test start ([\S\s]*)? test end$/);
     });
 });

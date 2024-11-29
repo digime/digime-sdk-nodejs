@@ -2,7 +2,7 @@
  * Copyright (c) 2009-2024 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
  */
 
-import { URL, URLSearchParams } from "url";
+import { URL, URLSearchParams } from "node:url";
 import { getPayloadFromToken } from "./utils/get-payload-from-token";
 import { TypeValidationError } from "./errors";
 import { Session } from "./types/api/session";
@@ -73,7 +73,7 @@ export interface GetAuthorizeUrlOptions {
     sampleData?: SampleDataOptions;
 
     /**
-     * Send prefared locale for authorization client to be used.
+     * Send preferred locale for authorization client to be used.
      * If passed locale is not supported then language will fallback to browser language.
      * If browser locale is not supported we will fallback to default locale (en).
      */
@@ -151,7 +151,6 @@ const getAuthorizeUrl = async (
     sdkConfig: SDKConfiguration
 ): Promise<GetAuthorizeUrlResponse> => {
     if (!GetAuthorizeUrlOptionsCodec.is(props) || !isNonEmptyString(props.callback)) {
-        // tslint:disable-next-line:max-line-length
         throw new TypeValidationError(
             "Parameters failed validation. props should be a plain object that contains the properties contractDetails and callback."
         );
@@ -166,10 +165,10 @@ const getAuthorizeUrl = async (
         storageRef = await _storageReference(props, sdkConfig);
     }
 
-    const result: URL = new URL(`${sdkConfig.onboardUrl}authorize`);
+    const result: URL = new URL(`${String(sdkConfig.onboardUrl)}authorize`);
     result.search = new URLSearchParams({
         code,
-        sourceType: sourceType ? sourceType : "pull",
+        sourceType: sourceType || "pull",
         ...(serviceId && { service: serviceId.toString() }),
         ...(sampleData && sampleData.dataSet && { sampleDataSet: sampleData.dataSet }),
         ...(sampleData && sampleData.autoOnboard && { sampleDataAutoOnboard: sampleData.autoOnboard.toString() }),
@@ -204,7 +203,7 @@ const _authorize = async (
     const { contractId, privateKey } = contractDetails;
     let codeVerifier: string = "";
     try {
-        const { body } = await net.post(`${sdkConfig.baseUrl}oauth/authorize`, {
+        const { body } = await net.post(`${String(sdkConfig.baseUrl)}oauth/authorize`, {
             json: {
                 agent: {
                     sdk: {
@@ -254,7 +253,7 @@ const _authorize = async (
 
         return {
             codeVerifier,
-            code: `${get(payload, ["preauthorization_code"])}`,
+            code: String(get(payload, ["preauthorization_code"])),
             session,
         };
     } catch (error) {
@@ -281,7 +280,7 @@ const _storageReference = async (
         }
     );
     try {
-        const { body } = await net.post(`${sdkConfig.baseUrl}reference`, {
+        const { body } = await net.post(`${String(sdkConfig.baseUrl)}reference`, {
             headers: {
                 Authorization: `Bearer ${jwt}`,
             },

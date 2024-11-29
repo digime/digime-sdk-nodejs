@@ -268,7 +268,7 @@ const querySources = async (
             bodyParams.query.filter.publishedStatus = ["approved"];
         }
 
-        const response = await net.post(`${sdkConfig.baseUrl}discovery/sources`, {
+        const response = await net.post(`${String(sdkConfig.baseUrl)}discovery/sources`, {
             headers: {
                 "Content-Type": "application/json",
             },

@@ -36,7 +36,7 @@ const getRevokeAccountPermissionUrl = async (
     const { userAccessToken, contractDetails, accountId, redirectUri } = options;
     const { contractId, privateKey } = contractDetails;
 
-    const url = `${sdkConfig.baseUrl}permission-access/revoke/h:accountId`;
+    const url = `${String(sdkConfig.baseUrl)}permission-access/revoke/h:accountId`;
 
     try {
         const response = await net.get(url, {
