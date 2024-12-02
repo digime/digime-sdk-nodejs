@@ -26,7 +26,7 @@ const datasets = await sdk.getServiceSampleDataSets({
 // Each dataset has key (Dataset ID) that can to be passed to getOnboardServiceUrl and getAuthorizeUrl.
 ```
 
-[Response](../types/Types.GetServiceSampleDataSetsResponse.html) should look something like this:
+{@link Types.GetServiceSampleDataSetsResponse | Response} should look something like this:
 
 ```
 {

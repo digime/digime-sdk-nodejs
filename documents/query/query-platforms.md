@@ -4,15 +4,9 @@ title: Query Platforms
 
 # Query Platforms
 
-#### Configuration Options
+If you need platform list or you need to filter sources by platform this is an example on how you can get it and pass it to `querySources` method.
 
-See all possible [configurations](../interfaces/Types.SDKConfiguration.html) when initializing the SDK.
-
-#### Returns
-
-The [available platforms](../interfaces/Types.QueryPlatformsResponse.html).
-
-#### Examples
+## Examples and Usage
 
 The most basic initialization:
 
@@ -49,4 +43,8 @@ const platforms = await sdk.queryPlatforms({
 
 ```
 
-More details on `platformsBodyParams` can be checked [here](../interfaces/Types.QueryPlatformsOptions.html)
+More details on `platformsBodyParams` can be checked {@link Types.QueryPlatformsOptions | here}.
+
+## Returns
+
+The {@link Types.QueryPlatformsResponse | available platforms}.

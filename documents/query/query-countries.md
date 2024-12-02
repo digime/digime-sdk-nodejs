@@ -4,15 +4,9 @@ title: Query Countries
 
 # Query Countries
 
-#### Configuration Options
+If you need country list or you need to filter sources by countries this is an example on how you can get it and pass it to `querySources` method.
 
-See all possible [configurations](../interfaces/Types.SDKConfiguration.html) when initializing the SDK.
-
-#### Returns
-
-The [available countries](../interfaces/Types.QueryCountriesResponse.html).
-
-#### Examples
+## Examples and Usage
 
 The most basic initialization:
 
@@ -49,4 +43,8 @@ const countries = await sdk.queryCountries({
 
 ```
 
-More details on `countriesBodyParams` can be checked [here](../interfaces/Types.QueryCountriesOptions.html)
+More details on `countriesBodyParams` can be checked {@link Types.QueryCountriesOptions | here}.
+
+## Returns
+
+The {@link Types.QueryCountriesResponse | available countries}.

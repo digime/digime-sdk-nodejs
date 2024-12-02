@@ -37,4 +37,4 @@ To see all the other options for initializing the SDK, please take a look [here]
 
 - Use our SDK to [read data from your users](reading-data.md).
 - Use our SDK to [push data to your users](pushing-data.md).
-- To see all the available functions in the SDK, please take a look [here](../interfaces/SDK.DigimeSDK.html).
+- To see all the available functions in the SDK, please take a look {@link SDK.DigimeSDK | here}.

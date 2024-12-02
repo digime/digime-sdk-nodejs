@@ -71,14 +71,14 @@ const result = await sdk.getAuthorizeUrl({
 // Calling the url returned will trigger the authorization process.
 ```
 
-More details on types that can be passed into getAuthorizeUrl please check [here](../interfaces/Types.GetAuthorizeUrlOptions.html).
+More details on types that can be passed into getAuthorizeUrl please check {@link Types.GetAuthorizeUrlOptions | here}.
 
-The [result](../interfaces/Types.GetAuthorizeUrlResponse.html) returned will include a `url`, `codeVerifier` and `session`.
+The {@link Types.GetAuthorizeUrlResponse | result} returned will include a `url`, `codeVerifier` and `session`.
 Store the `codeVerifier` against this user as this will be required for later.
 
 Store `session` as well for getting data after authorization process is done.
 
-More on limits and scoping of raw and mapped data interface can be found [here](../interfaces/Types.PullSessionOptions.html).
+More on limits and scoping of raw and mapped data interface can be found {@link Types.PullSessionOptions | here}.
 
 To test flow using sample data please check more details [here](../sample-datasets.md)
 

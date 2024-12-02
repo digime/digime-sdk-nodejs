@@ -11,11 +11,11 @@ By default, the SDK will point to the production environment. However, when init
 
 #### Configuration Options
 
-See all possible [configurations](../interfaces/Types.SDKConfiguration.html) when initializing the SDK.
+See all possible {@link Types.SDKConfiguration | configurations} when initializing the SDK.
 
 #### Returns
 
-The returned SDK has the following [properties](../interfaces/SDK.DigimeSDK.html)
+The returned SDK has the following {@link SDK.DigimeSDK | properties}
 
 #### Examples
 

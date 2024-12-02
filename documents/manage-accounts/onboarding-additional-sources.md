@@ -42,7 +42,7 @@ const { url, session, userAccessToken } = await sdk.getOnboardServiceUrl({
 // Redirect the user to the url returned and this will kick start the onboarding process.
 ```
 
-More details on types that can be passed into getAuthorizeUrl please check [here](../interfaces/Types.GetOnboardServiceUrlOptions.html).
+More details on types that can be passed into getAuthorizeUrl please check {@link Types.GetOnboardServiceUrlOptions | here}.
 
 The `url` returned might look something like this:
 
@@ -56,7 +56,7 @@ Redirect the user to this URL, and they will be asked to onboard the service and
 
 To test flow using sample data please check more details [here](../sample-datasets.md)
 
-More on limits and scoping of raw and mapped data interface can be found [here](../interfaces/Types.PullSessionOptions.html).
+More on limits and scoping of raw and mapped data interface can be found {@link Types.PullSessionOptions | here}.
 
 At the end of the process, the `callback` provided above will be called with the follow extra query parameters:
 

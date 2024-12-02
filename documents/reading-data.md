@@ -29,13 +29,13 @@ const { session, updatedAccessToken } = await sdk.readSession({
 });
 ```
 
-The [session](../interfaces/Types.Session.html) received can now be used to query data.
+The {@link Types.Session | session} received can now be used to query data.
 
-More information on the limits and scoping of the raw and mapped data interface can be found [here](../interfaces/Types.PullSessionOptions.html).
+More information on the limits and scoping of the raw and mapped data interface can be found {@link Types.PullSessionOptions | here}.
 
 ## Reading All Files
 
-Using the session received above, we can trigger the [readAllFiles()](../interfaces/SDK.DigimeSDK.html#readallfiles) method to read all available files from this user.
+Using the session received above, we can trigger the {@link SDK.DigimeSDK#readAllFiles | readAllFiles} method to read all available files from this user.
 
 ```typescript
 // ... initialize the SDK
@@ -80,7 +80,7 @@ The type of FileMetadata that is returned depends on the type of data it is. Ple
 
 ## Selecting Files
 
-If you'd like more control over the downloading of the files, we can call [readFileList()](../interfaces/SDK.DigimeSDK.html#readfilelist) to see all available files from this user:
+If you'd like more control over the downloading of the files, we can call {@link SDK.DigimeSDK#readFileList | readFileList} to see all available files from this user:
 
 ```typescript
 // ... initialize the SDK
@@ -89,9 +89,9 @@ If you'd like more control over the downloading of the files, we can call [readF
 const response = await sdk.readFileList({ sessionKey: session.key });
 ```
 
-[Response](../interfaces/Types.ReadFileListResponse.html) among other props contains a `fileList` and `status` of each user service onboarded.
+{@link Types.ReadFileListResponse | Response} among other props contains a `fileList` and `status` of each user service onboarded.
 
-You can then download the files manually using [readFile()](../interfaces/SDK.DigimeSDK.html#readfile).
+You can then download the files manually using {@link SDK.DigimeSDK#readFile | readFile()}.
 
 ```typescript
 // ... initialize the SDK
@@ -110,6 +110,6 @@ const data = await sdk.readFile({
 });
 ```
 
-If you want to download just file metadata please use similar approach with method [readFileMetada()](../interfaces/SDK.DigimeSDK.html#readfilemetadata).
+If you want to download just file metadata please use similar approach with method {@link SDK.DigimeSDK#readFileMetadata | readFileMetadata()}.
 
 Note that readAllFiles is helper method that uses readFileList and readFile methods to return entire data set and also help user maintain latest access token and file list status. If readFileList and readFile methods are used please add logic to maintain latest access token since both of these method will try to do refresh of token automatically.

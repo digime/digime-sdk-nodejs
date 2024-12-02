@@ -33,6 +33,6 @@ const storage = await sdk.deleteStorageFiles({
 
 ```
 
-For more details on what options can be passed please check type [DeleteStorageFilesOptions](../interfaces/Types.DeleteStorageFilesOptions.html)
+For more details on what options can be passed please check type {@link Types.DeleteStorageFilesOptions | DeleteStorageFilesOptions}
 
-Please check return type [DeleteStorageFilesResponse](../interfaces/Types.DeleteStorageFilesResponse.html) for more details on what is returned.
+Please check return type {@link Types.DeleteStorageFilesResponse | DeleteStorageFilesResponse} for more details on what is returned.

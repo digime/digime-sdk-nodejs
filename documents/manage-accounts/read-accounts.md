@@ -21,7 +21,7 @@ const data = await sdk.readAccounts({
 });
 ```
 
-Received [response](../types/Types.ReadAccountsResponse.html) should be something like:
+Received {@link Types.ReadAccountsResponse | response} should be something like:
 
 ```
 {

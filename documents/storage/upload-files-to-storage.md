@@ -37,7 +37,7 @@ const storage = await sdk.uploadFileToStorage({
 
 ```
 
-For more details on what options can be passed please check type [UploadFileToStorageOptions](../interfaces/Types.UploadFileToStorageOptions.html)
+For more details on what options can be passed please check type {@link Types.UploadFileToStorageOptions | UploadFileToStorageOptions}
 
 This method will upload file to storage and return:
 
@@ -50,4 +50,4 @@ This method will upload file to storage and return:
 
 ```
 
-Return type can be found [here](../interfaces/Types.UploadFileToStorageResponse.html).
+Return type can be found {@link Types.UploadFileToStorageResponse | here}.

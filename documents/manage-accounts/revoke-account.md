@@ -37,7 +37,7 @@ const { location } = await sdk.getRevokeAccountPermissionUrl({
 
 Account IDs can be used from the list of all user accounts that can be fetched using [readAccounts](read-accounts.md).
 
-Click [here](../interfaces/Types.GetRevokeAccountPermissionUrlResponse.html) to check response that will be returned from `getRevokeAccountPermissionUrl` call.
+Click {@link Types.GetRevokeAccountPermissionUrlResponse | here} to check response that will be returned from `getRevokeAccountPermissionUrl` call.
 
 Redirect the user to `location` returned in above response and they will have the possibility to adjust consent and withdraw it.
 

@@ -8,7 +8,7 @@ The type of FileMetadata that is returned depends on the type of data it is.
 
 ### MappedFileMetadata
 
-When reading data that was sync'd from an external service, data returned will be of type [MappedFileMetadata](../interfaces/Types.MappedFileMetadata.html).
+When reading data that was sync'd from an external service, data returned will be of type {@link Types.MappedFileMetadata | MappedFileMetadata}.
 
 ```
 interface MappedFileMetadata {
@@ -38,7 +38,7 @@ interface FileDataSchema {
 
 ### RawFileMetadata
 
-If it is a file that you wrote to the user, it will be of type [RawFileMetadata](../interfaces/Types.RawFileMetadata.html).
+If it is a file that you wrote to the user, it will be of type {@link Types.RawFileMetadata | RawFileMetadata}.
 
 ```
 interface RawFileMetadata {

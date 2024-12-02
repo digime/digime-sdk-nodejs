@@ -4,15 +4,9 @@ title: Query Categories
 
 # Query Categories
 
-#### Configuration Options
+If you need category list or you need to filter sources by categories this is an example on how you can get it and pass it to `querySources` method.
 
-See all possible [configurations](../interfaces/Types.SDKConfiguration.html) when initializing the SDK.
-
-#### Returns
-
-The [available categories](../interfaces/Types.QueryCategoriesResponse.html).
-
-#### Examples
+## Examples and Usage
 
 The most basic initialization:
 
@@ -49,4 +43,8 @@ const categories = await sdk.queryCategories({
 
 ```
 
-More details on `categoriesBodyParams` can be checked [here](../interfaces/Types.QueryCategoriesOptions.html#categoriesbodyparams)
+More details on `categoriesBodyParams` can be checked {@link Types.QueryCategoriesOptions | here}.
+
+## Returns
+
+The {@link Types.QueryCategoriesResponse | available categories}.

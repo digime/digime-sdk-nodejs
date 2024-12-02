@@ -33,7 +33,7 @@ const storage = await sdk.downloadStorageFile({
 
 ```
 
-For more details on what options can be passed please check type [DownloadStorageFileOptions](../interfaces/Types.DownloadStorageFileOptions.html)
+For more details on what options can be passed please check {@link Types.DownloadStorageFileOptions | DownloadStorageFileOptions}
 
 This method will return:
 
@@ -44,4 +44,4 @@ This method will return:
     }
 ```
 
-Please check return type [DownloadStorageFileResponse](../interfaces/Types.DownloadStorageFileResponse.html) for more details on what is returned.
+Please check return type {@link Types.DownloadStorageFileResponse | DownloadStorageFileResponse} for more details on what is returned.

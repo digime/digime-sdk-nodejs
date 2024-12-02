@@ -35,6 +35,6 @@ const storage = await sdk.listStorageFiles({
 
 ```
 
-For more details on what options can be passed please check type [ListStorageFilesOptions](../interfaces/Types.ListStorageFilesOptions.html)
+For more details on what options can be passed please check {@link Types.ListStorageFilesOptions | ListStorageFilesOptions}
 
-This method will return list of files and total number of files. Please check return type [ListStorageFilesResponse](../interfaces/Types.ListStorageFilesResponse.html) for more details on what is returned.
+This method will return list of files and total number of files. Please check return type {@link Types.ListStorageFilesResponse | ListStorageFilesResponse} for more details on what is returned.

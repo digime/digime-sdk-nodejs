@@ -45,9 +45,9 @@ const result = await sdk.getReauthorizeUrl({
 // Calling the url returned will trigger the reauthorization process.
 ```
 
-More details on types that can be passed into getReauthorizeUrl please check [here](../interfaces/Types.GetReauthorizeUrlOptions.html).
+More details on types that can be passed into getReauthorizeUrl please check {@link Types.GetReauthorizeUrlOptions | here}.
 
-The [result](../interfaces/Types.GetReauthorizeUrlResponse.html) returned will include a `url`, `codeVerifier` and `session`.
+The {@link Types.GetReauthorizeUrlResponse | result} returned will include a `url`, `codeVerifier` and `session`.
 Store the `codeVerifier` against this user as this will be required for later.
 
 Store `session` as well for getting data after reauthorization process is done.

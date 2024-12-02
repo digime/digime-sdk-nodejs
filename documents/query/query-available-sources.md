@@ -7,15 +7,7 @@ title: Query Available Sources
 The SDK Provides a function which you can use to determine what sources can be onboarded for your contract.
 The Contract you pass in must be a READ contract, which means it's a contract that asks for user's data.
 
-#### Configuration Options
-
-See all possible [configurations](../interfaces/Types.SDKConfiguration.html) when initializing the SDK.
-
-#### Returns
-
-The [available sources](../interfaces/Types.QuerySourcesResponse.html).
-
-#### Examples
+## Examples and Usage
 
 The most basic initialization:
 
@@ -85,4 +77,8 @@ const sources = await sdk.querySources({
 
 ```
 
-More on `sourcesBodyParams` can be checked [here](../interfaces/Types._internal_.SourcesBodyParams.html).
+More on `sourcesBodyParams` can be checked {@link Types.QuerySourcesOptions | here}.
+
+## Returns
+
+The {@link Types.QuerySourcesResponse | available sources}.

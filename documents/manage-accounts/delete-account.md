@@ -30,4 +30,4 @@ const { deleted } = await sdk.deleteAccount({
 
 Account IDs can be used from the list of all user accounts that can be fetched using [readAccounts](read-accounts.md).
 
-Click [here](../interfaces/Types.DeleteAccountResponse.html) to check response that will be returned from deleteAccount call.
+Click {@link Types.DeleteAccountResponse | here} to check response that will be returned from deleteAccount call.
