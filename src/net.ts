@@ -41,6 +41,7 @@ export const handleServerResponse = (error: unknown): void => {
     let reference: string | undefined = undefined;
 
     if (isString(body.error) || isString(body.message)) {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         code = body.error?.toString();
         message = body.message?.toString();
     } else {
