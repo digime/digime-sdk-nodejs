@@ -47,6 +47,7 @@ import {
     GetUserStorageOptions,
 } from "./storage";
 import { GetReauthorizeUrlOptions, GetReauthorizeUrlResponse } from "./get-reauthorize-url";
+import { GetContractDetailsOptions, GetContractDetailsResponse } from "./get-contract-details";
 
 export interface DigimeSDK {
     /**
@@ -247,4 +248,10 @@ export interface DigimeSDK {
      * @category Storage
      */
     getUserStorage: (props: GetUserStorageOptions) => Promise<GetUserStorageResponse>;
+
+    /** Get contract details
+     *
+     * @category Authorization
+     */
+    getContractDetails: (props: GetContractDetailsOptions) => Promise<GetContractDetailsResponse>;
 }
