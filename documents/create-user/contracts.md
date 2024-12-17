@@ -28,3 +28,23 @@ These are contracts that allow you to push data in to a user's library.
 ## Read Raw Contracts
 
 If you have written something to the user, then you can use a read raw contract to request this data back out.
+
+## Contract Details
+
+Currently, we provide the option to get contract details. If you want to get your contract details you need to call the following method:
+
+```typescript
+// Initialize the SDK
+import {init} from "@digime/digime-sdk-nodejs";
+
+const sdk = init({ applicationId: <you-application-id> });
+
+// contractDetails - The same one used in getAuthorizeUrl() where you have contract ID and private key.
+const report = await sdk.getContractDetails({
+    contractDetails,
+});
+
+//.
+```
+
+Please click {@link Types.GetContractDetailsResponse | here} to check the response.
