@@ -46,6 +46,7 @@ import {
 } from "./storage";
 import type { RetryOptions } from "./types/retry-options";
 import { getReauthorizeUrl, GetReauthorizeUrlOptions } from "./get-reauthorize-url";
+import { getContractDetails, GetContractDetailsOptions } from "./get-contract-details";
 
 const CLOUD_BASE_URL = "https://cloud.digi.me/v1/";
 const DEFAULT_BASE_URL = "https://api.digi.me/v1.7/";
@@ -106,6 +107,7 @@ const init = (config: SDKConfiguration): DigimeSDK => {
         deleteStorageFiles: (props: DeleteStorageFilesOptions) => deleteStorageFiles(props, sdkConfig),
         uploadFileToStorage: (props: UploadFileToStorageOptions) => uploadFileToStorage(props, sdkConfig),
         getUserStorage: (props: GetUserStorageOptions) => getUserStorage(props, sdkConfig),
+        getContractDetails: (props: GetContractDetailsOptions) => getContractDetails(props, sdkConfig),
     };
 };
 
