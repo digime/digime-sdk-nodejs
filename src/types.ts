@@ -48,5 +48,6 @@ export {
     GetUserStorageOptions,
     GetUserStorageResponse,
 } from "./storage";
+export { GetContractDetailsOptions, GetContractDetailsResponse } from "./get-contract-details";
 
 export * from "./codecs";
