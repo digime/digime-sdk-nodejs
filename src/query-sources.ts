@@ -198,6 +198,8 @@ export interface SourcesBodyParams extends Record<string, unknown> {
                 id: number[];
             };
             sourceId?: number;
+            reference?: string[];
+            alias?: string[];
         };
     };
 }
