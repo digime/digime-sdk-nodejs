@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2024 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
+ * © World Data Exchange. All rights reserved.
  */
 
 import { TypeValidationError } from "./errors";

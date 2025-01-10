@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009-2024 World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.
+ * © World Data Exchange. All rights reserved.
  */
 
 import tseslint from "typescript-eslint";
@@ -34,11 +34,7 @@ export default [
                 {
                     source: "string",
                     blockPrefix: "!\n",
-                    content:
-                        "Copyright (c) 2009-{year} World Data Exchange Holdings Pty Limited (WDXH). All rights reserved.",
-                    variables: {
-                        year: String(2024),
-                    },
+                    content: "© World Data Exchange. All rights reserved.",
                 },
             ],
             "@typescript-eslint/no-unsafe-assignment": "off",
