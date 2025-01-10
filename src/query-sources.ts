@@ -114,12 +114,86 @@ const SourcesSortCodec: t.Type<SourcesSort> = t.type({
     name: t.union([t.literal("asc"), t.literal("desc")]),
 });
 
-export interface SourcesSearch {
-    name: string[];
+export interface SourcesSearch extends Record<string, unknown> {
+    name?: string[];
+    abbreviation?: string[];
+    alias?: string[];
+    medicalCenter?: string[];
+    practitioner?: string[];
 }
 
-const SourcesSearchCodec: t.Type<SourcesSearch> = t.type({
+const SourcesSearchCodec: t.Type<SourcesSearch> = t.partial({
     name: t.array(t.string),
+    abbreviation: t.array(t.string),
+    alias: t.array(t.string),
+    medicalCenter: t.array(t.string),
+    practitioner: t.array(t.string),
+});
+
+export interface SourcesFilter extends Record<string, unknown> {
+    id?: number[];
+    publishedStatus?: PublishedStatus[];
+    service?: {
+        id: number[];
+    };
+    /**
+     * Available countries with IDs can be fetched with queryCountries option.
+     */
+    country?: {
+        id: number[];
+    };
+    /**
+     * Available categories with IDs can be fetched with queryCategories option.
+     */
+    category?: {
+        id: number[];
+    };
+    /**
+     * Available platforms with IDs can be fetched with queryPlatforms option.
+     */
+    platform?: {
+        id: number[];
+    };
+    /**
+     * Possible types are pull (1) and push (2). Default is pull - [1].
+     */
+    type?: {
+        id: number[];
+    };
+    sourceId?: number;
+    reference?: string[];
+    alias?: string[];
+}
+
+const SourcesFilterCodec: t.Type<SourcesFilter> = t.partial({
+    id: t.array(t.number),
+    publishedStatus: t.array(
+        t.union([
+            t.literal("approved"),
+            t.literal("pending"),
+            t.literal("deprecated"),
+            t.literal("blocked"),
+            t.literal("sampledataonly"),
+        ])
+    ),
+    service: t.type({
+        id: t.array(t.number),
+    }),
+    country: t.type({
+        id: t.array(t.number),
+    }),
+    category: t.type({
+        id: t.array(t.number),
+    }),
+    platform: t.type({
+        id: t.array(t.number),
+    }),
+    type: t.type({
+        id: t.array(t.number),
+    }),
+    sourceId: t.number,
+    reference: t.array(t.string),
+    alias: t.array(t.string),
 });
 
 export type IncludeFieldList =
@@ -166,41 +240,12 @@ export interface SourcesBodyParams extends Record<string, unknown> {
     sort?: SourcesSort;
     query?: {
         search?: SourcesSearch;
+        /**
+         * Query string as in user text search
+         */
+        queryString?: string;
         include?: LiteralUnion<IncludeFieldList, string>[];
-        filter?: {
-            id?: number[];
-            publishedStatus?: PublishedStatus[];
-            service?: {
-                id: number[];
-            };
-            /**
-             * Available countries with IDs can be fetched with queryCountries option.
-             */
-            country?: {
-                id: number[];
-            };
-            /**
-             * Available categories with IDs can be fetched with queryCategories option.
-             */
-            category?: {
-                id: number[];
-            };
-            /**
-             * Available platforms with IDs can be fetched with queryPlatforms option.
-             */
-            platform?: {
-                id: number[];
-            };
-            /**
-             * Possible types are pull (1) and push (2). Default is pull - [1].
-             */
-            type?: {
-                id: number[];
-            };
-            sourceId?: number;
-            reference?: string[];
-            alias?: string[];
-        };
+        filter?: SourcesFilter;
     };
 }
 
@@ -210,7 +255,9 @@ const SourcesBodyParamsCodec: t.Type<SourcesBodyParams> = t.partial({
     sort: SourcesSortCodec,
     query: t.partial({
         search: SourcesSearchCodec,
+        queryString: t.string,
         include: t.array(t.string),
+        filter: SourcesFilterCodec,
     }),
 });
 
