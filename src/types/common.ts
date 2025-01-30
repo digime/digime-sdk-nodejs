@@ -231,13 +231,74 @@ export const DataTypeCodec: t.Type<DataType> = t.keyof({
     "integral-birth-care-process": null,
 });
 
+export const availableOrganizationTypes = [
+    "general-practitioner",
+    "health-center",
+    "hospital",
+    "private-treatment-center",
+    "specialist-centre",
+    "radiotherapy-center",
+    "dialysis-center",
+    "obstetrics-and-maternity-care",
+    "mental-health-care",
+    "youth-health-care",
+    "psychology-and-psychotherapy",
+    "nursing-and-care-homes-and-home-care",
+    "disability-care",
+    "mentally-disabled-care",
+    "daycare-centers",
+    "rehabilitation-center",
+    "pharmacy",
+    "audiological-center",
+    "medical-aids",
+    "physiotherapy",
+    "protected-and-supported-living",
+    "dentist",
+    "ambulance",
+    "health-insurers",
+] as const;
+
+export type OrganizationType = (typeof availableOrganizationTypes)[number];
+
+export const OrganizationTypeCodec: t.Type<OrganizationType> = t.keyof({
+    "general-practitioner": null,
+    "health-center": null,
+    hospital: null,
+    "private-treatment-center": null,
+    "specialist-centre": null,
+    "radiotherapy-center": null,
+    "dialysis-center": null,
+    "obstetrics-and-maternity-care": null,
+    "mental-health-care": null,
+    "youth-health-care": null,
+    "psychology-and-psychotherapy": null,
+    "nursing-and-care-homes-and-home-care": null,
+    "disability-care": null,
+    "mentally-disabled-care": null,
+    "daycare-centers": null,
+    "rehabilitation-center": null,
+    pharmacy: null,
+    "audiological-center": null,
+    "medical-aids": null,
+    physiotherapy: null,
+    "protected-and-supported-living": null,
+    dentist: null,
+    ambulance: null,
+    "health-insurers": null,
+});
+
 export interface SourcesScope {
     /**
-     * Data type to be filter sources by
+     * Data type to filter sources by
      */
     dataType?: DataType[];
+    /**
+     * Organization type to filter sources by
+     */
+    organizationType?: OrganizationType;
 }
 
 export const SourcesScopeCodec: t.Type<SourcesScope> = t.partial({
     dataType: t.array(DataTypeCodec),
+    organizationType: OrganizationTypeCodec,
 });
