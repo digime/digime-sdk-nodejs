@@ -2,4 +2,4 @@
  * © World Data Exchange. All rights reserved.
  */
 
-export default "16.1.3-rc.1";
+export default "16.1.3-rc.2";
