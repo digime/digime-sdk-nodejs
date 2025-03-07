@@ -33,7 +33,7 @@ const deleteAccount = async (
     try {
         const response = await net.delete(url, {
             headers: {
-                contentType: "application/json",
+                "Content-Type": "application/json",
                 accountId,
             },
             retry: sdkConfig.retryOptions,

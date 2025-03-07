@@ -120,7 +120,7 @@ const _pushToLibrary = async (
 
     await net.post(requestPath.valueOf(), {
         headers: {
-            contentType: "application/octet-stream",
+            "Content-Type": "application/octet-stream",
             FileDescriptor: fileDescriptor,
         },
         body: fileData,
@@ -182,7 +182,7 @@ const _pushToProvider = async (
 
     await net.post(requestPath.valueOf(), {
         headers: {
-            contentType: "application/json",
+            "Content-Type": "application/json",
             accountId,
         },
         json: data,
