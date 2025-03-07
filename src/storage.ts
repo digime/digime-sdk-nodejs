@@ -560,7 +560,7 @@ const uploadFileToStorage = async (
             `${String(sdkConfig.cloudBaseUrl)}clouds/${storageId}/files/apps/${sdkConfig.applicationId}${fullPath}`,
             {
                 headers: {
-                    contentType: "application/octet-stream",
+                    "Content-Type": "application/octet-stream",
                 },
                 responseType: "json",
                 body: file.pipe(encryptStream),
