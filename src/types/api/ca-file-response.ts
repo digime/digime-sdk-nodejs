@@ -5,11 +5,12 @@
 import * as t from "io-ts";
 import { codecAssertion, CodecAssertion } from "../../utils/codec-assertion";
 
-export type Schemas = "digime" | "fhir";
+export type Schemas = "digime" | "fhir" | "me.digi";
 
 const SchemasCodec: t.Type<Schemas> = t.keyof({
     digime: null,
     fhir: null,
+    "me.digi": null,
 });
 
 export interface FileDataSchema {
