@@ -19,7 +19,7 @@ interface MappedFileMetadata {
     schema: FileDataSchema;
 }
 
-type Schemas = "digime" | "fhir";
+type Schemas = "digime" | "fhir" | "me.digi";
 
 interface FileDataSchema {
     id?: string;
