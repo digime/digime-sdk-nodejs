@@ -36,11 +36,11 @@ $ npm i @digime/digime-sdk-nodejs
 
 ## Example Application
 
-You can check out an [example application](https://github.com/digime/digime-sdk-nodejs-example) which uses the digi.me SDK.
+You can check out an [example application](https://github.com/worlddataexchange/digime-sdk-nodejs-example) which uses the digi.me SDK.
 
 ## Getting Started
 
-Please check out the [getting started guide](https://digime.github.io/digime-sdk-nodejs/documents/Quick_Start_Guides.Getting_Started.html) to start using digi.me.
+Please check out the [getting started guide](https://worlddataexchange.github.io/digime-sdk-nodejs/documents/Quick_Start_Guides.Getting_Started.html) to start using digi.me.
 
 ## Contributions
 
@@ -50,6 +50,6 @@ We ask that when contributing, you ensure your changes meet our [contribution gu
 
 ## Further Reading
 
-The topics discussed under Quick Start are just a small part of the power digi.me Private Sharing gives to data consumers such as yourself. We highly encourage you to explore the [full API documentation](https://digime.github.io/digime-sdk-nodejs/documents/Quick_Start_Guides.Getting_Started.html) for more in-depth examples and guides, as well as troubleshooting advice and showcases of the capabilities on offer.
+The topics discussed under Quick Start are just a small part of the power digi.me Private Sharing gives to data consumers such as yourself. We highly encourage you to explore the [full API documentation](https://worlddataexchange.github.io/digime-sdk-nodejs/documents/Quick_Start_Guides.Getting_Started.html) for more in-depth examples and guides, as well as troubleshooting advice and showcases of the capabilities on offer.
 
-Additionally, there are a number of [example apps](https://github.com/digime/digime-sdk-nodejs-example) built on digi.me. Feel free to have a look at those to get an insight into the power of Private Sharing.
+Additionally, there are a number of [example apps](https://github.com/worlddataexchange/digime-sdk-nodejs-example) built on digi.me. Feel free to have a look at those to get an insight into the power of Private Sharing.
