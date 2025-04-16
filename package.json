@@ -20,14 +20,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/digime/digime-sdk-nodejs.git"
+        "url": "git+https://github.com/worlddataexchange/digime-sdk-nodejs.git"
     },
     "author": "digi.me Limited",
     "license": "Apache-2.0",
     "bugs": {
-        "url": "https://github.com/digime/digime-sdk-nodejs/issues"
+        "url": "https://github.com/worlddataexchange/digime-sdk-nodejs/issues"
     },
-    "homepage": "https://github.com/digime/digime-sdk-nodejs#readme",
+    "homepage": "https://github.com/worlddataexchange/digime-sdk-nodejs#readme",
     "devDependencies": {
         "@eslint/js": "~9.24.0",
         "@types/jest": "~29.5.14",
