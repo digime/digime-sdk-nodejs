@@ -61,4 +61,4 @@ When decrypting files from digi.me, if an incorrect private key is provided, `Fi
 
 ## Further Issues
 
-If, after reading this section, your issue persists, please contact digi.me developer support. You can find FAQs and create a support ticket by visiting [digi.me support](http://digi.me/support). Alternatively you can email dev support by sending an email to support@digi.me
+If, after reading this section, your issue persists, please contact digi.me developer support. You can find FAQs and create a support ticket by visiting [digi.me support](http://digi.me/support). Alternatively you can email dev support by sending an email to support@worlddataexchange.com

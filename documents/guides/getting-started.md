@@ -19,7 +19,7 @@ $ npm i @digime/digime-sdk-nodejs
 
 ## Obtaining your Contract ID, Application ID & Private Key
 
-To user the SDK, you need to obtain an AppID for your application. You can get yours by filling out the registration form [here](https://worlddataexchange.com/register). However, for demo purposes, we provide example values. You can find these example keys in our [example application](https://github.com/digime/digime-sdk-nodejs-example).
+To user the SDK, you need to obtain an AppID for your application. You can get yours by filling out the registration form [here](https://worlddataexchange.com/register). However, for demo purposes, we provide example values. You can find these example keys in our [example application](https://github.com/worlddataexchange/digime-sdk-nodejs-example).
 
 ## Initializing the SDK
 
