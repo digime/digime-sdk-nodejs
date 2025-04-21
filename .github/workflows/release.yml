@@ -44,4 +44,4 @@ jobs:
           PUBLISH_TAG: ${{ inputs.publish_tag }}
           RELEASE: ${{ inputs.release }}
           CUSTOM_PUBLISH_TAG_OVERRIDE: ${{ inputs.custom_publish_tag_override }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_DIGIME_PUBLIC_WRITE_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPMJS_DIGIME_PUBLIC_WRITE_TOKEN }}
