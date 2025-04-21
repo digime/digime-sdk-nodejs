@@ -11,7 +11,7 @@ import { ServerError, TypeValidationError } from "./errors";
 import { ReadSessionResponse } from "./read-session";
 import { ContractDetails } from "./types/common";
 import { sign } from "jsonwebtoken";
-import isEqual from "lodash.isequal";
+import { isDeepStrictEqual } from "node:util";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -194,7 +194,7 @@ describe.each<[string, ReturnType<typeof SDK.init>, string]>([
             const scope = nock(new URL(baseUrl).origin)
                 .post(`${new URL(baseUrl).pathname}permission-access/trigger`, (body) =>
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                    isEqual({ extra: body.extra }, optionsWithExtras)
+                    isDeepStrictEqual({ extra: body.extra }, optionsWithExtras)
                 )
                 .reply(202, {
                     session,

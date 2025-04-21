@@ -12,7 +12,7 @@ To get a list of available datasets, you need to trigger:
 
 ```typescript
 // Initialize the SDK
-import {init} from "@digime/digime-sdk-nodejs";
+import {init} from "@worlddataexchange/digime-sdk-nodejs";
 
 const sdk = init({ applicationId: <you-application-id> });
 

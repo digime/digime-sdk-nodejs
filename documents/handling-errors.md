@@ -11,7 +11,7 @@ By default, the SDK retries calls twice before giving up. This behavior can be c
 These are errors thrown by our API. They will be returned as `ServerError`, containing an error object that specifies the details of the error.
 
 ```
-import { ServerError } from "@digime/digime-sdk-nodejs";
+import { ServerError } from "@worlddataexchange/digime-sdk-nodejs";
 
 // ... init the sdk
 

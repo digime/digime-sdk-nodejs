@@ -4,7 +4,6 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import crypto from "node:crypto";
-import isPlainObject from "lodash.isplainobject";
 import get from "lodash.get";
 import nock from "nock";
 import type { Interceptor, ReplyHeaders } from "nock";
@@ -15,6 +14,7 @@ import base64url from "base64url";
 import { verify } from "jsonwebtoken";
 import http, { RequestListener } from "node:http";
 import { Readable } from "node:stream";
+import { isPlainObject } from "../src/utils/basic-utils";
 
 interface CreateCADataOptions {
     compression?: "no-compression" | "brotli" | "gzip";
