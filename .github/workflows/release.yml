@@ -22,7 +22,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20.19.0'
-          registry-url: 'https://www.npmjs.com'
       - run: npm ci
       - run: npm run build
       - run: npm run lint
