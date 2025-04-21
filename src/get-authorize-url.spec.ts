@@ -17,7 +17,7 @@ import { ContractDetails } from "./types/common";
 import { GetAuthorizeUrlResponse } from "./get-authorize-url";
 import { sign } from "jsonwebtoken";
 import { HTTPError } from "got/dist/source";
-import isEqual from "lodash.isequal";
+import { isDeepStrictEqual } from "node:util";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -382,8 +382,10 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                 };
 
                 nock(new URL(baseUrl).origin)
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                    .post(`${new URL(baseUrl).pathname}oauth/authorize`, (body) => isEqual(body.actions, actionsToSend))
+                    .post(`${new URL(baseUrl).pathname}oauth/authorize`, (body) =>
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                        isDeepStrictEqual(body.actions, actionsToSend)
+                    )
                     .reply(201, {
                         token: jwt,
                     })
@@ -451,8 +453,10 @@ describe.each<[string, ReturnType<typeof init>, string, string]>([
                 };
 
                 nock(new URL(baseUrl).origin)
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-                    .post(`${new URL(baseUrl).pathname}oauth/authorize`, (body) => isEqual(body.actions, actionsToSend))
+                    .post(`${new URL(baseUrl).pathname}oauth/authorize`, (body) =>
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                        isDeepStrictEqual(body.actions, actionsToSend)
+                    )
                     .reply(201, {
                         token: jwt,
                     })

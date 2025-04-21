@@ -23,7 +23,7 @@ _If you already have a user access token for this user from another contract, yo
 Begin the process by obtaining the authorization URL by calling `getAuthorizeUrl`:
 
 ```typescript
-import { init } from "@digime/digime-sdk-nodejs";
+import { init } from "@worlddataexchange/digime-sdk-nodejs";
 
 const sdk = init({ applicationId });
 
