@@ -26,7 +26,7 @@ To user the SDK, you need to obtain an AppID for your application. You can get y
 Once you have the above information, you can initiate the SDK.
 
 ```typescript
-import { init } from "@digime/digime-sdk-nodejs";
+import { init } from "@worlddataexchange/digime-sdk-nodejs";
 
 const digimeSDK = init({ applicationId: <my-unique-application-id> });
 ```

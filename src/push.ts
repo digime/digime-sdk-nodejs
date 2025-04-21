@@ -14,7 +14,7 @@ import * as t from "io-ts";
 import urijs from "urijs";
 import { Readable } from "node:stream";
 import { refreshTokenWrapper } from "./utils/refresh-token-wrapper";
-import isFunction from "lodash.isfunction";
+import { isFunction } from "./utils/basic-utils";
 
 type AccessTokenChangeHandler = (response: UserAccessToken) => void;
 

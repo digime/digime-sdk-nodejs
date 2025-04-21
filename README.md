@@ -28,7 +28,7 @@ This SDK is a server side Node library that allows seamless authentication with 
 Using npm:
 
 ```shell
-$ npm i @digime/digime-sdk-nodejs
+$ npm i @worlddataexchange/digime-sdk-nodejs
 ```
 
 ## Example Application

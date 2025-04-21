@@ -30,7 +30,7 @@ To trigger account reauthorization, you need to do the following:
 
 ```typescript
 // Initialize the SDK
-import { init } from "@digime/digime-sdk-nodejs";
+import { init } from "@worlddataexchange/digime-sdk-nodejs";
 
 const sdk = init({ applicationId: <you-application-id> });
 

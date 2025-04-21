@@ -4,9 +4,8 @@
 
 import { decode, Secret, verify } from "jsonwebtoken";
 import { DigiMeSDKError, TypeValidationError } from "../errors";
-import { isPlainObject } from "./basic-utils";
+import { isPlainObject, isString } from "./basic-utils";
 import { handleServerResponse, net } from "../net";
-import isString from "lodash.isstring";
 import { isJWKS } from "../types/api/jwks";
 import { SDKConfiguration } from "../types/sdk-configuration";
 
