@@ -23,8 +23,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20.19.0'
-          registry-url: 'https://www.npmjs.com'
-          scope: '@worlddataexchange'
       - run: npm ci
       - run: npm run build
       - run: npm run lint
@@ -38,6 +36,8 @@ jobs:
 
           if [ "${RELEASE}" == "true" ]; then
             echo "Release"
+
+            npm config set //registry.npmjs.org/:_authToken "${NPMJS_DIGIME_PUBLIC_WRITE_TOKEN}" 
             npm publish --registry=https://registry.npmjs.org/ --access public --tag ${PUBLISH_TAG}
           else
             echo "Release Dry Run"
@@ -47,4 +47,4 @@ jobs:
           PUBLISH_TAG: ${{ inputs.publish_tag }}
           RELEASE: ${{ inputs.release }}
           CUSTOM_PUBLISH_TAG_OVERRIDE: ${{ inputs.custom_publish_tag_override }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_DIGIME_PUBLIC_WRITE_TOKEN }}
+          NPMJS_DIGIME_PUBLIC_WRITE_TOKEN: ${{ secrets.NPMJS_DIGIME_PUBLIC_WRITE_TOKEN }}
