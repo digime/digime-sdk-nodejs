@@ -1,0 +1,50 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_tag:
+        type: choice
+        description: Select Tag
+        options:
+        - unstable
+        - latest
+        - next
+      custom_publish_tag_override:
+      release:
+        type: boolean
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.0'
+          registry-url: 'https://www.npmjs.com'
+          scope: '@worlddataexchange'
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint
+      - run: npm run test
+      - run: |
+          if [ "${CUSTOM_PUBLISH_TAG_OVERRIDE}" != "" ]; then
+            PUBLISH_TAG=${CUSTOM_PUBLISH_TAG_OVERRIDE}
+          fi
+
+          echo "Publish Tag: ${PUBLISH_TAG}"
+
+          if [ "${RELEASE}" == "true" ]; then
+            echo "Release"
+            npm publish --registry=https://registry.npmjs.org/ --access public --tag ${PUBLISH_TAG}
+          else
+            echo "Release Dry Run"
+            npm publish --dry-run --registry=https://registry.npmjs.org/ --access public --tag ${PUBLISH_TAG}
+          fi
+        env:
+          PUBLISH_TAG: ${{ inputs.publish_tag }}
+          RELEASE: ${{ inputs.release }}
+          CUSTOM_PUBLISH_TAG_OVERRIDE: ${{ inputs.custom_publish_tag_override }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_DIGIME_PUBLIC_WRITE_TOKEN }}
