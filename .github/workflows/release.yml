@@ -24,7 +24,6 @@ jobs:
         with:
           node-version: '20.19.0'
           registry-url: 'https://www.npmjs.com'
-          scope: '@worlddataexchange'
       - run: npm ci
       - run: npm run build
       - run: npm run lint
