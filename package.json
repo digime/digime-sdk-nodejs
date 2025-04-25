@@ -1,6 +1,6 @@
 {
     "name": "@worlddataexchange/digime-sdk-nodejs",
-    "version": "16.1.5",
+    "version": "17.0.0-rc.5",
     "description": "Node.JS SDK for digi.me",
     "main": "dist/main/index.js",
     "types": "dist/main/index.d.ts",
@@ -33,7 +33,7 @@
         "@types/jest": "~29.5.14",
         "@types/jsonwebtoken": "~9.0.9",
         "@types/lodash.get": "~4.4.9",
-        "@types/node": "~20.17.30",
+        "@types/node": "~22.15.2",
         "@types/sprintf-js": "~1.1.4",
         "eslint": "~9.25.1",
         "eslint-config-prettier": "~10.1.2",
