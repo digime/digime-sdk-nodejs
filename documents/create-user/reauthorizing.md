@@ -15,7 +15,7 @@ If you are getting error `The token (refresh_token) is expired` you will need to
 ## Getting a authorization URL and a code verifier
 
 ```typescript
-import {init} from "@digime/digime-sdk-nodejs";
+import {init} from "@worlddataexchange/digime-sdk-nodejs";
 
 const sdk = init({ applicationId: <you-application-id> });
 

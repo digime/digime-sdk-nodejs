@@ -6,7 +6,7 @@ import got, { HTTPError } from "got";
 import type { Got } from "got";
 import { ServerError, SDKInvalidError } from "./errors";
 import { isApiErrorResponse, isStorageApiErrorCodec } from "./types/api/api-error-response";
-import isString from "lodash.isstring";
+import { isString } from "./utils/basic-utils";
 
 export const net: Got = got;
 

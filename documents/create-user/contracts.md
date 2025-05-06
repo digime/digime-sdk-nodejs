@@ -35,7 +35,7 @@ Currently, we provide the option to get contract details. If you want to get you
 
 ```typescript
 // Initialize the SDK
-import {init} from "@digime/digime-sdk-nodejs";
+import {init} from "@worlddataexchange/digime-sdk-nodejs";
 
 const sdk = init({ applicationId: <you-application-id> });
 

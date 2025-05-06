@@ -3,10 +3,9 @@
  */
 
 import { TypeValidationError } from "./errors";
-import { isNonEmptyString } from "./utils/basic-utils";
+import { isFunction, isNonEmptyString } from "./utils/basic-utils";
 import { CAFileListEntry, CAFileListResponse, LibrarySyncStatus } from "./types/api/ca-file-list-response";
 import get from "lodash.get";
-import isFunction from "lodash.isfunction";
 import { sleep } from "./utils/sleep";
 import NodeRSA from "node-rsa";
 import { readFile, ReadFileResponse } from "./read-file";

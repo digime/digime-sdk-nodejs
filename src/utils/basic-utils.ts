@@ -2,8 +2,13 @@
  * © World Data Exchange. All rights reserved.
  */
 
-import isPlainObjectLodash from "lodash.isplainobject";
-import isString from "lodash.isstring";
+export const isString = (value: unknown): value is string => {
+    return typeof value === "string";
+};
+
+export const isFunction = (value: unknown): value is (...args: unknown[]) => unknown => {
+    return typeof value === "function";
+};
 
 export const isNonEmptyString = (o: unknown): o is string => isString(o) && o.length > 0;
 
@@ -11,7 +16,14 @@ export const areNonEmptyStrings = (o: unknown[]): o is string[] => o.every((valu
 
 export const isNumber = (o: unknown): o is number => typeof o === "number";
 
-export const isPlainObject = (o: unknown): o is { [key: string]: unknown } => isPlainObjectLodash(o);
+const isPlainObjectCheck = (value: unknown): value is Record<string, unknown> => {
+    if (Object.prototype.toString.call(value) !== "[object Object]") return false;
+
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === null || prototype === Object.prototype;
+};
+
+export const isPlainObject = (o: unknown): o is { [key: string]: unknown } => isPlainObjectCheck(o);
 
 export const addTrailingSlash = (url: unknown): string | undefined => {
     if (isNonEmptyString(url)) {

@@ -9,6 +9,9 @@ import {
     addLeadingAndTrailingSlash,
     areNonEmptyStrings,
     isNumber,
+    isFunction,
+    isString,
+    isPlainObject,
 } from "./basic-utils";
 
 describe("isNonEmptyString: Returns false when non empty string is passed", () => {
@@ -86,5 +89,73 @@ describe("isNumber", () => {
     it("should return false for non-number values", () => {
         expect(isNumber("123")).toBe(false);
         expect(isNumber(null)).toBe(false);
+    });
+});
+
+describe("isFunction", () => {
+    it("should return true for a regular function", () => {
+        expect(isFunction(() => {})).toBe(true);
+    });
+
+    it("should return true for a function with parameters", () => {
+        expect(isFunction((a: number, b: number) => a + b)).toBe(true);
+    });
+
+    it("should return false for a string", () => {
+        expect(isFunction("hello")).toBe(false);
+    });
+
+    it("should return false for a number", () => {
+        expect(isFunction(123)).toBe(false);
+    });
+
+    it("should return false for null", () => {
+        expect(isFunction(null)).toBe(false);
+    });
+
+    it("should return false for an object", () => {
+        expect(isFunction({})).toBe(false);
+    });
+
+    it("should return false for an array", () => {
+        expect(isFunction([])).toBe(false);
+    });
+});
+
+describe("isString", () => {
+    test.each([
+        ["regular string", "hello", true],
+        ["empty string", "", true],
+        ["string via String constructor", String("test"), true],
+        ["number", 42, false],
+        ["boolean", true, false],
+        ["null", null, false],
+        ["undefined", undefined, false],
+        ["object", {}, false],
+        ["array", [], false],
+        ["function", () => {}, false],
+    ])("should return %s -> %s", (_desc, input, expected) => {
+        expect(isString(input)).toBe(expected);
+    });
+});
+
+describe("isPlainObject", () => {
+    test.each([
+        ["empty object literal", {}, true],
+        ["object with properties", { a: 1, b: 2 }, true],
+        ["object created with Object.create(null)", Object.create(null), true],
+        ["array", [], false],
+        ["null", null, false],
+        ["Date instance", new Date(), false],
+        ["function", () => {}, false],
+        ["number", 123, false],
+        ["string", "test", false],
+        ["boolean", true, false],
+        ["Map instance", new Map(), false],
+        ["Set instance", new Set(), false],
+        // eslint-disable-next-line @typescript-eslint/no-extraneous-class
+        ["class instance", new (class A {})(), false],
+    ])("should return %s -> %s", (_desc, input, expected) => {
+        expect(isPlainObject(input)).toBe(expected);
     });
 });
